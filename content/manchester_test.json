@@ -1,0 +1,38 @@
+{
+  "version": "manchester_economy_0.1.0",
+  "historically_calibrated": false,
+  "location_id": "manchester",
+  "start_year": 1850,
+  "currency_unit": "test_credit",
+  "economy": {
+    "initial_index": 1000,
+    "minimum_index": 650,
+    "maximum_index": 1400,
+    "annual_drift": 100,
+    "food_initial_index": 1000,
+    "food_minimum_index": 800,
+    "food_maximum_index": 1700,
+    "food_annual_drift": 130,
+    "rent": 1100,
+    "adult_food": 1000,
+    "child_food": 600,
+    "adult_age": 16,
+    "essentials_per_person": 300,
+    "initial_savings": 800,
+    "credit_limit": 1800,
+    "debt_interest_basis_points": 200
+  },
+  "limits": {"max_years": 30, "max_consequences": 32},
+  "occupations": [
+    {"id": "dependent", "annual_income": 0, "minimum_age": 0},
+    {"id": "textile_worker", "annual_income": 3200, "minimum_age": 16},
+    {"id": "sewing_worker", "annual_income": 1800, "minimum_age": 16},
+    {"id": "child_factory_worker", "annual_income": 900, "minimum_age": 9}
+  ],
+  "actors": [
+    {"id": "player", "name": "William Thompson", "birth_year": 1850, "occupation_id": "dependent"},
+    {"id": "parent_1", "name": "Thomas Thompson", "birth_year": 1822, "occupation_id": "textile_worker"},
+    {"id": "parent_2", "name": "Mary Thompson", "birth_year": 1825, "occupation_id": "sewing_worker"}
+  ],
+  "player_id": "player"
+}
