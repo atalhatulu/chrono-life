@@ -8,7 +8,9 @@ const Health = preload("res://simulation/health_system.gd")
 const Career = preload("res://simulation/career_education_system.gd")
 const Responses = preload("res://simulation/household_response_system.gd")
 const Consequences = preload("res://simulation/consequence_engine.gd")
-const VERSION: String = "0.2.0-phase-0b"
+const Storylets = preload("res://simulation/storylet_engine.gd")
+const BotPolicy = preload("res://simulation/bot_policy.gd")
+const VERSION: String = "0.3.0-phase-0c"
 
 var pack: Dictionary
 var occupations: Dictionary
@@ -62,6 +64,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"savings": int(pack.economy.initial_savings), "debt": 0,
 			"expenses": 0, "food_security": 1000, "living_standard": "unassessed",
 			"pending_effects": [], "aid_uses": 0, "care_mode": "family", "guardian_id": ""},
+		"storylets": {"last_seen": {}, "flags": {}},
 		"ledgers": [], "history": [{"id": "%d:initial" % int(pack.start_year),
 			"year": int(pack.start_year), "kind": "household_created", "cause_id": "",
 			"details": {"location_id": pack.location_id, "member_ids": ids.duplicate()}}]
@@ -174,10 +177,14 @@ func validate_state(state: Dictionary) -> Array[String]:
 			errors.append("Unknown deferred effect actor/occupation")
 	if not state.ledgers.is_empty():
 		errors.append_array(Household.validate_ledger(state.ledgers.back()))
+	if state.has("storylets"):
+		if not state.storylets is Dictionary or not state.storylets.get("last_seen") is Dictionary or \
+				not state.storylets.get("flags") is Dictionary:
+			errors.append("Invalid storylet state structure")
 	return errors
 
 
-func step(state: Dictionary, commands: Array = []) -> Dictionary:
+func step_prepare(state: Dictionary, commands: Array = [], decision_override: Dictionary = {}) -> Dictionary:
 	var errors: Array[String] = validate_state(state)
 	if not errors.is_empty():
 		return {"ok": false, "errors": errors}
@@ -268,17 +275,69 @@ func step(state: Dictionary, commands: Array = []) -> Dictionary:
 	if ledger.food_security < 1000:
 		delta.record("food_insecurity", budget_event, {"food_security": ledger.food_security})
 	delta.candidate.ledgers.append(ledger)
+
+	var storylet: Dictionary = {}
 	if not delta.candidate.actors[state.meta.player_id].alive:
 		var end_event: String = delta.record("life_ended", budget_event, {"player_id": state.meta.player_id})
 		delta.set_field("meta", "status", "player_dead", end_event)
 		delta.set_field("household", "pending_effects", [], end_event)
 	else:
 		Responses.choose(delta, pack, occupations, ledger, budget_event)
-	errors = validate_state(delta.candidate)
+		if pack.systems.get("storylets", false):
+			for cand: Dictionary in pack.get("storylets", []):
+				if decision_override.has(cand.id) and Storylets.is_eligible(cand, delta.candidate):
+					storylet = cand
+					break
+			if storylet.is_empty():
+				storylet = Storylets.select_storylet(pack, delta.candidate, ledger, seed_value)
+
+	return {
+		"ok": true,
+		"delta": delta,
+		"storylet": storylet,
+		"budget_event": budget_event,
+		"year_event": year_event,
+		"consequences_count": consequences.count,
+		"year": year,
+		"seed_value": seed_value,
+		"ledger": ledger
+	}
+
+
+func step_resolve(prep: Dictionary, choice_id: String = "") -> Dictionary:
+	var delta = prep.delta
+	var storylet: Dictionary = prep.storylet
+	var budget_event: String = prep.budget_event
+	var year_event: String = prep.year_event
+	var year: int = prep.year
+	var seed_value: int = prep.seed_value
+
+	if not storylet.is_empty() and choice_id != "":
+		var st_event: String = delta.record("storylet_triggered", budget_event,
+			{"storylet_id": storylet.id, "title": storylet.title, "family": storylet.family})
+		var outcome: Dictionary = Storylets.apply_choice(delta, storylet, choice_id, st_event, seed_value)
+		delta.record("storylet_choice_made", st_event, outcome)
+	elif pack.systems.get("storylets", false) and delta.candidate.actors[delta.candidate.meta.player_id].alive:
+		delta.record("quiet_year", budget_event, {"year": year})
+
+	var errors: Array[String] = validate_state(delta.candidate)
 	if not errors.is_empty():
 		return {"ok": false, "errors": errors, "diagnostic_events": delta.events}
-	delta.record("year_committed", year_event, {"consequences_processed": consequences.count})
+	delta.record("year_committed", year_event, {"consequences_processed": prep.consequences_count})
 	return {"ok": true, "state": delta.finish(), "events": delta.events}
+
+
+func step(state: Dictionary, commands: Array = [], decision_override: Dictionary = {}, policy_name: String = "heuristic_v1") -> Dictionary:
+	var prep: Dictionary = step_prepare(state, commands, decision_override)
+	if not prep.ok:
+		return prep
+	var choice_id: String = ""
+	if not prep.storylet.is_empty():
+		if decision_override.has(prep.storylet.id):
+			choice_id = str(decision_override[prep.storylet.id])
+		else:
+			choice_id = BotPolicy.decide(prep.storylet, prep.delta.candidate, prep.ledger, prep.seed_value, prep.year, policy_name)
+	return step_resolve(prep, choice_id)
 
 
 func _validate_commands(state: Dictionary, commands: Array) -> Array[String]:
@@ -319,7 +378,7 @@ func _validate_commands(state: Dictionary, commands: Array) -> Array[String]:
 	return errors
 
 
-func simulate_years(seed_value: int, years: int, schedule: Dictionary = {}) -> Dictionary:
+func simulate_years(seed_value: int, years: int, schedule: Dictionary = {}, decisions: Dictionary = {}, policy_name: String = "heuristic_v1") -> Dictionary:
 	if years < 1 or years > int(pack.limits.max_years):
 		return {"ok": false, "errors": ["years must be in [1, %d]" % int(pack.limits.max_years)]}
 	for scheduled_year: Variant in schedule:
@@ -350,7 +409,9 @@ func simulate_years(seed_value: int, years: int, schedule: Dictionary = {}) -> D
 	for offset: int in range(years):
 		if state.meta.status == "player_dead":
 			break
-		var result: Dictionary = step(state, schedule.get(int(pack.start_year) + offset + 1, []))
+		var current_year: int = int(pack.start_year) + offset + 1
+		var current_decisions: Dictionary = decisions.get(current_year, {})
+		var result: Dictionary = step(state, schedule.get(current_year, []), current_decisions, policy_name)
 		if not result.ok:
 			return result
 		state = result.state
@@ -363,5 +424,5 @@ func simulate_years(seed_value: int, years: int, schedule: Dictionary = {}) -> D
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
 
 
-func simulate_life(seed_value: int) -> Dictionary:
-	return simulate_years(seed_value, int(pack.limits.max_years))
+func simulate_life(seed_value: int, decisions: Dictionary = {}, policy_name: String = "heuristic_v1") -> Dictionary:
+	return simulate_years(seed_value, int(pack.limits.max_years), {}, decisions, policy_name)

@@ -39,6 +39,7 @@ func calm_pack() -> Dictionary:
 	var calm: Dictionary = pack.duplicate(true)
 	calm.systems.health = false
 	calm.systems.adaptation = false
+	calm.systems.storylets = false
 	calm.economy.annual_drift = 0
 	calm.economy.food_annual_drift = 0
 	calm.world_rules.employment_min = 0

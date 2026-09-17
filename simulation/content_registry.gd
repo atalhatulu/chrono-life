@@ -114,6 +114,8 @@ static func _validate_life(pack: Dictionary) -> Array[String]:
 	for key: String in ["health", "education", "adaptation"]:
 		if not pack.systems.get(key) is bool:
 			errors.append("systems." + key + " must be a boolean")
+	if pack.systems.has("storylets") and not pack.systems.storylets is bool:
+		errors.append("systems.storylets must be a boolean")
 	for key: String in ["disease_min", "disease_max", "employment_min", "employment_max"]:
 		_check_range(pack.world_rules, key, 0, 1000, errors)
 	for prefix: String in ["disease", "employment"]:
@@ -181,6 +183,35 @@ static func _validate_life(pack: Dictionary) -> Array[String]:
 		var min_age: Variant = occupation.get("minimum_age")
 		if is_integer(max_age) and is_integer(min_age) and int(max_age) < int(min_age):
 			errors.append("Invalid occupation age range")
+	if pack.has("storylets"):
+		if not pack.storylets is Array:
+			errors.append("storylets must be an array")
+		else:
+			var storylet_ids: Dictionary = {}
+			for entry: Variant in pack.storylets:
+				if not entry is Dictionary:
+					errors.append("Storylet must be an object")
+					continue
+				for key: String in ["id", "family", "title", "text"]:
+					if not entry.get(key) is String or str(entry.get(key, "")).is_empty():
+						errors.append("Storylet requires " + key)
+				if storylet_ids.has(entry.get("id")):
+					errors.append("Duplicate storylet: " + str(entry.get("id")))
+				storylet_ids[entry.get("id")] = true
+				if not entry.get("requirements") is Dictionary or not entry.get("utility") is Dictionary or \
+						not entry.get("choices") is Array or entry.get("choices", []).is_empty():
+					errors.append("Invalid storylet structure: " + str(entry.get("id")))
+					continue
+				_check_range(entry.utility, "base", 0, 1000, errors)
+				var choice_ids: Dictionary = {}
+				for choice: Variant in entry.choices:
+					if not choice is Dictionary or not choice.get("id") is String or str(choice.get("id", "")).is_empty() or \
+							not choice.get("label") is String or not choice.get("effects") is Dictionary:
+						errors.append("Invalid storylet choice")
+						continue
+					if choice_ids.has(choice.id):
+						errors.append("Duplicate storylet choice: " + choice.id)
+					choice_ids[choice.id] = true
 	return errors
 
 

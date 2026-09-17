@@ -2,15 +2,22 @@
 
 Tarihsel koşullar içinde tek bir insanın hayatını simüle eden oyun projesi.
 
-**Mevcut teslim: Phase 0B — arayüzsüz tam yaşam simülasyonu çekirdeği.**
-Bu teslim; sağlık koşulları, mortalite, eğitim, kariyer, hanehalkı uyum tepkileri ve doğumdan ölüme (`--life`) çalışan deterministik yaşam döngüsünü doğrular. Henüz oyuncu arayüzü ve storylet katmanı bulunmamaktadır.
+**Mevcut teslim: Phase 0C — Storylet, karar katmanı ve minimal Godot Control arayüzü.**
+Bu teslim; veri tabanlı storylet motoru, sakin yıllar mekanizması, çocukluk iradesi, deterministik bot karar politikaları (`heuristic_v1`, `pragmatic`, `education_first`) ve iş mantığından tamamen bağımsız oynanabilir minimal Godot Control UI prototipini içerir.
 
 ## Çalıştırma
 
-Godot **4.7.2 Standard** gerekir. Paket bağımlılığı veya eklenti gerekmez. Linux'ta proje klasöründen:
+Godot **4.7.2 Standard** gerekir. Paket bağımlılığı veya eklenti gerekmez.
 
+### 1. Minimal Grafik Arayüzü Başlatma
 ```bash
-make test       # Ekonomik regresyon (56) + Yaşam sistemleri (74) = 130 test
+godot scenes/main.tscn
+# veya doğrudan editörden / proje kökünden F5 ile
+```
+
+### 2. Headless Komut Satırı ve Testler
+```bash
+make test       # Ekonomik regresyon (56) + Yaşam sistemleri (74) + Storyletler (31) = 161 test
 make life       # Seed 42 için doğumdan ölüme tam yaşam simülasyonu
 make batch      # 100 farklı tohum üzerinde toplu tam yaşam simülasyonu
 make shock      # 1858 iş kaybı şoku teknik senaryosu
@@ -23,6 +30,7 @@ Make olmadan doğrudan komut satırından çalıştırma:
 # Testleri çalıştırma
 godot --headless --path . --script tests/run_tests.gd
 godot --headless --path . --script tests/run_life_tests.gd
+godot --headless --path . --script tests/run_storylet_tests.gd
 
 # Tek bir tam hayat simülasyonu (doğumdan ölüme)
 godot --headless --path . --script cli/simulate.gd -- --seed 42 --life
@@ -59,6 +67,11 @@ godot --headless --path . --script cli/simulate.gd -- --seed 42 --life --output 
 ## Şu Anda Çalışan Sistemler
 
 - **Tek Hayat, Tek Koşu**: Doğumdan (1850) ölüme kadar tek bir aktörün simülasyonu; ölüm anında koşu atomik olarak sonlanır.
+- **Veri Tabanlı Storyletler**: Manchester test içeriğinde 6 özgün storylet (`childhood_labor_demand`, `night_reading`, `overtime_shift`, `pawn_family_heirloom`, `dispensary_treatment`, `mutual_aid_subscription`).
+- **Sakin Yıllar ("Quiet Years")**: Sabit ağırlıklandırmayla kriz olmayan yılların sakin geçmesi, her yıl yapay olay zorlanmaması.
+- **Çocukluk İradesi (`Childhood Agency`)**: Koruyucunun trait'i (`education_first`) veya çocuğun irade eşiği (`willpower >= 50`) ile ebeveyn baskısına itiraz edebilme.
+- **Deterministik Bot Politikaları**: Headless koşturmalar için 3 politika (`heuristic_v1`, `pragmatic`, `education_first`).
+- **Minimal Godot Control Arayüzü**: Aktör profili, bütçe, dünya endeksleri, karar kartı ve zaman çizelgesi içeren, iş mantığından arındırılmış UI.
 - **Sağlık ve Hastalık Modeli**: Veriyle tanımlı 4 sağlık koşulu (`malnutrition`, `epidemic_disease`, `chronic_disease`, `workplace_injury`), çalışma kapasitesi cezaları, iyileşme ve kronik devamlılık.
 - **Mortalite ve Ölüm Nedenleri**: Yaş bantlarına göre temel ölüm riski, bünye (`constitution`) etkisi ve nedensel ölüm tanısı seçimi.
 - **Ölüm Yılı Hak Ediş ve Tüketimi**: Ölüm anına kadar kazanılmış ücretin korunması; gıda ve kişisel zorunlu tüketimin yıl içi paya göre orantılanması; kira gibi sabit masrafların tam tahakkuku.
@@ -66,7 +79,7 @@ godot --headless --path . --script cli/simulate.gd -- --seed 42 --life --output 
 - **Kariyer ve İstihdam**: Yetişkin iş bulma/yeniden istihdam; çocuk işçiliği yaş sınırı (16) aşıldığında işten ayrılma ve yetişkin işine geçiş.
 - **Hanehalkı Uyum Tepkileri**: Bütçe baskısı altında deterministik ağırlıklı seçim (bekleme, yetişkin işi, çocuk işi, sınırlı dış yardım); koruyucu trait (`education_first`) etkisi.
 - **Kurumsal Bakım**: Ebeveynlerin tamamı kaybedildiğinde hanehalkının `institutional` bakım moduna geçmesi ve kurumsal yetim desteği aktarılması.
-- **Ertelenen Etki Boru Hattı**: Hane kararlarının gelecek yıla ertelenmesi; ölüm veya uygunsuzluk durumunda bekleyen etkilerin güvenle iptal edilmesi (`deferred_effect_cancelled`).
+- **Ertelenen Etki Boru Hattı**: Hane ve storylet kararlarının gelecek yıla ertelenmesi; ölüm veya uygunsuzluk durumunda bekleyen etkilerin güvenle iptal edilmesi (`deferred_effect_cancelled`).
 - **Deterministik RNG & Olay İzi**: Her çekiliş için isimlendirilmiş bağımsız anahtarlar; tüm durum değişikliklerinin neden-sonuç ilişkisiyle kaydedilmesi.
 
 ## Sınırlar ve MVP Kapsamı
@@ -74,20 +87,22 @@ godot --headless --path . --script cli/simulate.gd -- --seed 42 --life --output 
 - Manchester içeriği bir **teknik test ortamıdır**; para birimi `test_credit` olup veriler henüz tarihsel olarak kalibre edilmemiştir.
 - Modelde henüz evlilik, evden ayrılma, emeklilik ve yeni hane kurma yoktur. Bütün ömür aynı çekirdek hanede geçirilir.
 - Mevcut test mesleklerinin `minimum_literacy` değeri 0'dır; okuryazarlık henüz farklı meslek kapıları açmamaktadır.
-- Hikâye/karar katmanı (Storylets) ve oyuncu kararları Phase 0C'de eklenecektir; şu anki kararlar sürümlenmiş hane tepki politikasıyla yürütülür.
-- Godot Control tabanlı minimal grafik arayüz Phase 0 çekirdeği tamamlandıktan sonra eklenecektir.
+- LLM çağrıları, karmaşık DSL ve serbest metin üretimi Phase 0 kapsamı dışındadır; storyletler deklaratif şablonlarla çalışır.
 
 ## Dizinler
 
 ```text
 cli/          Komut satırı giriş noktası (simulate.gd)
 content/      Doğrulanan test içeriği (manchester_test.json)
-simulation/   Sağlık, kariyer/eğitim, hane, sonuç motoru ve RNG
-tests/        Headless ekonomik regresyon ve yaşam testleri
+scenes/       Minimal oynanabilir sahne (main.tscn)
+simulation/   Sağlık, kariyer/eğitim, hane, storylet motoru, bot politikası, sonuç motoru ve RNG
+tests/        Headless ekonomik regresyon, yaşam ve storylet testleri
+ui/           Salt sunum katmanı Godot Control scripti (main_ui.gd)
 docs/         Ana tasarım planı ve aşama karar belgeleri
 ```
 
 - Ana tasarım belgesi: [Master Plan v0.2](docs/ChronoLife_Master_Plan_v0.2.md)
+- Phase 0C mimari kararları: [Phase 0C Kararları](docs/PHASE_0C_DECISIONS.md)
 - Phase 0B mimari kararları: [Phase 0B Kararları](docs/PHASE_0B_DECISIONS.md)
 - Phase 0A tarihsel kararları: [Phase 0A Kararları](docs/PHASE_0A_DECISIONS.md)
 - Örnek simülasyon çıktıları: [SAMPLE_OUTPUTS.md](docs/SAMPLE_OUTPUTS.md)

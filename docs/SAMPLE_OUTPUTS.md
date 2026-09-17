@@ -4,6 +4,50 @@ Bu belge, headless simülasyon çıktılarının doğrulanması ve incelenmesi i
 
 ---
 
+## 0. Phase 0C Storylet ve Bot Politikası Karşılaştırmalı Çıktıları
+
+Phase 0C ile birlikte simülasyona veri tabanlı storylet katmanı, sakin yıllar mekanizması ve deterministik bot karar politikaları eklenmiştir.
+
+### Aynı Tohum, Farklı Hayat Yolları (Seed 42 Karşılaştırması)
+
+Aynı tohum (Seed 42) ve aynı dünya koşulları altında, farklı bot politikalarının aldığı kararlar ve ürettiği hayat sonuçları:
+
+#### 1. Politika: `heuristic_v1` / `pragmatic` (Pragmatik ve Dengeli Yaklaşım)
+- **1860 Yılı Olayı**: `night_reading` (Reading by Candlelight)
+- **Verilen Karar**: `rest` (Yarınki çalışma için dinlenmeyi tercih etti)
+- **Sonuç**: Sağlık 100/100 korundu, Okuryazarlık 70/100 kaldı.
+- **SHA-256 Parmak İzi**: `27b5dc258ed4ac182fff67f74a184236b2859a9d17415a2e2063505502248e7c`
+
+```text
+EVENT 1851 | quiet_year | {"year":1851}
+EVENT 1852 | condition_acquired | {"actor_id":"player","chance_bp":316,"condition_id":"epidemic_disease"}
+EVENT 1852 | quiet_year | {"year":1852}
+EVENT 1856 | school_started | {"actor_id":"player"}
+EVENT 1859 | condition_acquired | {"actor_id":"parent_1","chance_bp":450,"condition_id":"workplace_injury"}
+EVENT 1860 | storylet_triggered | {"family":"self_improvement","storylet_id":"night_reading","title":"Reading by Candlelight"}
+EVENT 1860 | storylet_choice_made | {"applied_effects":{"health":100},"choice_id":"rest","storylet_id":"night_reading"}
+EVENT 1861 | quiet_year | {"year":1861}
+EVENT 1862 | quiet_year | {"year":1862}
+Outcome: age 12, literacy 70, health 100, savings 5100
+```
+
+#### 2. Politika: `education_first` (Öğrenme ve İnsani Sermaye Önceliği)
+- **1860 Yılı Olayı**: `night_reading` (Reading by Candlelight)
+- **Verilen Karar**: `study_diligently` (Mum ışığında ders çalıştı ve yazdı)
+- **Sonuç**: Okuryazarlık +15 artarak 85/100 seviyesine yükseldi, Sağlık göz yorgunluğu/uykusuzluk nedeniyle 90/100'e düştü.
+- **SHA-256 Parmak İzi**: `56848d388c9231f16158275dc814218efa23459aa600f537a8b59ba344daa2c3`
+
+```text
+EVENT 1860 | storylet_triggered | {"family":"self_improvement","storylet_id":"night_reading","title":"Reading by Candlelight"}
+EVENT 1860 | storylet_choice_made | {"applied_effects":{"health":90,"literacy":65},"choice_id":"study_diligently","storylet_id":"night_reading"}
+Outcome: age 12, literacy 85, health 90, savings 5100
+```
+
+### Sakin Yıllar ("Quiet Years") Doğrulaması
+12 yıllık koşuda 10 yıl `quiet_year` olarak kaydedilmiş, sadece 1 yıl (`1860`) storylet tetiklenmiştir. Bu durum her yıl yapay kriz üretilmediğini ve sakin yılların modelde doğal olarak var olduğunu kanıtlar.
+
+---
+
 ## 1. Phase 0B Tam Yaşam Çıktıları (Doğumdan Ölüme)
 
 Phase 0B ile birlikte oyuncunun 1850 yılındaki doğumundan ölümüne kadar tüm yaşam döngüsü simüle edilmektedir. Komut:

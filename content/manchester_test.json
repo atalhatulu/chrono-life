@@ -87,7 +87,8 @@
   "systems": {
     "health": true,
     "education": true,
-    "adaptation": true
+    "adaptation": true,
+    "storylets": true
   },
   "world_rules": {
     "disease_min": 100,
@@ -200,5 +201,264 @@
       "child_work": 50,
       "seek_aid": 60
     }
-  }
+  },
+  "storylets": [
+    {
+      "id": "childhood_labor_demand",
+      "family": "education_vs_work",
+      "title": "The Factory Recruiter",
+      "text": "A textile mill recruiter visits the neighborhood seeking young hands. With household finances strained, your parents consider sending you to the mill.",
+      "requirements": {
+        "min_age": 9,
+        "max_age": 14,
+        "player_alive": true,
+        "education_states": ["basic_schooling", "none"],
+        "occupation_id": "dependent",
+        "max_savings": 2000,
+        "cooldown_years": 4
+      },
+      "utility": {
+        "base": 40,
+        "modifiers": [
+          {"condition": "budget_deficit_gt_zero", "add": 30},
+          {"condition": "food_security_lt_800", "add": 30},
+          {"condition": "guardian_education_first", "add": -30}
+        ]
+      },
+      "choices": [
+        {
+          "id": "comply",
+          "label": "Accept your parents' decision and enter the mill",
+          "description": "Leave school to earn wages as a child factory worker.",
+          "effects": {
+            "deferred_job": "child_factory_worker",
+            "family_support": 200
+          }
+        },
+        {
+          "id": "protest_for_school",
+          "label": "Plead to remain in school and continue your studies",
+          "description": "Your guardian may listen if they value learning or if your will is strong.",
+          "effects": {
+            "willpower_delta": 5,
+            "agency_check": {
+              "trait": "education_first",
+              "fallback_willpower": 50,
+              "failure_deferred_job": "child_factory_worker"
+            }
+          }
+        },
+        {
+          "id": "errands_contribution",
+          "label": "Offer to run evening errands without quitting school",
+          "description": "Exhausting, but helps the household while keeping you in class.",
+          "effects": {
+            "cash_grant": 250,
+            "health_delta": -5
+          }
+        }
+      ]
+    },
+    {
+      "id": "night_reading",
+      "family": "self_improvement",
+      "title": "Reading by Candlelight",
+      "text": "You have obtained a battered booklet of history and practical arithmetic. After a full day's toll, you have a quiet hour before sleep.",
+      "requirements": {
+        "min_age": 10,
+        "max_age": 25,
+        "player_alive": true,
+        "min_health": 30,
+        "max_literacy": 90,
+        "cooldown_years": 3
+      },
+      "utility": {
+        "base": 30,
+        "modifiers": [
+          {"condition": "player_education_first", "add": 25},
+          {"condition": "education_completed", "add": 15}
+        ]
+      },
+      "choices": [
+        {
+          "id": "study_diligently",
+          "label": "Read and copy passages by candlelight",
+          "description": "Advances literacy significantly at the cost of sleep and eye fatigue.",
+          "effects": {
+            "literacy_delta": 15,
+            "health_delta": -5
+          }
+        },
+        {
+          "id": "rest",
+          "label": "Blow out the candle and rest your weary body",
+          "description": "Health comes first; tomorrow requires strength.",
+          "effects": {
+            "health_delta": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "overtime_shift",
+      "family": "workplace",
+      "title": "A Heavy Night Shift",
+      "text": "The overseer announces rush orders for export cloth. Anyone staying through the night will receive bonus wages, but machinery speeds are raised.",
+      "requirements": {
+        "min_age": 16,
+        "max_age": 60,
+        "player_alive": true,
+        "not_occupation": "dependent",
+        "min_health": 30,
+        "cooldown_years": 2
+      },
+      "utility": {
+        "base": 35,
+        "modifiers": [
+          {"condition": "budget_deficit_gt_zero", "add": 25},
+          {"condition": "high_employment_pressure", "add": 15}
+        ]
+      },
+      "choices": [
+        {
+          "id": "accept_overtime",
+          "label": "Take the extra shift for hard coin",
+          "description": "Brings in immediate emergency money, but risks fatigue and injury.",
+          "effects": {
+            "cash_grant": 600,
+            "health_delta": -10,
+            "injury_hazard_bp": 300
+          }
+        },
+        {
+          "id": "decline_overtime",
+          "label": "Clock out with your regular shift",
+          "description": "Return to your family in one piece.",
+          "effects": {
+            "health_delta": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "pawn_family_heirloom",
+      "family": "emergency_finance",
+      "title": "The Pawnbroker's Counter",
+      "text": "With debts mounting, the pawnbroker's shop offers immediate relief in exchange for the family's last silver timepiece.",
+      "requirements": {
+        "min_age": 16,
+        "player_alive": true,
+        "max_savings": 500,
+        "cooldown_years": 4,
+        "not_flag": "heirloom_pawned"
+      },
+      "utility": {
+        "base": 10,
+        "modifiers": [
+          {"condition": "budget_deficit_gt_zero", "add": 40},
+          {"condition": "food_security_lt_800", "add": 30}
+        ]
+      },
+      "choices": [
+        {
+          "id": "pawn_heirloom",
+          "label": "Pawn the timepiece for ready money",
+          "description": "Provides needed cash buffer but brings grief and lower willpower.",
+          "effects": {
+            "cash_grant": 750,
+            "willpower_delta": -10,
+            "set_flag": "heirloom_pawned"
+          }
+        },
+        {
+          "id": "refuse_pawn",
+          "label": "Refuse to part with family memory",
+          "description": "Your pride stands firm, but hunger will test your resolve.",
+          "effects": {
+            "willpower_delta": 5
+          }
+        }
+      ]
+    },
+    {
+      "id": "dispensary_treatment",
+      "family": "health_care",
+      "title": "The Charitable Dispensary",
+      "text": "A physician volunteer operates a small dispensary for poor parishioners. Medicine is dispensed to those who wait in line.",
+      "requirements": {
+        "min_age": 6,
+        "player_alive": true,
+        "has_any_condition": ["malnutrition", "epidemic_disease", "workplace_injury"],
+        "cooldown_years": 2
+      },
+      "utility": {
+        "base": 50,
+        "modifiers": [
+          {"condition": "player_has_epidemic", "add": 25},
+          {"condition": "player_has_malnutrition", "add": 20}
+        ]
+      },
+      "choices": [
+        {
+          "id": "seek_cure",
+          "label": "Wait patiently for examination and tonics",
+          "description": "Spend a meager coin on apothecary fees to accelerate recovery.",
+          "effects": {
+            "cash_cost": 100,
+            "cure_condition": "any_curable",
+            "health_delta": 15
+          }
+        },
+        {
+          "id": "endure_home",
+          "label": "Stay home and trust in constitutional strength",
+          "description": "Save money and avoid contagion from other sick patients.",
+          "effects": {
+            "willpower_delta": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "mutual_aid_subscription",
+      "family": "community",
+      "title": "The Friendly Society",
+      "text": "Brothers of the local working-class lodge invite you to join their mutual benefit society, pooling sick funds and burial insurance.",
+      "requirements": {
+        "min_age": 18,
+        "player_alive": true,
+        "not_occupation": "dependent",
+        "min_savings": 2500,
+        "not_flag": "friendly_society_member",
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 25,
+        "modifiers": [
+          {"condition": "high_savings", "add": 25},
+          {"condition": "player_pragmatic", "add": 20}
+        ]
+      },
+      "choices": [
+        {
+          "id": "join_society",
+          "label": "Pay the dues and enter the society",
+          "description": "Invest in communal protection against future ruin.",
+          "effects": {
+            "cash_cost": 400,
+            "set_flag": "friendly_society_member",
+            "willpower_delta": 5
+          }
+        },
+        {
+          "id": "decline_society",
+          "label": "Politely decline and keep every penny",
+          "description": "Trust only your own savings ledger.",
+          "effects": {
+            "cash_cost": 0
+          }
+        }
+      ]
+    }
+  ]
 }

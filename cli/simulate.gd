@@ -10,10 +10,10 @@ func _initialize() -> void:
 		fail(options.error)
 		return
 	if options.has("help"):
-		print("ChronoLife Phase 0B — headless life simulation (no player UI/storylets yet)")
-		print("--life | --years N; --seed N --count N --shock-year YYYY --shock-type job_lost|actor_died")
-		print("--actor ID --worked-permille N --output PATH")
-		print("Defaults: seed=42 years=12 count=1 actor=parent_1 worked-permille=500")
+		print("ChronoLife Phase 0C — headless life simulation with storylets & decisions")
+		print("--life | --years N; --seed N --count N --policy heuristic_v1|pragmatic|education_first")
+		print("--shock-year YYYY --shock-type job_lost|actor_died --actor ID --worked-permille N --output PATH")
+		print("Defaults: seed=42 years=12 count=1 policy=heuristic_v1 actor=parent_1 worked-permille=500")
 		quit(0)
 		return
 	var loaded: Dictionary = Content.load_pack()
@@ -60,9 +60,10 @@ func _initialize() -> void:
 			"worked_permille": fraction, "skip_if_unavailable": true}]
 	var summaries: Array[Dictionary] = []
 	var single_result: Dictionary = {}
+	var policy_name: String = str(options.get("policy", "heuristic_v1"))
 	var start: int = Time.get_ticks_msec()
 	for index: int in range(count):
-		var result: Dictionary = runner.simulate_years(seed_value + index, years, schedule)
+		var result: Dictionary = runner.simulate_years(seed_value + index, years, schedule, {}, policy_name)
 		if not result.ok:
 			fail(str(result.errors))
 			return
@@ -87,12 +88,13 @@ func _initialize() -> void:
 						ledger.closing_debt, ledger.unmet_needs, ledger.food_security])
 			for event: Dictionary in state.history:
 				if event.kind in ["actor_died", "school_started", "school_interrupted", "school_completed",
-						"occupation_started", "condition_acquired", "household_response", "life_ended"]:
+						"occupation_started", "condition_acquired", "household_response", "life_ended",
+						"storylet_triggered", "storylet_choice_made", "quiet_year"]:
 					print("EVENT %d | %s | %s" % [event.year, event.kind, JSON.stringify(event.details)])
 	var elapsed: int = Time.get_ticks_msec() - start
-	var report: Dictionary = {"phase": "0B", "simulation_version": Runner.VERSION,
+	var report: Dictionary = {"phase": "0C", "simulation_version": Runner.VERSION,
 		"content_version": loaded.pack.version, "historically_calibrated": false,
-		"years_per_run": years, "count": count, "elapsed_ms": elapsed, "summaries": summaries}
+		"policy": policy_name, "years_per_run": years, "count": count, "elapsed_ms": elapsed, "summaries": summaries}
 	if count == 1:
 		report.result = single_result
 	if options.has("output"):
@@ -126,7 +128,7 @@ func _parse(args: PackedStringArray) -> Dictionary:
 			index += 1
 			continue
 		var key: String = args[index].trim_prefix("--")
-		if not args[index].begins_with("--") or key not in numeric + ["actor", "output", "shock-type"]:
+		if not args[index].begins_with("--") or key not in numeric + ["actor", "output", "shock-type", "policy"]:
 			return {"error": "Unknown argument: " + args[index]}
 		if options.has(key) or index + 1 >= args.size():
 			return {"error": "Duplicate argument or missing value: " + args[index]}
