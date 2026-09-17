@@ -1,5 +1,5 @@
 {
-  "version": "manchester_economy_0.1.0",
+  "version": "manchester_life_0.2.0",
   "historically_calibrated": false,
   "location_id": "manchester",
   "start_year": 1850,
@@ -22,17 +22,183 @@
     "credit_limit": 1800,
     "debt_interest_basis_points": 200
   },
-  "limits": {"max_years": 30, "max_consequences": 32},
+  "limits": {
+    "max_years": 120,
+    "max_consequences": 32
+  },
   "occupations": [
-    {"id": "dependent", "annual_income": 0, "minimum_age": 0},
-    {"id": "textile_worker", "annual_income": 3200, "minimum_age": 16},
-    {"id": "sewing_worker", "annual_income": 1800, "minimum_age": 16},
-    {"id": "child_factory_worker", "annual_income": 900, "minimum_age": 9}
+    {
+      "id": "dependent",
+      "annual_income": 0,
+      "minimum_age": 0,
+      "maximum_age": 200,
+      "minimum_literacy": 0,
+      "risk_permille": 0
+    },
+    {
+      "id": "textile_worker",
+      "annual_income": 3200,
+      "minimum_age": 16,
+      "maximum_age": 200,
+      "minimum_literacy": 0,
+      "risk_permille": 1000
+    },
+    {
+      "id": "sewing_worker",
+      "annual_income": 1800,
+      "minimum_age": 16,
+      "maximum_age": 200,
+      "minimum_literacy": 0,
+      "risk_permille": 200
+    },
+    {
+      "id": "child_factory_worker",
+      "annual_income": 900,
+      "minimum_age": 9,
+      "maximum_age": 15,
+      "minimum_literacy": 0,
+      "risk_permille": 1000
+    }
   ],
   "actors": [
-    {"id": "player", "name": "William Thompson", "birth_year": 1850, "occupation_id": "dependent"},
-    {"id": "parent_1", "name": "Thomas Thompson", "birth_year": 1822, "occupation_id": "textile_worker"},
-    {"id": "parent_2", "name": "Mary Thompson", "birth_year": 1825, "occupation_id": "sewing_worker"}
+    {
+      "id": "player",
+      "name": "William Thompson",
+      "birth_year": 1850,
+      "occupation_id": "dependent",
+      "sex": "male"
+    },
+    {
+      "id": "parent_1",
+      "name": "Thomas Thompson",
+      "birth_year": 1822,
+      "occupation_id": "textile_worker",
+      "sex": "male"
+    },
+    {
+      "id": "parent_2",
+      "name": "Mary Thompson",
+      "birth_year": 1825,
+      "occupation_id": "sewing_worker",
+      "sex": "female"
+    }
   ],
-  "player_id": "player"
+  "player_id": "player",
+  "systems": {
+    "health": true,
+    "education": true,
+    "adaptation": true
+  },
+  "world_rules": {
+    "disease_min": 100,
+    "disease_max": 900,
+    "employment_min": 100,
+    "employment_max": 800
+  },
+  "health_rules": {
+    "death_worked_permille": 500,
+    "mortality_bands": [
+      {
+        "minimum_age": 0,
+        "risk_bp": 1200
+      },
+      {
+        "minimum_age": 1,
+        "risk_bp": 180
+      },
+      {
+        "minimum_age": 5,
+        "risk_bp": 35
+      },
+      {
+        "minimum_age": 15,
+        "risk_bp": 60
+      },
+      {
+        "minimum_age": 40,
+        "risk_bp": 100
+      },
+      {
+        "minimum_age": 60,
+        "risk_bp": 350
+      },
+      {
+        "minimum_age": 70,
+        "risk_bp": 800
+      },
+      {
+        "minimum_age": 80,
+        "risk_bp": 2200
+      },
+      {
+        "minimum_age": 90,
+        "risk_bp": 4800
+      },
+      {
+        "minimum_age": 100,
+        "risk_bp": 8000
+      }
+    ]
+  },
+  "conditions": [
+    {
+      "id": "malnutrition",
+      "exposure": "nutrition",
+      "food_threshold": 750,
+      "incidence_bp": 10000,
+      "duration_years": 0,
+      "mortality_bp": 250,
+      "health_penalty": 25,
+      "work_penalty": 200
+    },
+    {
+      "id": "epidemic_disease",
+      "exposure": "ambient",
+      "food_threshold": 0,
+      "incidence_bp": 500,
+      "duration_years": 1,
+      "mortality_bp": 900,
+      "health_penalty": 40,
+      "work_penalty": 500
+    },
+    {
+      "id": "chronic_disease",
+      "exposure": "ambient",
+      "food_threshold": 0,
+      "incidence_bp": 120,
+      "duration_years": 0,
+      "mortality_bp": 250,
+      "health_penalty": 20,
+      "work_penalty": 200
+    },
+    {
+      "id": "workplace_injury",
+      "exposure": "work",
+      "food_threshold": 0,
+      "incidence_bp": 450,
+      "duration_years": 2,
+      "mortality_bp": 100,
+      "health_penalty": 25,
+      "work_penalty": 350
+    }
+  ],
+  "education_rules": {
+    "start_age": 6,
+    "completion_age": 14,
+    "literacy_per_year": 10,
+    "minimum_health": 35
+  },
+  "response_rules": {
+    "reserve_years": 2,
+    "minimum_work_capacity": 400,
+    "aid_amount": 1200,
+    "aid_max_uses": 3,
+    "orphan_support_per_child": 2500,
+    "weights": {
+      "wait": 15,
+      "adult_work": 120,
+      "child_work": 50,
+      "seek_aid": 60
+    }
+  }
 }

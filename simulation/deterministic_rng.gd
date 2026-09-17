@@ -14,3 +14,18 @@ static func integer(master_seed: int, domain: String, year: int, entity_id: Stri
 	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 	rng.seed = seed_value
 	return rng.randi_range(minimum, maximum)
+
+
+static func weighted(master_seed: int, domain: String, year: int, entity_id: String,
+		draw_id: String, weights: Array[int]) -> int:
+	var total: int = 0
+	for weight: int in weights:
+		total += maxi(0, weight)
+	if total == 0:
+		return -1
+	var roll: int = integer(master_seed, domain, year, entity_id, draw_id, 0, total - 1)
+	for index: int in range(weights.size()):
+		roll -= maxi(0, weights[index])
+		if roll < 0:
+			return index
+	return -1

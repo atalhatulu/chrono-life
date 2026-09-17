@@ -4,7 +4,11 @@ const Content = preload("res://simulation/content_registry.gd")
 const Rng = preload("res://simulation/deterministic_rng.gd")
 const Delta = preload("res://simulation/year_delta.gd")
 const Household = preload("res://simulation/household_system.gd")
-const VERSION: String = "0.1.0-phase-0a"
+const Health = preload("res://simulation/health_system.gd")
+const Career = preload("res://simulation/career_education_system.gd")
+const Responses = preload("res://simulation/household_response_system.gd")
+const Consequences = preload("res://simulation/consequence_engine.gd")
+const VERSION: String = "0.2.0-phase-0b"
 
 var pack: Dictionary
 var occupations: Dictionary
@@ -24,6 +28,17 @@ func initial_state(seed_value: int) -> Dictionary:
 		actor.birth_year = int(actor.birth_year)
 		actor.age = int(pack.start_year) - actor.birth_year
 		actor.alive = true
+		actor.death_year = 0
+		actor.death_cause = ""
+		actor.health = 100
+		actor.work_capacity = 1000
+		actor.constitution = Rng.integer(seed_value, "biology", int(pack.start_year), actor.id, "constitution", 40, 80)
+		actor.willpower = Rng.integer(seed_value, "personality", int(pack.start_year), actor.id, "willpower", 30, 70)
+		actor.genetic_seed = str(Rng.integer(seed_value, "biology", int(pack.start_year), actor.id, "genetics", 0, 2147483647))
+		actor.traits = ["education_first"] if actor.willpower >= 50 else ["pragmatic"]
+		actor.conditions = {}
+		actor.education_state = "none"
+		actor.literacy = 0
 		actor.household_id = "household_1"
 		actor.income = _annual_income(actor.occupation_id, int(pack.economy.initial_index))
 		active_income += actor.income
@@ -38,20 +53,23 @@ func initial_state(seed_value: int) -> Dictionary:
 			"start_year": int(pack.start_year), "status": "running"},
 		"world": {"year": int(pack.start_year), "location_id": pack.location_id,
 			"economy_index": int(pack.economy.initial_index),
-			"food_price_index": int(pack.economy.food_initial_index)},
+			"food_price_index": int(pack.economy.food_initial_index),
+			"disease_pressure": int(pack.world_rules.disease_min),
+			"employment_pressure": int(pack.world_rules.employment_min)},
 		"actors": actors,
 		"household": {"id": "household_1", "member_ids": ids,
 			"location_id": pack.location_id, "income": active_income,
 			"savings": int(pack.economy.initial_savings), "debt": 0,
-			"expenses": 0, "food_security": 1000, "living_standard": "unassessed"},
+			"expenses": 0, "food_security": 1000, "living_standard": "unassessed",
+			"pending_effects": [], "aid_uses": 0, "care_mode": "family", "guardian_id": ""},
 		"ledgers": [], "history": [{"id": "%d:initial" % int(pack.start_year),
 			"year": int(pack.start_year), "kind": "household_created", "cause_id": "",
 			"details": {"location_id": pack.location_id, "member_ids": ids.duplicate()}}]
 	}
 
 
-func _annual_income(occupation_id: String, economy_index: int) -> int:
-	return int(int(occupations[occupation_id].annual_income) * economy_index / 1000.0)
+func _annual_income(occupation_id: String, economy_index: int, capacity: int = 1000) -> int:
+	return int(int(occupations[occupation_id].annual_income) * economy_index * capacity / 1000000.0)
 
 
 func validate_state(state: Dictionary) -> Array[String]:
@@ -91,15 +109,40 @@ func validate_state(state: Dictionary) -> Array[String]:
 		var actor: Dictionary = state.actors[id]
 		if actor.id != id or not members.has(id):
 			errors.append("Actor identity/membership mismatch: " + id)
-		if actor.age < 0 or actor.age != year - actor.birth_year:
+		var age_year: int = year if actor.alive else int(actor.death_year)
+		if actor.age < 0 or actor.age != age_year - actor.birth_year:
 			errors.append("Invalid age: " + id)
 		if not occupations.has(actor.occupation_id):
 			errors.append("Unknown occupation: " + id)
-		elif actor.alive and (actor.age < occupations[actor.occupation_id].minimum_age or
-				actor.income != _annual_income(actor.occupation_id, int(state.world.economy_index))):
+		elif actor.alive and (not Career.eligible(actor, occupations[actor.occupation_id], int(actor.age)) or
+				actor.income != _annual_income(actor.occupation_id, int(state.world.economy_index), int(actor.work_capacity))):
 			errors.append("Invalid occupation/income: " + id)
-		if not actor.alive and actor.income != 0:
-			errors.append("Dead actor has active income: " + id)
+		if not actor.alive and (actor.income != 0 or actor.occupation_id != "dependent" or actor.health != 0 or \
+				actor.death_year < actor.birth_year or actor.death_year > year or actor.death_cause == ""):
+			errors.append("Invalid dead actor: " + id)
+		if actor.alive and (actor.death_year != 0 or actor.death_cause != ""):
+			errors.append("Living actor has death metadata: " + id)
+		for field: String in ["health", "constitution", "willpower", "literacy"]:
+			if not Content.is_integer(actor[field]) or actor[field] < 0 or actor[field] > 100:
+				errors.append("Invalid actor field: " + field)
+		if actor.work_capacity < 0 or actor.work_capacity > 1000:
+			errors.append("Invalid work capacity")
+		if actor.education_state not in ["none", "basic_schooling", "interrupted", "completed"]:
+			errors.append("Unknown education state")
+		if actor.alive and actor.education_state == "basic_schooling" and actor.occupation_id != "dependent":
+			errors.append("Full-time work cannot coexist with basic schooling")
+		var condition_ids: Array = []
+		for definition: Dictionary in pack.conditions:
+			condition_ids.append(definition.id)
+		for condition_id: String in actor.conditions:
+			var cond: Variant = actor.conditions[condition_id]
+			if condition_id not in condition_ids:
+				errors.append("Unknown actor condition")
+			elif not cond is Dictionary or not Content.is_integer(cond.get("remaining_years")) or \
+					not Content.is_integer(cond.get("acquired_year")) or \
+					int(cond.acquired_year) < int(pack.start_year) or int(cond.acquired_year) > year or \
+					(int(cond.remaining_years) != -1 and int(cond.remaining_years) <= 0):
+				errors.append("Invalid condition data: " + condition_id)
 	if income != state.household.income:
 		errors.append("Household income does not match active actor income")
 	if state.household.savings < 0 or state.household.debt < 0:
@@ -109,6 +152,26 @@ func validate_state(state: Dictionary) -> Array[String]:
 			errors.append("Household money must use integer units: " + key)
 	if state.household.food_security < 0 or state.household.food_security > 1000:
 		errors.append("Invalid food security")
+	if state.household.get("care_mode") not in ["family", "institutional"]:
+		errors.append("Invalid household care mode")
+	var guardian_id: String = str(state.household.get("guardian_id", ""))
+	if guardian_id != "":
+		if not state.actors.has(guardian_id):
+			errors.append("guardian_id does not reference an actor")
+		elif not state.actors[guardian_id].alive:
+			errors.append("guardian must be alive")
+		elif int(state.actors[guardian_id].age) < int(pack.economy.adult_age):
+			errors.append("guardian must be an adult")
+	if not Content.is_integer(state.household.get("aid_uses")) or int(state.household.aid_uses) < 0:
+		errors.append("aid_uses must be a nonnegative integer")
+	if state.meta.status not in ["running", "player_dead"] or \
+			(state.meta.status == "player_dead") == bool(state.actors[state.meta.player_id].alive):
+		errors.append("Player life status mismatch")
+	for effect: Dictionary in state.household.pending_effects:
+		if effect.type not in ["start_job", "aid"] or effect.due_year <= year:
+			errors.append("Invalid deferred effect")
+		elif effect.type == "start_job" and (not state.actors.has(effect.actor_id) or not occupations.has(effect.occupation_id)):
+			errors.append("Unknown deferred effect actor/occupation")
 	if not state.ledgers.is_empty():
 		errors.append_array(Household.validate_ledger(state.ledgers.back()))
 	return errors
@@ -118,9 +181,11 @@ func step(state: Dictionary, commands: Array = []) -> Dictionary:
 	var errors: Array[String] = validate_state(state)
 	if not errors.is_empty():
 		return {"ok": false, "errors": errors}
+	if state.meta.status != "running":
+		return {"ok": false, "errors": ["The player's life has already ended"]}
 	var year: int = int(state.world.year) + 1
 	if year - int(pack.start_year) > int(pack.limits.max_years):
-		return {"ok": false, "errors": ["Phase 0A year limit reached; this is not a death"]}
+		return {"ok": false, "errors": ["Configured year limit reached; this is not a death"]}
 	errors = _validate_commands(state, commands)
 	if not errors.is_empty():
 		return {"ok": false, "errors": errors}
@@ -139,18 +204,49 @@ func step(state: Dictionary, commands: Array = []) -> Dictionary:
 		{"economy_index": economy_index, "food_price_index": food_index})
 	delta.set_field("world", "economy_index", economy_index, world_event)
 	delta.set_field("world", "food_price_index", food_index, world_event)
+	for entry: Array in [["disease_pressure", "disease"], ["employment_pressure", "employment"]]:
+		delta.set_field("world", entry[0], Rng.integer(seed_value, "world", year, str(pack.location_id),
+			entry[0], int(pack.world_rules[entry[1] + "_min"]), int(pack.world_rules[entry[1] + "_max"])), world_event)
 	var earned: Dictionary = {}
+	var participation: Dictionary = {}
 	var actor_ids: Array = state.actors.keys()
 	actor_ids.sort()
 	for id: String in actor_ids:
 		var actor: Dictionary = state.actors[id]
-		delta.set_field("actors", "age", year - int(actor.birth_year), year_event, id)
-		var wage: int = _annual_income(actor.occupation_id, economy_index) if actor.alive else 0
-		delta.set_field("actors", "income", wage, world_event, id)
+		if actor.alive:
+			delta.set_field("actors", "age", year - int(actor.birth_year), year_event, id)
+		participation[id] = 1000 if actor.alive else 0
+	var support: int = Career.prepare(delta, pack, occupations, year_event)
+	var deaths: Array = Health.advance(delta, pack, occupations, world_event)
+	for id: String in actor_ids:
+		var actor: Dictionary = delta.candidate.actors[id]
+		var wage: int = _annual_income(actor.occupation_id, economy_index, int(actor.work_capacity)) if actor.alive else 0
+		var income_cause: String = world_event
+		if actor.occupation_id != state.actors[id].occupation_id:
+			for idx: int in range(delta.events.size() - 1, -1, -1):
+				var ev: Dictionary = delta.events[idx]
+				if ev.kind in ["occupation_started", "occupation_ended"] and ev.details.get("actor_id") == id:
+					income_cause = ev.id
+					break
+		elif actor.work_capacity != state.actors[id].work_capacity:
+			for idx: int in range(delta.events.size() - 1, -1, -1):
+				var ev: Dictionary = delta.events[idx]
+				if ev.kind == "health_evaluated" and ev.details.get("actor_id") == id:
+					income_cause = ev.id
+					break
+		delta.set_field("actors", "income", wage, income_cause, id)
 		earned[id] = wage
-	var consequences: Dictionary = _apply_consequences(delta, commands, earned, world_event)
+	var consequences: Dictionary = Consequences.process(delta, commands + deaths, earned, participation,
+		world_event, int(pack.limits.max_consequences))
 	if not consequences.ok:
 		return {"ok": false, "errors": consequences.errors, "diagnostic_events": delta.events}
+	Career.education(delta, pack, year_event)
+	var care_event: String = delta.record("household_care_evaluated", year_event,
+		{"consequence_ids": consequences.event_ids})
+	var orphan_support: int = Responses.update_care(delta, pack, care_event) if pack.systems.adaptation else 0
+	if orphan_support > 0:
+		delta.record("orphan_support_received", care_event, {"amount": orphan_support})
+	support += orphan_support
 	var active_income: int = 0
 	for id: String in delta.candidate.household.member_ids:
 		active_income += int(delta.candidate.actors[id].income)
@@ -159,7 +255,7 @@ func step(state: Dictionary, commands: Array = []) -> Dictionary:
 		"consequence_ids": consequences.event_ids})
 	delta.set_field("household", "income", active_income, income_event)
 	var ledger: Dictionary = Household.calculate(delta.candidate.household,
-		delta.candidate.actors, economy, food_index, earned)
+		delta.candidate.actors, economy, food_index, earned, participation, support)
 	ledger.year = year
 	var budget_event: String = delta.record("household_budget", income_event, ledger)
 	for mapping: Array in [["savings", "closing_savings"], ["debt", "closing_debt"],
@@ -172,6 +268,12 @@ func step(state: Dictionary, commands: Array = []) -> Dictionary:
 	if ledger.food_security < 1000:
 		delta.record("food_insecurity", budget_event, {"food_security": ledger.food_security})
 	delta.candidate.ledgers.append(ledger)
+	if not delta.candidate.actors[state.meta.player_id].alive:
+		var end_event: String = delta.record("life_ended", budget_event, {"player_id": state.meta.player_id})
+		delta.set_field("meta", "status", "player_dead", end_event)
+		delta.set_field("household", "pending_effects", [], end_event)
+	else:
+		Responses.choose(delta, pack, occupations, ledger, budget_event)
 	errors = validate_state(delta.candidate)
 	if not errors.is_empty():
 		return {"ok": false, "errors": errors, "diagnostic_events": delta.events}
@@ -187,7 +289,7 @@ func _validate_commands(state: Dictionary, commands: Array) -> Array[String]:
 		if not command is Dictionary:
 			errors.append("Command must be an object")
 			continue
-		if command.get("type") != "job_lost":
+		if command.get("type") not in ["job_lost", "actor_died"]:
 			errors.append("Unknown command type")
 			continue
 		if not command.get("id") is String or str(command.get("id", "")).is_empty():
@@ -199,63 +301,67 @@ func _validate_commands(state: Dictionary, commands: Array) -> Array[String]:
 			continue
 		ids[command.id] = command
 		var id: String = str(command.get("actor_id", ""))
-		if not state.actors.has(id) or not state.actors[id].alive:
+		if not state.actors.has(id):
+			errors.append("Command actor must exist")
+		elif not state.actors[id].alive and not command.get("skip_if_unavailable", false):
 			errors.append("Command actor must exist and be alive")
-		elif state.actors[id].income <= 0:
+		elif command.type == "job_lost" and state.actors[id].occupation_id == "dependent" and not command.get("skip_if_unavailable", false):
 			errors.append("Cannot lose a job without an active income source")
-		if affected.has(id):
-			errors.append("Multiple job losses for one actor in one year")
-		affected[id] = true
+		if command.has("skip_if_unavailable") and not command.skip_if_unavailable is bool:
+			errors.append("skip_if_unavailable must be a boolean")
+		var target: String = id + ":" + str(command.type)
+		if affected.has(target):
+			errors.append("Multiple %s commands for one actor in one year" % str(command.type))
+		affected[target] = true
 		var fraction: Variant = command.get("worked_permille")
 		if not Content.is_integer(fraction) or float(fraction) < 0 or float(fraction) > 1000:
 			errors.append("worked_permille must be an integer in [0, 1000]")
 	return errors
 
 
-func _apply_consequences(delta: RefCounted, commands: Array, earned: Dictionary,
-		parent_event: String) -> Dictionary:
-	var queue: Array = commands.duplicate(true)
-	queue.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.id < b.id)
-	var seen: Dictionary = {}
-	var event_ids: Array[String] = []
-	var count: int = 0
-	while not queue.is_empty():
-		var trigger: Dictionary = queue.pop_front()
-		var key: String = str(trigger.id) + ":" + str(trigger.type)
-		if seen.has(key):
-			continue
-		seen[key] = true
-		count += 1
-		if count > int(pack.limits.max_consequences):
-			return {"ok": false, "errors": ["Consequence limit exceeded; year rolled back"]}
-		var id: String = trigger.actor_id
-		var source: String = str(trigger.get("cause_id", parent_event))
-		if trigger.type == "job_lost":
-			var event_id: String = delta.record("job_lost", source,
-				{"actor_id": id, "command_id": trigger.id, "worked_permille": trigger.worked_permille})
-			earned[id] = int(int(earned[id]) * int(trigger.worked_permille) / 1000.0)
-			delta.set_field("actors", "occupation_id", "dependent", event_id, id)
-			delta.set_field("actors", "income", 0, event_id, id)
-			queue.append({"id": trigger.id, "type": "income_lost", "actor_id": id, "cause_id": event_id})
-		elif trigger.type == "income_lost":
-			event_ids.append(delta.record("income_lost", source,
-				{"actor_id": id, "retained_earnings": earned[id]}))
-	return {"ok": true, "event_ids": event_ids, "count": count}
-
-
 func simulate_years(seed_value: int, years: int, schedule: Dictionary = {}) -> Dictionary:
 	if years < 1 or years > int(pack.limits.max_years):
 		return {"ok": false, "errors": ["years must be in [1, %d]" % int(pack.limits.max_years)]}
 	for scheduled_year: Variant in schedule:
-		if not Content.is_integer(scheduled_year) or int(scheduled_year) <= int(pack.start_year) or \
+		if not scheduled_year is int or int(scheduled_year) <= int(pack.start_year) or \
 				int(scheduled_year) > int(pack.start_year) + years or not schedule[scheduled_year] is Array:
 			return {"ok": false, "errors": ["Schedule contains an invalid/out-of-range year"]}
+		for command: Variant in schedule[scheduled_year]:
+			if not command is Dictionary:
+				return {"ok": false, "errors": ["Schedule command must be an object"]}
+			if command.get("type") not in ["job_lost", "actor_died"]:
+				return {"ok": false, "errors": ["Schedule command contains unknown type: %s" % str(command.get("type"))]}
+			if not command.get("id") is String or str(command.get("id", "")).is_empty():
+				return {"ok": false, "errors": ["Schedule command requires nonempty id"]}
+			var target_actor: String = str(command.get("actor_id", ""))
+			var found_actor: bool = false
+			for actor_def: Dictionary in pack.actors:
+				if actor_def.id == target_actor:
+					found_actor = true
+					break
+			if not found_actor:
+				return {"ok": false, "errors": ["Schedule command references unknown actor: " + target_actor]}
+			var fraction: Variant = command.get("worked_permille")
+			if not Content.is_integer(fraction) or float(fraction) < 0 or float(fraction) > 1000:
+				return {"ok": false, "errors": ["Schedule command worked_permille must be an integer in [0, 1000]"]}
+			if command.has("skip_if_unavailable") and not command.skip_if_unavailable is bool:
+				return {"ok": false, "errors": ["Schedule command skip_if_unavailable must be a boolean"]}
 	var state: Dictionary = initial_state(seed_value)
 	for offset: int in range(years):
+		if state.meta.status == "player_dead":
+			break
 		var result: Dictionary = step(state, schedule.get(int(pack.start_year) + offset + 1, []))
 		if not result.ok:
 			return result
 		state = result.state
-	# This is a bounded economic experiment, not a completed life.
-	return {"ok": true, "status": "year_limit", "state": state,
+	var player: Dictionary = state.actors[state.meta.player_id]
+	return {"ok": true, "status": "completed" if not player.alive else "year_limit", "state": state,
+		"life_result": {"name": player.name, "birth_year": player.birth_year,
+			"death_year": player.death_year if not player.alive else null,
+			"age": player.age, "cause_of_death": player.death_cause,
+			"education": player.education_state, "literacy": player.literacy},
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
+
+
+func simulate_life(seed_value: int) -> Dictionary:
+	return simulate_years(seed_value, int(pack.limits.max_years))

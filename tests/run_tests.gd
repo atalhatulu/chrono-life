@@ -23,7 +23,10 @@ func _initialize() -> void:
 		printerr(loaded.errors)
 		quit(1)
 		return
-	pack = loaded.pack
+	pack = loaded.pack.duplicate(true)
+	# Preserve the Phase 0A economic regression fixture while testing life systems separately.
+	pack.systems = {"health": false, "education": false, "adaptation": false}
+	pack.limits.max_years = 30
 	test_content()
 	test_replay()
 	test_ledger()

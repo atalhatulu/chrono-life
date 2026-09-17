@@ -10,8 +10,9 @@ func _initialize() -> void:
 		fail(options.error)
 		return
 	if options.has("help"):
-		print("ChronoLife Phase 0A — economic test harness (not a complete life simulator)")
-		print("--seed N --years N --count N --shock-year YYYY --actor ID --worked-permille N --output PATH")
+		print("ChronoLife Phase 0B — headless life simulation (no player UI/storylets yet)")
+		print("--life | --years N; --seed N --count N --shock-year YYYY --shock-type job_lost|actor_died")
+		print("--actor ID --worked-permille N --output PATH")
 		print("Defaults: seed=42 years=12 count=1 actor=parent_1 worked-permille=500")
 		quit(0)
 		return
@@ -21,7 +22,10 @@ func _initialize() -> void:
 		return
 	var runner = Runner.new(loaded.pack)
 	var seed_value: int = int(options.get("seed", 42))
-	var years: int = int(options.get("years", 12))
+	var years: int = int(loaded.pack.limits.max_years) if options.has("life") else int(options.get("years", 12))
+	if options.has("life") and options.has("years"):
+		fail("--life and --years are mutually exclusive")
+		return
 	var count: int = int(options.get("count", 1))
 	if seed_value < 0 or seed_value > 2147483647 or count < 1 or count > 1000 or \
 			seed_value + count - 1 > 2147483647:
@@ -30,8 +34,8 @@ func _initialize() -> void:
 	if years < 1 or years > int(loaded.pack.limits.max_years):
 		fail("years must be in [1, %d]" % int(loaded.pack.limits.max_years))
 		return
-	if (options.has("actor") or options.has("worked-permille")) and not options.has("shock-year"):
-		fail("--actor and --worked-permille require --shock-year")
+	if (options.has("actor") or options.has("worked-permille") or options.has("shock-type")) and not options.has("shock-year"):
+		fail("--actor, --worked-permille and --shock-type require --shock-year")
 		return
 	var schedule: Dictionary = {}
 	if options.has("shock-year"):
@@ -39,9 +43,21 @@ func _initialize() -> void:
 		if year <= int(loaded.pack.start_year) or year > int(loaded.pack.start_year) + years:
 			fail("shock-year must fall within the simulated years")
 			return
-		schedule[year] = [{"id": "scenario_job_loss", "type": "job_lost",
+		var shock_type: String = str(options.get("shock-type", "job_lost"))
+		if shock_type not in ["job_lost", "actor_died"]:
+			fail("Unknown shock-type")
+			return
+		var actor_id: String = str(options.get("actor", "parent_1"))
+		if not runner.initial_state(seed_value).actors.has(actor_id):
+			fail("Unknown scenario actor: " + actor_id)
+			return
+		var fraction: int = int(options.get("worked-permille", 500))
+		if fraction < 0 or fraction > 1000:
+			fail("worked-permille must be in [0, 1000]")
+			return
+		schedule[year] = [{"id": "scenario_shock", "type": shock_type,
 			"actor_id": options.get("actor", "parent_1"),
-			"worked_permille": int(options.get("worked-permille", 500))}]
+			"worked_permille": fraction, "skip_if_unavailable": true}]
 	var summaries: Array[Dictionary] = []
 	var single_result: Dictionary = {}
 	var start: int = Time.get_ticks_msec()
@@ -58,6 +74,8 @@ func _initialize() -> void:
 			food_insecure_years += int(ledger.food_security < 1000)
 		var summary: Dictionary = {"seed": seed_value + index, "year": state.world.year,
 			"status": result.status, "savings": state.household.savings, "debt": state.household.debt,
+			"age": result.life_result.age, "death_cause": result.life_result.cause_of_death,
+			"education": result.life_result.education, "literacy": result.life_result.literacy,
 			"deficit_years": deficit_years, "food_insecure_years": food_insecure_years,
 			"fingerprint": result.fingerprint}
 		summaries.append(summary)
@@ -66,9 +84,13 @@ func _initialize() -> void:
 			for ledger: Dictionary in state.ledgers:
 				print("YEAR %d | earned %d | needs %d | savings %d | debt %d | unmet %d | food %d/1000" %
 					[ledger.year, ledger.earned_income, ledger.planned_expenses, ledger.closing_savings,
-					ledger.closing_debt, ledger.unmet_needs, ledger.food_security])
+						ledger.closing_debt, ledger.unmet_needs, ledger.food_security])
+			for event: Dictionary in state.history:
+				if event.kind in ["actor_died", "school_started", "school_interrupted", "school_completed",
+						"occupation_started", "condition_acquired", "household_response", "life_ended"]:
+					print("EVENT %d | %s | %s" % [event.year, event.kind, JSON.stringify(event.details)])
 	var elapsed: int = Time.get_ticks_msec() - start
-	var report: Dictionary = {"phase": "0A", "simulation_version": Runner.VERSION,
+	var report: Dictionary = {"phase": "0B", "simulation_version": Runner.VERSION,
 		"content_version": loaded.pack.version, "historically_calibrated": false,
 		"years_per_run": years, "count": count, "elapsed_ms": elapsed, "summaries": summaries}
 	if count == 1:
@@ -83,7 +105,7 @@ func _initialize() -> void:
 		if file.get_error() != OK:
 			fail("Failed while writing output")
 			return
-	print("Completed %d economic runs x %d years in %d ms. No lifespan/mortality model yet." %
+	print("Finished %d runs with a %d-year safety limit in %d ms. Completed lives end at player death." %
 		[count, years, elapsed])
 	for summary: Dictionary in summaries.slice(0, mini(3, count)):
 		print(JSON.stringify(summary, "", true))
@@ -97,8 +119,14 @@ func _parse(args: PackedStringArray) -> Dictionary:
 	while index < args.size():
 		if args[index] == "--help" and args.size() == 1:
 			return {"help": true}
+		if args[index] == "--life":
+			if options.has("life"):
+				return {"error": "Duplicate --life"}
+			options.life = true
+			index += 1
+			continue
 		var key: String = args[index].trim_prefix("--")
-		if not args[index].begins_with("--") or key not in numeric + ["actor", "output"]:
+		if not args[index].begins_with("--") or key not in numeric + ["actor", "output", "shock-type"]:
 			return {"error": "Unknown argument: " + args[index]}
 		if options.has(key) or index + 1 >= args.size():
 			return {"error": "Duplicate argument or missing value: " + args[index]}

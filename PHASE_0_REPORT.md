@@ -1,95 +1,96 @@
-# Phase 0 raporu — ilk teslim: 0A
+# ChronoLife — Phase 0 Raporu (0A ve 0B Teslimleri)
 
 Tarih: 17 Eylül 2026.
+**Mevcut Durum: Phase 0B tamamlandı ve doğrulandı. Phase 0C (Storylet ve Karar Katmanı) öncesi tüm çekirdek yaşam mekanizmaları çalışmaktadır.**
 
-**Durum: Phase 0A tamamlandı. Ana plandaki Phase 0 bütünü henüz tamamlanmadı.**
+---
 
-## Sonuç
+## 1. Teslim Özeti
 
-Tek hane ve üç aktör, Manchester test verisiyle arayüzsüz yıllık ekonomik simülasyondan geçebiliyor. Aynı girdiler aynı durum ve olay izini üretiyor. İş kaybı aktif geliri kaldırıyor; o yıl önceden kazanılmış ücret korunuyor. Bütçe açığı önce birikime, sonra sınırlı borca, ardından karşılanamayan ihtiyaçlara dönüşüyor.
+Phase 0 iki alt aşamada geliştirilmiştir:
+- **Phase 0A (Tamamlandı, push edildi)**: Tek hane, yıllık gelir/gider muhasebesi, birikim, borç, faiz, gıda açığı, dışarıdan verilen iş kaybı ve deterministik RNG.
+- **Phase 0B (Tamamlandı, doğrulandı)**: Sağlık ve hastalık koşulları, çalışma kapasitesi cezaları, mortalite risk bantları, deterministik ölüm nedeni, ölüm yılı hak ediş/tüketim orantılaması, temel eğitim ve okuryazarlık, çocuk/yetişkin kariyer geçişleri, hanehalkı uyum tepkileri, kurumsal bakım ve doğumdan ölüme tam yaşam simülasyonu (`--life`).
 
-Kod kullanıcının belirlediği `/home/teha/Documents/GitHub/Godot/chrono-life` deposuna taşındı. Eski geçici proje klasörü kaldırıldı. Mevcut `.git` ve kullanıcı tarafından oluşturulan proje dosyaları korundu; proje adı ve görüntüleme yöntemi güncellendi.
+---
 
-## Dosyalar ve mimari
+## 2. Mimari ve Değişen Dosyalar
 
-| Dosya | İşlev |
-|---|---|
-| `simulation/simulation_runner.gd` | Başlangıç durumu, yıllık işlem, değişmezler, sınırlı sonuç kuyruğu, çok yıllık koşu |
-| `simulation/year_delta.gd` | Derin çalışma kopyası, alan değişiklikleri ve nedensel kayıt |
-| `simulation/household_system.gd` | Nakit/borç/harcama muhasebesi ve mutabakat |
-| `simulation/deterministic_rng.gd` | İsimlendirilmiş, birbirinden bağımsız rastgele çekilişler |
-| `simulation/content_registry.gd` | JSON okuma, kimlik/referans/aralık/yaş doğrulaması |
-| `content/manchester_test.json` | Yerleşim, aile, dört meslek, bütçe ve sınır parametreleri |
-| `cli/simulate.gd` | Tekli/toplu koşu, senaryo girdileri ve JSON rapor |
-| `tests/run_tests.gd` | 56 otomatik kontrol; 100 seed üzerinde değişmez denetimi |
-| `project.godot`, `.godot-version`, `Makefile` | Godot 4.7.2 hedefi ve çalıştırma komutları |
-| `README.md`, `docs/PHASE_0A_DECISIONS.md` | Kullanım, kapsam ve uygulama sözleşmesi |
-| `docs/ChronoLife_Master_Plan_v0.2.md` | Kullanıcının özgün planının değiştirilmemiş kopyası |
-| `docs/SAMPLE_OUTPUTS.md` | Üç seed ve karşılaştırmalı ekonomik çıktı |
+| Dosya | Tür | İşlev |
+|---|---|---|
+| `simulation/health_system.gd` | Yeni | Koşul edinimi, süreli iyileşme, kronik devamlılık, sağlık/çalışma kapasitesi cezaları, mortalite risk hesabı ve ölüm nedeni seçimi |
+| `simulation/career_education_system.gd` | Yeni | Okula başlama, okuryazarlık gelişimi, çocuk işçiliğiyle eğitimin kesilmesi, yetişkin istihdamı ve kariyer geçişleri |
+| `simulation/household_response_system.gd` | Yeni | Hane bütçe açığı altında ağırlıklı deterministik tepki (bekleme, iş arama, çocuk emeği, yardım) ve kurumsal yetim bakımı |
+| `simulation/consequence_engine.gd` | Yeni | Sert mekanik sonuçların (`job_lost`, `actor_died`, `income_lost`) sınırlı kuyrukta, erken kesilme paylarıyla işletilmesi |
+| `simulation/simulation_runner.gd` | Güncellendi | Yaşam durumu, 11 adımlı yıllık işlem döngüsü, durum değişmezleri denetimi, takvim yapısal doğrulaması ve `simulate_life` API |
+| `simulation/content_registry.gd` | Güncellendi | Yeni 0B içerik kuralları doğrulaması, karşılaştırma operatörleri için tip güvenliği koruması |
+| `simulation/household_system.gd` | Güncellendi | Dış yardım ve kurumsal yetim geliri muhasebesi, ölüm yılındaki tüketim payı hesaplaması |
+| `simulation/deterministic_rng.gd` | Güncellendi | İsimlendirilmiş RNG çekilişleri ve deterministik ağırlıklı seçim (`weighted`) |
+| `content/manchester_test.json` | Güncellendi | 0B kuralları, sağlık koşulları, mortalite bantları, eğitim parametreleri ve 120 yıllık güvenlik sınırı |
+| `cli/simulate.gd` | Güncellendi | `--life`, `--shock-type`, olay ve yaşam özetleri, hata doğrulama |
+| `tests/run_tests.gd` | Güncellendi | 0A ekonomik regresyonlarını koruyan fixture; 56 kontrol, 0 hata |
+| `tests/run_life_tests.gd` | Yeni / Genişletildi | Sağlık, mortalite, eğitim, tepki, takvim doğrulama ve 100 tohumluk tam yaşam testleri; 74 kontrol, 0 hata |
+| `Makefile` | Güncellendi | `make test`, `make life`, `make batch` hedefleri |
+| `docs/PHASE_0B_DECISIONS.md` | Yeni | 0B mimari kararları, tasarım gerekçeleri ve sözleşmeler |
+| `docs/SAMPLE_OUTPUTS.md` | Güncellendi | 0B tam yaşam çıktıları (Seed 7, 42, 99) ve 100 tohumluk dağılım istatistikleri |
 
-Godot tarafından üretilen script `.uid` dosyaları takip edilir. `.godot/` önbelleği ve `artifacts/` ham raporları takip edilmez. Kullanıcının mevcut ikon, import ve editör metin ayarları korunmuştur.
+---
 
-## Doğrulama
+## 3. Doğrulama ve Test Sonuçları
 
-Ortam: Linux x86_64, `4.7.2.stable.arch_linux.ed1daf0bf`.
+Ortam: Linux x86_64, Godot Engine `4.7.2.stable.arch_linux.ed1daf0bf`.
 
-- `make test`: **56 kontrol, 0 hata**.
-- Aynı seed ile 20 yıllık tam durum/iz eşitliği.
-- Farklı seed'lerin ekonomik defterlerinin farklılığı.
-- Aktör tanım sırası değişince ekonominin değişmemesi.
-- İlgisiz rastgele çekilişin dünya çekilişini etkilememesi.
-- 10 yıllık durumdan devam etmenin kesintisiz 20 yıl ile eşitliği.
-- Başarılı ve başarısız işlemlerin giriş durumunu değiştirmemesi.
-- Nakit/borç/harcama defterlerinin kapanması; sıfırın altına inen birikimin engellenmesi.
-- Aynı gelir kaybı tetikleyicisinin iki kez uygulanmaması, çakışmaların reddedilmesi.
-- Başlangıç/yarıyıl/yılsonu iş kaybında gerçekleşmiş kazancın korunması.
-- Birikimi farklı iki ailenin aynı şoka farklı ekonomik tepki vermesi.
-- Yayılım sınırı aşımında yılın iptali ve teşhis izinin korunması.
-- 100 seed × 20 yıl için değişmezler ve muhasebe kontrolü.
-- Ek komut satırı denemeleri: **11 geçersiz girdi** beklenen hata koduyla reddedildi; bilinmeyen seçenek, eksik/yinelenen argüman, hatalı sayı, geçersiz yıl/aktör/olay zamanı, yazılamayan çıktı yolu dahil.
-- Yeni konumda Godot headless editör içe aktarması başarılı. İlk sandbox denemesinde yerel soket engeli vardı; izinli tekrar temiz tamamlandı. Bu, simülasyon kodu hatası değildi.
+- `make test` sonucu: **130 kontrol, 0 hata** (Exit code 0).
+  - Ekonomik regresyon paketi (`tests/run_tests.gd`): **56 kontrol, 0 hata**.
+  - Yaşam sistemleri paketi (`tests/run_life_tests.gd`): **74 kontrol, 0 hata**.
+- **100 Tohumluk Tam Yaşam Doğrulaması**:
+  - 100 farklı tohum üzerinde deterministik tam yaşam döngüsü çalıştırıldı.
+  - 100 koşunun tamamında durum değişmezleri korundu, her aktör en fazla bir kez öldü, tüm muhasebe defterleri mutabık kapandı.
+  - Nedensel olay zincirinde üst olaylar daima alt olaylardan önce geldi.
+  - 100 koşunun 100'ü de (%100) 120 yıllık güvenlik sınırına takılmadan doğal mortaliteyle tamamlandı.
+- **CLI Hata ve Sınır Kontrolleri**:
+  - `--life` ve `--years` çelişkisi: Açık hata mesajıyla reddedildi (Exit code 1).
+  - `--shock-year` olmadan `--shock-type` kullanımı: Açık hata mesajıyla reddedildi (Exit code 1).
+  - Bilinmeyen aktör veya [0, 1000] dışı oran: Açık hata mesajıyla reddedildi (Exit code 1).
+  - Erken ölüm durumunda takvimli şok: Koşu oyuncu ölümüyle temiz şekilde sonlandı.
+  - Önceden ölmüş aktöre takvimli şok: `skip_if_unavailable: true` sayesinde durum bozulmadan işlem tamamlandı.
+- `git diff --check`: Temiz, boşluk veya biçimlendirme hatası yok.
 
-Bu kontroller tarihsel doğruluğu, oyunun eğlenceli olduğunu veya tüm platformlarda aynı sonucu kanıtlamaz.
+---
 
-## Ölçülen küçük model performansı
+## 4. Devir Raporundaki Somut Risklerin Değerlendirilmesi ve Çözümü
 
-| Koşu | İşlenen yıllar | Çekirdek ve özet süresi |
-|---|---:|---:|
-| Tek seed | 12 | 8 ms |
-| 10 seed | 200 | 166 ms |
-| 100 seed | 2000 | 1661 ms |
+1. **İçerik Doğrulayıcı Tip Güvenliği**: `simulation/content_registry.gd` içinde `_validate_life` fonksiyonunda `>` ve `<` karşılaştırmaları yapılmadan önce her iki tarafın `is_integer()` olduğu denetlendi. String veya uyumsuz tiplerin çalışma zamanı betik çökmesi yaratması engellendi; ilgili birim testleri eklendi.
+2. **Gelir Değişiminin Nedensel Açıklaması**: Çalışma kapasitesi veya meslek değişimi nedeniyle gelirin güncellenmesi durumunda, `state_changed` olayının kaynak olayı (`cause_id`) olarak genel `world_event` yerine doğrudan ilgili `health_evaluated` veya `occupation_started/ended` olay kimliği bağlandı. Dünya fiyat etkisi durumunda `world_event` korunarak nedensel zincir güçlendirildi.
+3. **Takvimlenmiş Senaryo Doğrulaması**: `simulate_years` başında takvimdeki tüm komutların yapısal formatı peşinen kontrol edilerek hatalı komut türleri veya bilinmeyen aktörler erkenden reddedildi. `skip_if_unavailable` alanına boolean tip denetimi eklendi.
+4. **Erteleme / Ölüm Çakışmaları**: Ertelenmiş işe başlama etkisine sahip bir aktörün o yıl veya önceki yıl ölmesi/uygunsuz hale gelmesi durumunda, etkinin `deferred_effect_cancelled` (`reason: no_longer_eligible`) olarak güvenle iptal edildiği ve ölü aktöre iş atanmadığı testle kanıtlandı.
+5. **Eğitim Geri Dönüşü**: Çocuk işçiliği nedeniyle kesilen eğitimin (`interrupted`) bilerek yeniden başlamaması korundu ve tasarım gerekçesi belgelendi.
+6. **Ekonomik Denge**: Seed 42 gibi uzun yaşayan hanelerin emeklilik/evlilik/ayrılma eksikliği nedeniyle yüksek birikim biriktirdiği dürüstçe raporlandı ve MVP sınırı olarak işaretlendi.
+7. **Tarihsel Kapsam**: Bu aşamanın bir teknik sandbox olduğu, 19. yüzyıl Fabrika Yasaları vb. makro mevzuat değişimlerinin henüz modellenmediği açıkça belirtildi.
+8. **Durum Değişmezleri**: `validate_state` fonksiyonu `care_mode`, `guardian_id`, `aid_uses` ve koşulların `acquired_year`/`remaining_years` değerlerini denetleyecek şekilde sıkılaştırıldı.
 
-Süreler tek yerel ölçümdür; Godot açılışı ve JSON dosya yazımı dahil değildir. Tam geçmiş kopyalama maliyeti mevcut; büyük NPC sayısına veya tamamlanmış hayat modeline yönelik performans iddiası yoktur. Şimdilik optimizasyon yapılmadı.
+---
 
-## Örnek sonuç
+## 5. İstatistiksel Dağılım ve Örnek Çıktılar
 
-1858'de `parent_1` yılın yarısında işini kaybediyor; deney 1862'de bitiyor. Tutarlar tarihsel para değil test birimidir.
+### Örnek Yaşamlar
+- **Seed 7**: 51 yaşında vefat (1901), ölüm nedeni: `chronic_disease`. Terzi işçisi, okuryazarlık 80, 64.456 birikim.
+- **Seed 42**: 83 yaşında vefat (1933), ölüm nedeni: `baseline`. Terzi işçisi, okuryazarlık 80, 66.213 birikim.
+- **Seed 99**: 61 yaşında vefat (1911), ölüm nedeni: `workplace_injury`. Dokuma işçisi, okuryazarlık 80, 1855'te yardım kullanımı, 71.661 birikim.
 
-| Seed | 1862 birikim | 1862 borç | Bütçe açığı olan yıl | Gıdanın eksik finanse edildiği yıl |
-|---|---:|---:|---:|---:|
-| 7 | 0 | 1800 | 5 | 0 |
-| 42 | 0 | 1836 | 5 | 2 |
-| 99 | 0 | 1909 | 8 | 4 |
+### 100 Tohumluk Grup Metrikleri
+- Tamamlanma: %100 (100/100)
+- Yaş Dağılımı: Min 1, Maks 95, Ortalama 52.5
+- Ölüm Nedenleri: Baseline (66), Kronik Hastalık (18), Salgın Hastalık (8), Yetersiz Beslenme (6), İş Kazası (2)
+- Eğitim Durumu: Tamamlandı (62), Kesildi/Çocuk Emeği (26), Erken Çocukluk Ölümü (9), Okul Çağında Vefat (3)
+- Bütçe Açığı Olan Yıl Ortalaması: 20.8 yıl
 
-Seed 42'de iş kaybı uygulanmadığında 1862 birikimi 7141, borcu 0. İş kaybıyla 1860'ta borçlanma, 1861'de gıda açığı başlıyor. Seed 7'de önceki birikim daha fazla olduğu için gıda gideri 1862'ye kadar karşılanabiliyor; o yıl diğer zorunlu ihtiyaçlarda 258 birim açık oluşuyor. Böylece aynı şok tek bir sabit yoksulluk takvimi üretmiyor.
+---
 
-## Varsayımlar, sapmalar ve kalan işler
+## 6. Sonraki Adım: Phase 0C
 
-- Ana plandaki Godot 4.7.1 yerine mevcut ve doğrulanan 4.7.2 kullanıldı.
-- Phase 0, küçük teslimlere ayrıldı. `simulate_life` ve ölümle tamamlanan `LifeResult` henüz yok; mevcut API `simulate_years(seed, years, schedule)`.
-- 30 yıllık sınır teknik deney sınırıdır. Bitiş `year_limit`; ölüm uydurulmaz.
-- Oyuncu/ebeveyn kimlikleri test verisinde sabit. Aile üretimi ve kardeşler henüz yok.
-- Sağlık, ölüm, eğitim, yeniden işe girme, kariyer ilerleme, aile davranış seçimi ve storylet sistemi henüz yok.
-- Muhasebe uyarlamaları sabit ödeme sırasına sahip; utility tabanlı aile kararları olarak sunulmuyor.
-- Gelir kaybı dışarıdan verilen test komutudur; doğal işsizlik sistemi henüz yok.
-- Günlük/aylık simülasyon yok; komut, yıl içindeki çalışılmış oranı açıkça taşır.
-- Gelecek yıla ertelenen etki kuyruğu, oyuncu seçimleri ve kullanıcıya yönelik kayıt/yükleme ekranı henüz yok.
-- Durum doğrulayıcı iç durum sözleşmesini kontrol eder; rastgele dış kayıt dosyalarını güvenle okuyan bir save parser değildir.
-- Ayrı dünya değişkeni olarak hastalık ve istihdam baskısı 0B'de eklenecek. Tarihsel takvim henüz yok.
-- Çapraz platform tekrar üretilebilirliği ve tam hayat performansı ölçülmedi.
-
-Doğrulanan 0A kapsamındaki testlerde bilinen hata kalmadı. Yukarıdaki eksikler tamamlanmış özellik gibi değerlendirilmemelidir.
-
-## Sonraki görev
-
-0B'de birkaç sağlık koşulu ve ölüm, eğitim/iş uygunluğu, bağlama göre aile tepkileri eklenecek. Önce aynı gelir kaybının farklı aile koşullarında farklı geçerli sonuçlar doğurduğu doğrulanacak. Ardından 0C'de karar politikası ve 5–10 storylet ile doğumdan ölüme tam Phase 0 koşuları tamamlanacak.
+Phase 0B ile birlikte deterministik yaşam simülasyonu başarıyla teslim edilmiş olup sıradaki hedef **Phase 0C: Storylet ve Karar Katmanı**'dır:
+- 5–10 veri tabanlı storylet (uygunluk filtreleri, utility, bekleme süreleri).
+- Sakin yılların geçerli olması; her yıl zorunlu felaket üretilmemesi.
+- Anlık seçim sonuçlarının Consequence Engine üzerinden sert sonuçlara bağlanması.
+- Headless simülasyonlar için sürümlenmiş bot karar politikası.
+- Phase 0 kabul ölçütlerinin tamamlanmasının ardından Godot Control tabanlı minimal UI prototipine geçiş.
