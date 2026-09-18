@@ -10,14 +10,14 @@ static func _path(state: Dictionary) -> String:
 	return str(state.get("meta", {}).get("health_path", ""))
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := _path(state)
+	var path: String = _path(state)
 	if path.is_empty():
 		return {"conditions": [], "treatments": [], "medical_context": {}}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"conditions": [], "treatments": [], "medical_context": {}}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"conditions": [], "treatments": [], "medical_context": {}}
 	return _cache[path]
@@ -37,11 +37,11 @@ static func available_treatments(state: Dictionary, actor_id: String = "") -> Ar
 	if not actor.alive or actor.conditions.is_empty():
 		return []
 	PersonalEconomy.normalize(state)
-	var defs := _definitions(state)
+	var defs: Dictionary = _definitions(state)
 	var medical: Dictionary = _catalog(state).get("medical_context", {})
-	var base_access := int(medical.get("public_access", 0))
-	var wealth_access := mini(40, int(state.personal_economy.cash) / 10)
-	var access := base_access + wealth_access
+	var base_access: int = int(medical.get("public_access", 0))
+	var wealth_access: int = mini(40, int(state.personal_economy.cash) / 10)
+	var access: int = base_access + wealth_access
 	var out: Array[Dictionary] = []
 	for treatment: Dictionary in _catalog(state).get("treatments", []):
 		if int(actor.age) < int(treatment.get("min_age", 0)):
@@ -51,7 +51,7 @@ static func available_treatments(state: Dictionary, actor_id: String = "") -> Ar
 		if int(treatment.get("access_requirement", 0)) > access:
 			continue
 		var tags: Array = treatment.get("tags", [])
-		var matches := false
+		var matches: bool = false
 		for condition_id: String in actor.conditions:
 			if not defs.has(condition_id):
 				continue
@@ -77,23 +77,23 @@ static func apply(state: Dictionary, treatment_id: String, actor_id: String = ""
 	if selected.is_empty():
 		return {"ok": false, "error": "Treatment is not available"}
 
-	var spend := PersonalEconomy.spend(state, int(selected.cost), "health", treatment_id)
+	var spend: Dictionary = PersonalEconomy.spend(state, int(selected.cost), "health", treatment_id)
 	if not spend.ok:
 		return spend
 
 	var actor: Dictionary = state.actors[actor_id]
 	Health.initialize_actor(actor)
-	var defs := _definitions(state)
-	var seed := str(state.meta.master_seed).to_int()
-	var year := int(state.world.year)
+	var defs: Dictionary = _definitions(state)
+	var seed: int = str(state.meta.master_seed).to_int()
+	var year: int = int(state.world.year)
 	var affected: Array[String] = []
 	var cured: Array[String] = []
-	var success_count := 0
+	var success_count: int = 0
 	for condition_id: String in actor.conditions.keys():
 		if not defs.has(condition_id):
 			continue
 		var definition: Dictionary = defs[condition_id]
-		var compatible := false
+		var compatible: bool = false
 		for tag: Variant in definition.get("treatment_tags", []):
 			if tag in selected.get("tags", []):
 				compatible = true
@@ -101,7 +101,7 @@ static func apply(state: Dictionary, treatment_id: String, actor_id: String = ""
 		if not compatible:
 			continue
 		affected.append(condition_id)
-		var success := Rng.integer(seed, "treatment", year, actor_id,
+		var success: bool = Rng.integer(seed, "treatment", year, actor_id,
 			treatment_id + ":" + condition_id, 0, 9999) < int(selected.get("success_bp", 0))
 		if not success:
 			continue
@@ -115,7 +115,7 @@ static func apply(state: Dictionary, treatment_id: String, actor_id: String = ""
 
 	actor.health = clampi(int(actor.health) + int(selected.get("health_restore", 0)) * success_count, 1, 100)
 	actor.health_profile.last_treatment_year = year
-	var record := {
+	var record: Dictionary = {
 		"year": year, "treatment_id": treatment_id, "affected": affected,
 		"cured": cured, "success_count": success_count, "cost": int(selected.cost)
 	}
