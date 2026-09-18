@@ -15,6 +15,7 @@ const Needs = preload("res://simulation/needs_system.gd")
 const LifeActions = preload("res://simulation/life_action_system.gd")
 const AutoLife = preload("res://simulation/auto_life_controller.gd")
 const LifeSummary = preload("res://simulation/life_summary.gd")
+const Relationships = preload("res://simulation/relationship_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -53,7 +54,7 @@ func initial_state(seed_value: int) -> Dictionary:
 		actors[actor.id] = actor
 		ids.append(actor.id)
 	ids.sort()
-	return {
+	var result_state: Dictionary = {
 		"meta": {"simulation_version": VERSION, "content_version": pack.version,
 			"content_hash": JSON.stringify(pack, "", true).sha256_text(),
 			"engine_version": Engine.get_version_info().string, "rng_version": Rng.VERSION,
@@ -76,6 +77,8 @@ func initial_state(seed_value: int) -> Dictionary:
 			"year": int(pack.start_year), "kind": "household_created", "cause_id": "",
 			"details": {"location_id": pack.location_id, "member_ids": ids.duplicate()}}]
 	}
+	Relationships.initialize(result_state)
+	return result_state
 
 
 func _annual_income(occupation_id: String, economy_index: int, capacity: int = 1000) -> int:
@@ -448,6 +451,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	if state.meta.status != "running":
 		return {"ok": false, "errors": ["The player's life has already ended"]}
 	var working: Dictionary = state.duplicate(true)
+	Relationships.annual_drift(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
 	Needs.annual_drift(player)
 	var action_id: String = AutoLife.choose_action(working, policy_name)
