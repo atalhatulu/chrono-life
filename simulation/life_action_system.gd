@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Needs = preload("res://simulation/needs_system.gd")
+const Relationships = preload("res://simulation/relationship_system.gd")
 
 const ACTIONS := {
 	"play": {"min_age": 4, "max_age": 15, "health": 2, "literacy": 0, "willpower": 0, "happiness": 12, "stress": -8, "social": 5, "energy": -6},
@@ -37,6 +38,10 @@ static func apply(state: Dictionary, action_id: String) -> Dictionary:
 	player.willpower = clampi(int(player.willpower) + int(a.willpower), 0, 100)
 	for key: String in ["happiness", "stress", "social", "energy"]:
 		player.needs[key] = clampi(int(player.needs[key]) + int(a[key]), 0, 100)
+	if action_id == "family_time":
+		Relationships.spend_time_with_family(state)
+	elif action_id == "socialize":
+		Relationships.socialize(state)
 	state.history.append({"id": "%d:life_action:%s" % [int(state.world.year), action_id],
 		"year": int(state.world.year), "kind": "life_action", "cause_id": "",
 		"details": {"actor_id": player.id, "action_id": action_id}})
