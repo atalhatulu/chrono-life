@@ -1,0 +1,43 @@
+{
+  "version": "manchester_status_0.1.0",
+  "design_note": "Gameplay calibration only; normalization values belong to the location/era content pack.",
+  "normalization": {
+    "income_full_score": 8000,
+    "wealth_full_score": 8000
+  },
+  "weights": {
+    "income": 25,
+    "wealth": 25,
+    "occupation": 20,
+    "education": 15,
+    "housing": 10,
+    "community": 5
+  },
+  "bands": [
+    {
+      "id": "precarious",
+      "label": "Kırılgan",
+      "min_score": 0
+    },
+    {
+      "id": "working",
+      "label": "Emekçi",
+      "min_score": 20
+    },
+    {
+      "id": "stable",
+      "label": "Yerleşik",
+      "min_score": 40
+    },
+    {
+      "id": "comfortable",
+      "label": "Rahat",
+      "min_score": 60
+    },
+    {
+      "id": "affluent",
+      "label": "Varlıklı",
+      "min_score": 80
+    }
+  ]
+}
