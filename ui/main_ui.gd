@@ -665,7 +665,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 			relation = "Çocuğunun eşi"
 		column.add_child(_label(relation.to_upper(), 9, Palette.MUTED))
 		column.add_child(_label(str(actor.name), 15 if compact else 21, Palette.INK, true, true))
-		var residence := "Aynı hanede" if str(actor.get("household_id", "")) == str(state.household.id) else "Ayrı hanede"
+		var residence: String = "Aynı hanede" if str(actor.get("household_id", "")) == str(state.household.id) else "Ayrı hanede"
 		column.add_child(_label("%d yaş · %s · %s" % [actor.age, "Hayatta" if actor.alive else "Anısına", residence], 11, Palette.MUTED))
 		if not compact:
 			column.add_child(_label(Words.word(str(actor.occupation_id)) if actor.alive else "%d yılında hayatını kaybetti." % actor.death_year, 13, Palette.MUTED, false, true))
@@ -732,10 +732,10 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 	], 13, Palette.INK))
 	var marriages: Array = fam.get("marriages", [])
 	for marriage: Dictionary in marriages:
-		var spouse_id := str(marriage.get("spouse_id", ""))
-		var spouse_name := str(state.actors.get(spouse_id, {}).get("name", spouse_id))
-		var end_year := int(marriage.get("end_year", 0))
-		var line := "%s · %d" % [spouse_name, int(marriage.get("start_year", 0))]
+		var spouse_id: String = str(marriage.get("spouse_id", ""))
+		var spouse_name: String = str(state.actors.get(spouse_id, {}).get("name", spouse_id))
+		var end_year: int = int(marriage.get("end_year", 0))
+		var line: String = "%s · %d" % [spouse_name, int(marriage.get("start_year", 0))]
 		if end_year > 0:
 			line += "–%d · %s" % [end_year, str(marriage.get("end_reason", "")).replace("_", " ")]
 		else:
@@ -753,8 +753,8 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 			var pair: Array = bond.get("actors", [])
 			if pair.size() < 2:
 				continue
-			var a_name := str(state.actors.get(pair[0], {}).get("name", pair[0]))
-			var b_name := str(state.actors.get(pair[1], {}).get("name", pair[1]))
+			var a_name: String = str(state.actors.get(pair[0], {}).get("name", pair[0]))
+			var b_name: String = str(state.actors.get(pair[1], {}).get("name", pair[1]))
 			sibling_card.add_child(_label("%s ↔ %s · Yakınlık %d · Rekabet %d · Destek %d" % [
 				a_name, b_name, int(bond.get("closeness", 0)),
 				int(bond.get("rivalry", 0)), int(bond.get("support", 0))
@@ -775,7 +775,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 
 	var social_ids: Array = state.relationships.people.keys()
 	social_ids.sort()
-	var shown_nonfamily := false
+	var shown_nonfamily: bool = false
 	for id: String in social_ids:
 		if state.actors.has(id):
 			continue
@@ -849,7 +849,7 @@ func _relationship_interaction(person_id: String, interaction: String) -> void:
 func _meet_new_person() -> void:
 	if _busy or not pending_prep.is_empty():
 		return
-	var id := Relationships.meet_person(state)
+	var id: String = Relationships.meet_person(state)
 	if id == "":
 		_show_error("Şu anda yeni biriyle tanışamadın.")
 		return
@@ -861,7 +861,7 @@ func _render_budget(parent: Node) -> void:
 	column.add_child(_label("AİLENİN ORTAK BÜTÇESİ", 10, Palette.MUTED))
 	column.add_child(_label(Words.word(str(state.household.living_standard)), 23, Palette.INK, true, true))
 	var has_ledger: bool = not state.ledgers.is_empty()
-	var ledger: Dictionary = state.ledgers.back() if has_ledger else {}
+	var ledger: Dictionary = state.ledgers[state.ledgers.size() - 1] if has_ledger else {}
 	for item: Array in [["Kazanılan gelir", ledger.get("earned_income", 0)], ["Dışarıdan destek", ledger.get("external_income", 0)], ["Yıllık ihtiyaç", ledger.get("planned_expenses", 0)], ["Karşılanamayan ihtiyaç", ledger.get("unmet_needs", 0)], ["Birikim", state.household.savings], ["Borç", state.household.debt]]:
 		var row := _row()
 		column.add_child(row)
@@ -915,7 +915,7 @@ func _render_housing(parent: Node) -> void:
 func _move_housing(dwelling_id: String) -> void:
 	if _busy or not pending_prep.is_empty():
 		return
-	var result := Housing.move_to(state, dwelling_id)
+	var result: Dictionary = Housing.move_to(state, dwelling_id)
 	if not result.ok:
 		_show_error(str(result.get("error", "Taşınma başarısız.")))
 		return
@@ -989,8 +989,8 @@ func _render_career(parent: Node) -> void:
 	var career: Dictionary = player.get("career", {})
 	var card := _card(parent)
 	card.add_child(_label("KARİYER DURUMU", 10, Palette.MUTED))
-	var occupation := str(player.occupation_id)
-	var title := "Çalışmıyor" if occupation == "dependent" else occupation.replace("_", " ").capitalize()
+	var occupation: String = str(player.occupation_id)
+	var title: String = "Çalışmıyor" if occupation == "dependent" else occupation.replace("_", " ").capitalize()
 	card.add_child(_label(title, 24, Palette.INK, true))
 	card.add_child(_label("Yıllık gelir: %d" % int(player.income), 13, Palette.MUTED))
 	for item: Array in [
@@ -1017,8 +1017,8 @@ func _render_career(parent: Node) -> void:
 		history_card.add_child(_label("İŞ GEÇMİŞİ", 10, Palette.MUTED))
 		for index: int in range(history.size() - 1, maxi(-1, history.size() - 8), -1):
 			var entry: Dictionary = history[index]
-			var reason := str(entry.get("reason", ""))
-			var suffix := "" if reason == "" else " · " + reason.replace("_", " ").capitalize()
+			var reason: String = str(entry.get("reason", ""))
+			var suffix: String = "" if reason == "" else " · " + reason.replace("_", " ").capitalize()
 			history_card.add_child(_label("%d · %s · %s%s" % [
 				int(entry.get("year", 0)),
 				str(entry.get("occupation_id", "")).replace("_", " ").capitalize(),
@@ -1032,14 +1032,14 @@ func _render_education(parent: Node) -> void:
 	var education: Dictionary = player.get("education", {})
 	var card := _card(parent)
 	card.add_child(_label("EĞİTİM DURUMU", 10, Palette.MUTED))
-	var current_stage := str(education.get("current_stage", ""))
+	var current_stage: String = str(education.get("current_stage", ""))
 	var title := "Şu anda eğitim almıyor"
 	if current_stage != "":
 		title = current_stage.replace("_", " ").capitalize()
 	card.add_child(_label(title, 24, Palette.INK, true))
-	var attendance := int(education.get("attendance", 0))
-	var performance := int(education.get("performance", 0))
-	var progress := int(education.get("progress", 0))
+	var attendance: int = int(education.get("attendance", 0))
+	var performance: int = int(education.get("performance", 0))
+	var progress: int = int(education.get("progress", 0))
 	for item: Array in [["Devam", attendance], ["Performans", performance], ["İlerleme", progress], ["Okuryazarlık", int(player.literacy)]]:
 		var row := _row()
 		card.add_child(row)
@@ -1067,7 +1067,7 @@ func _render_education(parent: Node) -> void:
 
 func _render_development(parent: Node) -> void:
 	var player: Dictionary = state.actors[state.meta.player_id]
-	var skill_defs := Skills.definitions(state)
+	var skill_defs: Dictionary = Skills.definitions(state)
 	var skill_values: Dictionary = player.get("skills", {}).get("values", {})
 	var skills_card := _card(parent)
 	skills_card.add_child(_label("BECERİLER", 10, Palette.MUTED))
@@ -1075,7 +1075,7 @@ func _render_development(parent: Node) -> void:
 	skill_ids.sort()
 	for skill_id: String in skill_ids:
 		var def: Dictionary = skill_defs.get(skill_id, {})
-		var label := str(def.get("label", skill_id.replace("_", " ").capitalize()))
+		var label: String = str(def.get("label", skill_id.replace("_", " ").capitalize()))
 		var row := _row()
 		skills_card.add_child(row)
 		row.add_child(_label(label, 13, Palette.INK))
@@ -1110,7 +1110,7 @@ func _render_development(parent: Node) -> void:
 			int(progress.get("mastery", 0)), int(progress.get("years", 0)), int(progress.get("sessions", 0))
 		], 11, Palette.MUTED))
 		_spacer(row)
-		var hobby_id := str(hobby.id)
+		var hobby_id: String = str(hobby.id)
 		row.add_child(_button("Uğraş", func(): _practice_hobby(hobby_id), "Ghost"))
 
 
@@ -1147,7 +1147,7 @@ func _render_status(parent: Node) -> void:
 	if owned.is_empty():
 		asset_card.add_child(_label("Kalıcı bir varlığın yok.", 12, Palette.MUTED))
 	else:
-		var asset_defs := Assets.definitions(state)
+		var asset_defs: Dictionary = Assets.definitions(state)
 		var asset_ids: Array = owned.keys()
 		asset_ids.sort()
 		for asset_id: String in asset_ids:
@@ -1163,9 +1163,9 @@ func _render_status(parent: Node) -> void:
 				int(entry.get("quantity", 1))
 			], 12, Palette.INK))
 			_spacer(row)
-			var owned_asset_id := asset_id
+			var owned_asset_id: String = asset_id
 			row.add_child(_button("Elden çıkar", func(): _liquidate_asset(owned_asset_id), "Ghost"))
-	var buyable := Assets.available_assets(state)
+	var buyable: Array[Dictionary] = Assets.available_assets(state)
 	if not buyable.is_empty():
 		asset_card.add_child(_label("EDİNİLEBİLİR", 10, Palette.RUST))
 		for asset: Dictionary in buyable:
@@ -1176,14 +1176,14 @@ func _render_status(parent: Node) -> void:
 			copy.add_child(_label(str(asset.label), 13, Palette.INK, true))
 			copy.add_child(_label("%d test birimi" % int(asset.acquire_cost), 11, Palette.MUTED))
 			_spacer(row)
-			var asset_id := str(asset.id)
+			var asset_id: String = str(asset.id)
 			row.add_child(_button("Edin", func(): _acquire_asset(asset_id), "Ghost"))
 
 	var migration_card := _card(parent)
 	migration_card.add_child(_label("YER DEĞİŞTİRME", 10, Palette.MUTED))
 	migration_card.add_child(_label("Şu an: %s" % str(state.world.location_id).replace("_", " ").capitalize(), 16, Palette.INK, true))
 	migration_card.add_child(_label("Toplam taşınma: %d" % int(state.get("migration", {}).get("move_count", 0)), 11, Palette.MUTED))
-	var destinations := Migration.available_destinations(state)
+	var destinations: Array[Dictionary] = Migration.available_destinations(state)
 	if destinations.is_empty():
 		migration_card.add_child(_label("Şu anda uygun bir taşınma seçeneği yok.", 12, Palette.MUTED))
 	else:
@@ -1195,14 +1195,14 @@ func _render_status(parent: Node) -> void:
 			copy.add_child(_label(str(destination.label), 13, Palette.INK, true))
 			copy.add_child(_label("Taşınma maliyeti: %d" % int(destination.move_cost), 11, Palette.MUTED))
 			_spacer(row)
-			var destination_id := str(destination.id)
+			var destination_id: String = str(destination.id)
 			row.add_child(_button("Taşın", func(): _migrate_to(destination_id), "Primary"))
 
 
 func _acquire_asset(asset_id: String) -> void:
 	if _busy or not pending_prep.is_empty():
 		return
-	var result := Assets.acquire(state, asset_id)
+	var result: Dictionary = Assets.acquire(state, asset_id)
 	if not result.ok:
 		_show_error(str(result.get("error", "Varlık edinilemedi.")))
 		return
@@ -1213,7 +1213,7 @@ func _acquire_asset(asset_id: String) -> void:
 func _liquidate_asset(asset_id: String) -> void:
 	if _busy or not pending_prep.is_empty():
 		return
-	var result := Assets.liquidate(state, asset_id)
+	var result: Dictionary = Assets.liquidate(state, asset_id)
 	if not result.ok:
 		_show_error(str(result.get("error", "Varlık elden çıkarılamadı.")))
 		return
@@ -1224,7 +1224,7 @@ func _liquidate_asset(asset_id: String) -> void:
 func _migrate_to(destination_id: String) -> void:
 	if _busy or not pending_prep.is_empty():
 		return
-	var result := Migration.move_to(state, destination_id)
+	var result: Dictionary = Migration.move_to(state, destination_id)
 	if not result.ok:
 		_show_error(str(result.get("error", "Taşınma başarısız.")))
 		return
@@ -1252,7 +1252,7 @@ func _render_spending(parent: Node) -> void:
 			member_card.add_child(_label("%s · %d sonuna kadar" % [str(entry.label), int(entry.expires_year)], 13, Palette.INK))
 	var grouped: Dictionary = {}
 	for item: Dictionary in Purchases.available_items(state):
-		var category := str(item.category)
+		var category: String = str(item.category)
 		if not grouped.has(category):
 			grouped[category] = []
 		grouped[category].append(item)
