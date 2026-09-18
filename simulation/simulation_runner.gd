@@ -18,6 +18,7 @@ const LifeSummary = preload("res://simulation/life_summary.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
+const Education = preload("res://simulation/education_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -49,6 +50,7 @@ func initial_state(seed_value: int) -> Dictionary:
 		actor.conditions = {}
 		actor.education_state = "none"
 		actor.literacy = 0
+		Education.initialize_actor(actor)
 		Needs.initialize_actor(actor)
 		actor.household_id = "household_1"
 		actor.income = _annual_income(actor.occupation_id, int(pack.economy.initial_index))
@@ -64,6 +66,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"pack_id": str(pack.get("pack_id", pack.location_id)), "era_id": str(pack.get("era_id", "unknown")),
 			"spending_catalog_path": str(pack.get("content_paths", {}).get("spending_catalog", "")),
 			"life_actions_path": str(pack.get("content_paths", {}).get("life_actions", "")),
+			"education_path": str(pack.get("content_paths", {}).get("education", "")),
 			"start_year": int(pack.start_year), "status": "running"},
 		"world": {"year": int(pack.start_year), "location_id": pack.location_id,
 			"economy_index": int(pack.economy.initial_index),
@@ -271,7 +274,7 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 		world_event, int(pack.limits.max_consequences))
 	if not consequences.ok:
 		return {"ok": false, "errors": consequences.errors, "diagnostic_events": delta.events}
-	Career.education(delta, pack, year_event)
+	Education.advance(delta, pack, year_event)
 	Family.advance(delta, pack, year_event, seed_value)
 	var care_event: String = delta.record("household_care_evaluated", year_event,
 		{"consequence_ids": consequences.event_ids})
