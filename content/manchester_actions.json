@@ -15,7 +15,12 @@
         "stress": -8,
         "social": 5,
         "energy": -6
-      }
+      },
+      "ai_tags": [
+        "leisure",
+        "childhood",
+        "recovery"
+      ]
     },
     {
       "id": "study",
@@ -30,7 +35,11 @@
         "stress": 5,
         "social": -2,
         "energy": -8
-      }
+      },
+      "ai_tags": [
+        "education",
+        "effort"
+      ]
     },
     {
       "id": "rest",
@@ -45,7 +54,11 @@
         "stress": -10,
         "social": -2,
         "energy": 15
-      }
+      },
+      "ai_tags": [
+        "recovery",
+        "health"
+      ]
     },
     {
       "id": "family_time",
@@ -63,6 +76,10 @@
       },
       "hooks": [
         "family_time"
+      ],
+      "ai_tags": [
+        "family",
+        "social"
       ]
     },
     {
@@ -81,6 +98,10 @@
       },
       "hooks": [
         "socialize"
+      ],
+      "ai_tags": [
+        "social",
+        "leisure"
       ]
     },
     {
@@ -96,7 +117,11 @@
         "stress": 3,
         "social": -3,
         "energy": -7
-      }
+      },
+      "ai_tags": [
+        "education",
+        "effort"
+      ]
     },
     {
       "id": "work_hard",
@@ -114,7 +139,13 @@
         "stress": 10,
         "social": -5,
         "energy": -12
-      }
+      },
+      "ai_tags": [
+        "work",
+        "income",
+        "effort",
+        "risk"
+      ]
     },
     {
       "id": "cheap_leisure",
@@ -130,7 +161,12 @@
         "stress": -10,
         "social": 8,
         "energy": -5
-      }
+      },
+      "ai_tags": [
+        "leisure",
+        "social",
+        "spending"
+      ]
     },
     {
       "id": "buy_book",
@@ -146,7 +182,12 @@
         "stress": 1,
         "social": -1,
         "energy": -4
-      }
+      },
+      "ai_tags": [
+        "education",
+        "spending",
+        "media"
+      ]
     }
   ]
 }
