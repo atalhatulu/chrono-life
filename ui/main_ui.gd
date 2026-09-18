@@ -274,7 +274,7 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
@@ -431,7 +431,7 @@ func start_game(seed_value: int) -> void:
 
 
 func switch_view(view: String) -> void:
-	if view not in ["life", "family", "budget", "education", "spending"]:
+	if view not in ["life", "family", "budget", "education", "career", "spending"]:
 		return
 	current_view = view
 	_refresh_ui()
@@ -518,7 +518,7 @@ func _refresh_ui() -> void:
 		fields[key].text = str(player[key])
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
-	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "spending": "Cebindeki para ve harcamalar"}[current_view]
+	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "spending": "Cebindeki para ve harcamalar"}[current_view]
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
@@ -582,6 +582,9 @@ func _render_feed() -> void:
 		return
 	if current_view == "education":
 		_render_education(feed)
+		return
+	if current_view == "career":
+		_render_career(feed)
 		return
 	if not state.actors[state.meta.player_id].alive:
 		var memorial := _card(feed)
@@ -651,6 +654,49 @@ func _render_budget(parent: Node) -> void:
 		row.add_child(_label(str(item[1]), 17, Palette.INK, true))
 	column.add_child(_label("Son tamamlanan yılın hesabı. Tutarlar test birimidir." if has_ledger else "İlk yılın hesabı henüz kapanmadı. Tutarlar test birimidir.", 11, Palette.MUTED, false, true))
 	column.add_child(_label("Gıda ihtiyacının %%%d kadarı karşılanıyor." % int(state.household.food_security / 10), 13, Palette.MUTED, false, true))
+
+
+func _render_career(parent: Node) -> void:
+	var player: Dictionary = state.actors[state.meta.player_id]
+	var career: Dictionary = player.get("career", {})
+	var card := _card(parent)
+	card.add_child(_label("KARİYER DURUMU", 10, Palette.MUTED))
+	var occupation := str(player.occupation_id)
+	var title := "Çalışmıyor" if occupation == "dependent" else occupation.replace("_", " ").capitalize()
+	card.add_child(_label(title, 24, Palette.INK, true))
+	card.add_child(_label("Yıllık gelir: %d" % int(player.income), 13, Palette.MUTED))
+	for item: Array in [
+		["Toplam deneyim", int(career.get("experience_years", 0))],
+		["Ulaşılan en yüksek seviye", int(career.get("highest_level", 0))],
+		["İş değişimi", int(career.get("job_changes", 0))]
+	]:
+		var row := _row()
+		card.add_child(row)
+		row.add_child(_label(str(item[0]), 13, Palette.MUTED))
+		_spacer(row)
+		row.add_child(_label(str(item[1]), 15, Palette.INK, true))
+	var tracks: Dictionary = career.get("track_experience", {})
+	if not tracks.is_empty():
+		var track_card := _card(parent)
+		track_card.add_child(_label("ALAN DENEYİMİ", 10, Palette.MUTED))
+		var keys: Array = tracks.keys()
+		keys.sort()
+		for track: Variant in keys:
+			track_card.add_child(_label("%s · %d yıl" % [str(track).replace("_", " ").capitalize(), int(tracks[track])], 13, Palette.INK))
+	var history: Array = career.get("history", [])
+	if not history.is_empty():
+		var history_card := _card(parent)
+		history_card.add_child(_label("İŞ GEÇMİŞİ", 10, Palette.MUTED))
+		for index: int in range(history.size() - 1, maxi(-1, history.size() - 8), -1):
+			var entry: Dictionary = history[index]
+			var reason := str(entry.get("reason", ""))
+			var suffix := "" if reason == "" else " · " + reason.replace("_", " ").capitalize()
+			history_card.add_child(_label("%d · %s · %s%s" % [
+				int(entry.get("year", 0)),
+				str(entry.get("occupation_id", "")).replace("_", " ").capitalize(),
+				str(entry.get("kind", "")).capitalize(),
+				suffix
+			], 12, Palette.MUTED))
 
 
 func _render_education(parent: Node) -> void:
