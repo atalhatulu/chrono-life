@@ -11,6 +11,9 @@ const Treatments = preload("res://simulation/health_treatment_system.gd")
 const Housing = preload("res://simulation/housing_system.gd")
 const Family = preload("res://simulation/family_system.gd")
 const Delta = preload("res://simulation/year_delta.gd")
+const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
+const FamilyEvents = preload("res://simulation/family_event_system.gd")
+const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -96,6 +99,39 @@ func _initialize() -> void:
 	Family.advance(family_delta, leave_pack, "test:family", 77)
 	check("child_test" not in family_delta.candidate.household.member_ids, "Adult child can leave the household")
 	check(family_delta.candidate.actors.has("child_test"), "Child remains an actor after leaving home")
+	check(str(family_delta.candidate.actors.child_test.household_id) != str(family_delta.candidate.household.id),
+		"Adult child receives an independent household")
+	check(family_delta.candidate.households.has(str(family_delta.candidate.actors.child_test.household_id)),
+		"Independent household is registered")
+
+	var descendant_pack: Dictionary = leave_pack.duplicate(true)
+	descendant_pack.family_rules.descendant_marriage_min_age = 18
+	descendant_pack.family_rules.descendant_marriage_base_permille = 1000
+	descendant_pack.family_rules.descendant_marriage_age_bonus_permille = 0
+	descendant_pack.family_rules.descendant_birth_chance_permille = 1000
+	descendant_pack.family_rules.descendant_max_children = 2
+	family_delta.candidate.world.year += 1
+	family_delta.candidate.actors.child_test.age += 1
+	FamilyDynamics.advance(family_delta.candidate, descendant_pack, 77)
+	check(family_delta.candidate.family.descendant_lives.has("child_test"),
+		"Independent child receives descendant life state")
+	check(str(family_delta.candidate.family.descendant_lives.child_test.partner_id) != "",
+		"Independent child can form a partnership")
+	check(family_delta.candidate.family.grandchildren_ids.size() >= 1,
+		"Independent child can produce a grandchild actor")
+	var grandchild_id := str(family_delta.candidate.family.grandchildren_ids[0])
+	check(family_delta.candidate.actors.has(grandchild_id),
+		"Grandchild exists as a real actor")
+	check(str(family_delta.candidate.actors[grandchild_id].household_id) == str(family_delta.candidate.actors.child_test.household_id),
+		"Grandchild belongs to the independent child's household")
+
+	FamilyDynamics.initialize(family_delta.candidate)
+	family_delta.candidate.family.parenting.child_test = {
+		"involvement": 40, "support": 35, "discipline": 50, "conflict": 80,
+		"last_active_year": int(family_delta.candidate.world.year)
+	}
+	var generated_family_event := FamilyEvents.resolve_one(family_delta.candidate)
+	check(not generated_family_event.is_empty(), "Family state can generate a family event")
 	var first: Dictionary = runner.simulate_auto_life(42, "balanced")
 	var again: Dictionary = runner.simulate_auto_life(42, "balanced")
 	check(first.ok and again.ok, "AutoLife completes without simulation errors")
@@ -109,6 +145,11 @@ func _initialize() -> void:
 	check(first.has("treatments"), "AutoLife exposes treatment history")
 	check(first.state.has("housing"), "AutoLife preserves housing state")
 	check(first.life_result.has("family_history"), "Life summary includes Family 2.0 history")
+	check(first.life_result.has("parenting"), "Life summary includes parenting state")
+	check(first.life_result.has("sibling_bonds"), "Life summary includes sibling bonds")
+	check(first.life_result.has("descendant_lives"), "Life summary includes descendant lives")
+	check(first.has("parenting_actions"), "AutoLife exposes parenting decisions")
+	check(first.has("family_events"), "AutoLife exposes family events")
 	check(first.state.family.has("kinship"), "Family 2.0 maintains kinship graph")
 	check(first.has("purchases"), "AutoLife exposes purchase history")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
