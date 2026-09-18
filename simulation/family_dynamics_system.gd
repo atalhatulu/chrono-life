@@ -23,7 +23,7 @@ static func initialize(state: Dictionary) -> void:
 		state.family.elder_care = {}
 
 static func _bond_key(a: String, b: String) -> String:
-	var pair := [a, b]
+	var pair: Array[String] = [a, b]
 	pair.sort()
 	return "%s|%s" % [pair[0], pair[1]]
 
@@ -41,7 +41,7 @@ static func _ensure_parenting(state: Dictionary, child_id: String) -> Dictionary
 
 static func _ensure_sibling_bond(state: Dictionary, a: String, b: String) -> Dictionary:
 	initialize(state)
-	var key := _bond_key(a, b)
+	var key: String = _bond_key(a, b)
 	if not state.family.sibling_bonds.has(key):
 		state.family.sibling_bonds[key] = {
 			"actors": [a, b],
@@ -57,7 +57,7 @@ static func interact_with_child(state: Dictionary, child_id: String, kind: Strin
 	var child: Dictionary = state.actors[child_id]
 	if not child.alive:
 		return {"ok": false, "error": "Child is not alive"}
-	var parenting := _ensure_parenting(state, child_id)
+	var parenting: Dictionary = _ensure_parenting(state, child_id)
 	match kind:
 		"support":
 			parenting.support = clampi(int(parenting.support) + 10, 0, 100)
@@ -143,7 +143,7 @@ static func _annual_parenting(state: Dictionary) -> void:
 		var child: Dictionary = state.actors[child_id]
 		if not child.alive:
 			continue
-		var parenting := _ensure_parenting(state, child_id)
+		var parenting: Dictionary = _ensure_parenting(state, child_id)
 		if int(parenting.last_active_year) < int(state.world.year):
 			parenting.involvement = clampi(int(parenting.involvement) - 2, 0, 100)
 		if int(parenting.support) >= 70:
@@ -164,15 +164,15 @@ static func _annual_siblings(state: Dictionary, seed_value: int) -> void:
 		for j: int in range(i + 1, children.size()):
 			var a := children[i]
 			var b := children[j]
-			var bond := _ensure_sibling_bond(state, a, b)
-			var same_household := str(state.actors[a].household_id) == str(state.actors[b].household_id)
+			var bond: Dictionary = _ensure_sibling_bond(state, a, b)
+			var same_household: bool = str(state.actors[a].household_id) == str(state.actors[b].household_id)
 			if same_household:
 				bond.closeness = clampi(int(bond.closeness) + 1, 0, 100)
 			else:
 				bond.closeness = clampi(int(bond.closeness) - 1, 0, 100)
-			var age_gap := abs(int(state.actors[a].age) - int(state.actors[b].age))
+			var age_gap: int = abs(int(state.actors[a].age) - int(state.actors[b].age))
 			if age_gap <= 2:
-				var roll := Rng.integer(seed_value, "siblings", int(state.world.year), a, b, 0, 99)
+				var roll: int = Rng.integer(seed_value, "siblings", int(state.world.year), a, b, 0, 99)
 				if roll < 20:
 					bond.rivalry = clampi(int(bond.rivalry) + 3, 0, 100)
 				elif roll > 80:
@@ -200,14 +200,14 @@ static func _ensure_descendant_profile(state: Dictionary, child_id: String) -> D
 
 static func _create_descendant_partner(state: Dictionary, child_id: String, seed_value: int) -> String:
 	var child: Dictionary = state.actors[child_id]
-	var profile := _ensure_descendant_profile(state, child_id)
+	var profile: Dictionary = _ensure_descendant_profile(state, child_id)
 	if str(profile.partner_id) != "":
 		return str(profile.partner_id)
-	var partner_id := "partner_" + child_id
+	var partner_id: String = "partner_" + child_id
 	if state.actors.has(partner_id):
 		return partner_id
-	var sex := "female" if child.get("sex", "male") == "male" else "male"
-	var partner := {
+	var sex: String = "female" if child.get("sex", "male") == "male" else "male"
+	var partner: Dictionary = {
 		"id": partner_id,
 		"name": "Partner of " + str(child.name),
 		"sex": sex,
@@ -249,13 +249,13 @@ static func _create_descendant_partner(state: Dictionary, child_id: String, seed
 
 static func _create_grandchild(state: Dictionary, child_id: String, seed_value: int) -> String:
 	var child: Dictionary = state.actors[child_id]
-	var profile := _ensure_descendant_profile(state, child_id)
+	var profile: Dictionary = _ensure_descendant_profile(state, child_id)
 	var partner_id := str(profile.partner_id)
 	if partner_id == "" or not state.actors.has(partner_id):
 		return ""
-	var id := _next_grandchild_id(state)
-	var sex := "female" if Rng.integer(seed_value, "descendants", int(state.world.year), id, "sex", 0, 1) == 0 else "male"
-	var gc := {
+	var id: String = _next_grandchild_id(state)
+	var sex: String = "female" if Rng.integer(seed_value, "descendants", int(state.world.year), id, "sex", 0, 1) == 0 else "male"
+	var gc: Dictionary = {
 		"id": id,
 		"name": "Grandchild %d" % (state.family.grandchildren_ids.size() + 1),
 		"sex": sex,
@@ -314,24 +314,24 @@ static func _create_grandchild(state: Dictionary, child_id: String, seed_value: 
 
 static func _advance_descendants(state: Dictionary, pack: Dictionary, seed_value: int) -> void:
 	var rules: Dictionary = pack.get("family_rules", {})
-	var min_marriage_age := int(rules.get("descendant_marriage_min_age", rules.get("min_marriage_age", 18) + 2))
+	var min_marriage_age: int = int(rules.get("descendant_marriage_min_age", rules.get("min_marriage_age", 18) + 2))
 	for child_id: String in state.family.get("children_ids", []):
 		if not state.actors.has(child_id):
 			continue
 		var child: Dictionary = state.actors[child_id]
 		if not child.alive or str(child.household_id) == str(state.household.id):
 			continue
-		var profile := _ensure_descendant_profile(state, child_id)
+		var profile: Dictionary = _ensure_descendant_profile(state, child_id)
 		if str(profile.marital_status) == "single" and int(child.age) >= min_marriage_age:
-			var chance := int(rules.get("descendant_marriage_base_permille", 120)) + maxi(0, int(child.age) - min_marriage_age) * int(rules.get("descendant_marriage_age_bonus_permille", 15))
+			var chance: int = int(rules.get("descendant_marriage_base_permille", 120)) + maxi(0, int(child.age) - min_marriage_age) * int(rules.get("descendant_marriage_age_bonus_permille", 15))
 			if Rng.integer(seed_value, "descendants", int(state.world.year), child_id, "marry", 0, 999) < mini(chance, 1000):
 				_create_descendant_partner(state, child_id, seed_value)
 		if str(profile.marital_status) != "married":
 			continue
-		var gap := int(state.world.year) - int(profile.get("last_birth_year", 0))
+		var gap: int = int(state.world.year) - int(profile.get("last_birth_year", 0))
 		if int(profile.get("last_birth_year", 0)) > 0 and gap < 2:
 			continue
-		var max_children := int(rules.get("descendant_max_children", mini(4, int(rules.get("max_children", 6)))))
+		var max_children: int = int(rules.get("descendant_max_children", mini(4, int(rules.get("max_children", 6)))))
 		if profile.children_ids.size() >= max_children:
 			continue
 		if int(child.age) > 45:
