@@ -114,93 +114,6 @@
     "employment_min": 100,
     "employment_max": 800
   },
-  "health_rules": {
-    "death_worked_permille": 500,
-    "mortality_bands": [
-      {
-        "minimum_age": 0,
-        "risk_bp": 1200
-      },
-      {
-        "minimum_age": 1,
-        "risk_bp": 180
-      },
-      {
-        "minimum_age": 5,
-        "risk_bp": 35
-      },
-      {
-        "minimum_age": 15,
-        "risk_bp": 60
-      },
-      {
-        "minimum_age": 40,
-        "risk_bp": 100
-      },
-      {
-        "minimum_age": 60,
-        "risk_bp": 350
-      },
-      {
-        "minimum_age": 70,
-        "risk_bp": 800
-      },
-      {
-        "minimum_age": 80,
-        "risk_bp": 2200
-      },
-      {
-        "minimum_age": 90,
-        "risk_bp": 4800
-      },
-      {
-        "minimum_age": 100,
-        "risk_bp": 8000
-      }
-    ]
-  },
-  "conditions": [
-    {
-      "id": "malnutrition",
-      "exposure": "nutrition",
-      "food_threshold": 750,
-      "incidence_bp": 10000,
-      "duration_years": 0,
-      "mortality_bp": 250,
-      "health_penalty": 25,
-      "work_penalty": 200
-    },
-    {
-      "id": "epidemic_disease",
-      "exposure": "ambient",
-      "food_threshold": 0,
-      "incidence_bp": 500,
-      "duration_years": 1,
-      "mortality_bp": 900,
-      "health_penalty": 40,
-      "work_penalty": 500
-    },
-    {
-      "id": "chronic_disease",
-      "exposure": "ambient",
-      "food_threshold": 0,
-      "incidence_bp": 120,
-      "duration_years": 0,
-      "mortality_bp": 250,
-      "health_penalty": 20,
-      "work_penalty": 200
-    },
-    {
-      "id": "workplace_injury",
-      "exposure": "work",
-      "food_threshold": 0,
-      "incidence_bp": 450,
-      "duration_years": 2,
-      "mortality_bp": 100,
-      "health_penalty": 25,
-      "work_penalty": 350
-    }
-  ],
   "education_rules": {
     "start_age": 6,
     "completion_age": 14,
@@ -578,7 +491,8 @@
     "life_actions": "res://content/manchester_actions.json",
     "education": "res://content/manchester_education.json",
     "careers": "res://content/manchester_careers.json",
-    "relationships": "res://content/manchester_relationships.json"
+    "relationships": "res://content/manchester_relationships.json",
+    "health": "res://content/manchester_health.json"
   },
   "pack_id": "manchester_1850",
   "era_id": "industrial_revolution"
