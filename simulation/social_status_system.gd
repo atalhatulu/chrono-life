@@ -3,14 +3,14 @@ extends RefCounted
 static var _cache: Dictionary = {}
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := str(state.get("meta", {}).get("status_path", ""))
+	var path: String = str(state.get("meta", {}).get("status_path", ""))
 	if path.is_empty():
 		return {"weights": {}, "bands": []}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"weights": {}, "bands": []}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"weights": {}, "bands": []}
 	return _cache[path]
@@ -44,14 +44,14 @@ static func _housing_component(state: Dictionary) -> int:
 static func recompute(state: Dictionary) -> void:
 	initialize(state)
 	var p: Dictionary = state.actors[state.meta.player_id]
-	var household_income := int(state.household.income)
-	var wealth := int(state.household.savings) + int(state.get("personal_economy", {}).get("cash", 0))
+	var household_income: int = int(state.household.income)
+	var wealth: int = int(state.household.savings) + int(state.get("personal_economy", {}).get("cash", 0))
 	for asset_id: String in state.get("assets", {}).get("owned", {}):
 		wealth += int(state.assets.owned[asset_id].get("value", 0))
 	var normalization: Dictionary = _catalog(state).get("normalization", {})
-	var income_full := maxi(1, int(normalization.get("income_full_score", 1)))
-	var wealth_full := maxi(1, int(normalization.get("wealth_full_score", 1)))
-	var components := {
+	var income_full: int = maxi(1, int(normalization.get("income_full_score", 1)))
+	var wealth_full: int = maxi(1, int(normalization.get("wealth_full_score", 1)))
+	var components: Dictionary = {
 		"income": clampi(int(household_income * 100.0 / income_full), 0, 100),
 		"wealth": clampi(int(wealth * 100.0 / wealth_full), 0, 100),
 		"occupation": _occupation_component(state),
@@ -60,18 +60,18 @@ static func recompute(state: Dictionary) -> void:
 		"community": clampi(int(p.get("personality", {}).get("axes", {}).get("sociability", 50)), 0, 100)
 	}
 	var weights: Dictionary = _catalog(state).get("weights", {})
-	var total_weight := 0
-	var weighted := 0
+	var total_weight: int = 0
+	var weighted: int = 0
 	for key: String in components:
-		var w := int(weights.get(key, 0))
+		var w: int = int(weights.get(key, 0))
 		total_weight += w
 		weighted += int(components[key]) * w
-	var score := 0 if total_weight <= 0 else int(weighted / total_weight)
-	var band_id := ""
+	var score: int = 0 if total_weight <= 0 else int(weighted / total_weight)
+	var band_id: String = ""
 	for band: Dictionary in _catalog(state).get("bands", []):
 		if score >= int(band.get("min_score", 0)):
 			band_id = str(band.id)
-	var changed := band_id != str(state.social_status.get("band_id", ""))
+	var changed: bool = band_id != str(state.social_status.get("band_id", ""))
 	state.social_status.score = score
 	state.social_status.band_id = band_id
 	state.social_status.components = components
