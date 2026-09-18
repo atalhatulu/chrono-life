@@ -39,8 +39,8 @@ static func eligible(actor: Dictionary, job: Dictionary, target_age: int) -> boo
 		if stage not in completed:
 			return false
 	initialize_actor(actor)
-	var track := str(job.get("career_track", ""))
-	var required_exp := int(job.get("minimum_experience_years", 0))
+	var track: String = str(job.get("career_track", ""))
+	var required_exp: int = int(job.get("minimum_experience_years", 0))
 	if required_exp > 0 and int(actor.career.track_experience.get(track, 0)) < required_exp:
 		return false
 	return true
@@ -68,7 +68,7 @@ static func _record_job_end(delta: RefCounted, id: String, reason: String, cause
 static func start_job(delta: RefCounted, id: String, job_id: String, cause: String, jobs: Dictionary = {}) -> void:
 	var actor: Dictionary = delta.candidate.actors[id]
 	initialize_actor(actor)
-	var old_job := str(actor.occupation_id)
+	var old_job: String = str(actor.occupation_id)
 	var event: String = delta.record("occupation_started", cause, {"actor_id": id, "occupation_id": job_id, "previous_occupation_id": old_job})
 	delta.set_field("actors", "occupation_id", job_id, event, id)
 	actor.career.current_job = job_id
@@ -80,7 +80,7 @@ static func start_job(delta: RefCounted, id: String, job_id: String, cause: Stri
 		var school_event: String = delta.record("school_interrupted", event, {"actor_id": id})
 		delta.set_field("actors", "education_state", "interrupted", school_event, id)
 		if actor.has("education"):
-			var stage_id := str(actor.education.get("current_stage", ""))
+			var stage_id: String = str(actor.education.get("current_stage", ""))
 			actor.education.current_stage = ""
 			actor.education.dropout_count = int(actor.education.get("dropout_count", 0)) + 1
 			actor.education.history.append({"year": delta.year, "kind": "interrupted", "stage_id": stage_id})
@@ -102,8 +102,8 @@ static func _promotion_candidates(actor: Dictionary, jobs: Dictionary) -> Array[
 	if actor.occupation_id == "dependent" or not jobs.has(actor.occupation_id):
 		return []
 	var current: Dictionary = jobs[actor.occupation_id]
-	var current_track := str(current.get("career_track", ""))
-	var current_level := int(current.get("level", 0))
+	var current_track: String = str(current.get("career_track", ""))
+	var current_level: int = int(current.get("level", 0))
 	var result: Array[String] = []
 	for id: String in jobs:
 		var job: Dictionary = jobs[id]
@@ -155,15 +155,15 @@ static func prepare(delta: RefCounted, pack: Dictionary, jobs: Dictionary, cause
 
 		actor = state.actors[id]
 		if actor.occupation_id != "dependent":
-			var promotions := _promotion_candidates(actor, jobs)
+			var promotions: Array[String] = _promotion_candidates(actor, jobs)
 			if not promotions.is_empty():
-				var skill_bonus := 0
+				var skill_bonus: int = 0
 				var current_job: Dictionary = jobs[actor.occupation_id]
 				for skill_id: String in current_job.get("required_skills", {}):
 					skill_bonus += int(actor.get("skills", {}).get("values", {}).get(skill_id, 0)) * 4
-				var chance := 120 + int(actor.willpower) * 2 + int(actor.literacy) + skill_bonus
+				var chance: int = 120 + int(actor.willpower) * 2 + int(actor.literacy) + skill_bonus
 				if Rng.integer(seed_value, "career", delta.year, id, "promotion", 0, 999) < mini(chance, 700):
-					var promoted_to := promotions[0]
+					var promoted_to: String = promotions[0]
 					_record_job_end(delta, id, "promotion", cause)
 					start_job(delta, id, promoted_to, cause, jobs)
 			continue
