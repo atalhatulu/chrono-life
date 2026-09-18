@@ -8,6 +8,8 @@ const Relationships = preload("res://simulation/relationship_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
 const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
 const Hobbies = preload("res://simulation/hobby_system.gd")
+const Assets = preload("res://simulation/asset_system.gd")
+const Migration = preload("res://simulation/migration_system.gd")
 
 static func choose_action(state: Dictionary, policy: String = "balanced") -> String:
 	var ids: Array[String] = Actions.available_actions(state)
@@ -285,3 +287,49 @@ static func choose_hobby(state: Dictionary, policy: String = "balanced") -> Stri
 			best_score = score
 			best_id = str(hobby.id)
 	return best_id
+
+
+static func choose_asset(state: Dictionary, policy: String = "balanced") -> String:
+	var options: Array[Dictionary] = Assets.available_assets(state)
+	if options.is_empty():
+		return ""
+	var cash := int(state.personal_economy.cash)
+	var best_id := ""
+	var best_score := -999999
+	for asset: Dictionary in options:
+		var cost := int(asset.get("acquire_cost", 0))
+		var value := int(asset.get("base_value", cost))
+		var score := int(asset.get("status_value", 0)) * 3 + maxi(0, value - cost) / 50
+		if str(asset.get("category", "")) == "productive":
+			score += 20
+		if policy == "pragmatic" and str(asset.get("category", "")) in ["productive", "financial"]:
+			score += 15
+		score -= int(cost * 25.0 / maxi(cash, 1))
+		if score > best_score:
+			best_score = score
+			best_id = str(asset.id)
+	return best_id if best_score >= 8 else ""
+
+
+static func choose_migration(state: Dictionary, policy: String = "balanced") -> String:
+	var options: Array[Dictionary] = Migration.available_destinations(state)
+	if options.is_empty():
+		return ""
+	var p: Dictionary = state.actors[state.meta.player_id]
+	var best_id := ""
+	var best_score := -999999
+	for destination: Dictionary in options:
+		var score := int(destination.get("employment_modifier", 0)) / 5
+		score -= int(destination.get("move_cost", 0)) / 100
+		if int(state.household.debt) > 1000:
+			score += int(destination.get("employment_modifier", 0)) / 3
+		if "bold" in p.get("traits", []):
+			score += 10
+		if "cautious" in p.get("traits", []):
+			score -= 15
+		if policy == "pragmatic":
+			score += int(destination.get("employment_modifier", 0)) / 4
+		if score > best_score:
+			best_score = score
+			best_id = str(destination.id)
+	return best_id if best_score >= 10 else ""
