@@ -510,7 +510,10 @@
     "housing": "res://content/manchester_housing.json",
     "skills": "res://content/manchester_skills.json",
     "hobbies": "res://content/manchester_hobbies.json",
-    "personality": "res://content/generic_personality.json"
+    "personality": "res://content/generic_personality.json",
+    "assets": "res://content/manchester_assets.json",
+    "status": "res://content/generic_status.json",
+    "migration": "res://content/manchester_migration.json"
   },
   "pack_id": "manchester_1850",
   "era_id": "industrial_revolution",
