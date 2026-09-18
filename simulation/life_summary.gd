@@ -2,7 +2,7 @@ extends RefCounted
 
 static func build(state: Dictionary) -> Dictionary:
 	var p: Dictionary = state.actors[state.meta.player_id]
-	var relationship_summary := {"friends": 0, "close_friends": 0, "romantic": 0, "ex_partners": 0, "estranged": 0, "social_events": 0}
+	var relationship_summary = {"friends": 0, "close_friends": 0, "romantic": 0, "ex_partners": 0, "estranged": 0, "social_events": 0}
 	for id: String in state.get("relationships", {}).get("people", {}):
 		var rel: Dictionary = state.relationships.people[id]
 		match str(rel.get("stage", "")):
@@ -14,7 +14,7 @@ static func build(state: Dictionary) -> Dictionary:
 	for event: Dictionary in state.get("relationships", {}).get("history", []):
 		if event.get("kind") == "social_event":
 			relationship_summary.social_events += 1
-	var asset_value := 0
+	var asset_value = 0
 	for asset_id: String in state.get("assets", {}).get("owned", {}):
 		asset_value += int(state.assets.owned[asset_id].get("value", 0))
 	var actions: Dictionary = {}
