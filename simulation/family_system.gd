@@ -1,6 +1,10 @@
 extends RefCounted
 
 const Rng = preload("res://simulation/deterministic_rng.gd")
+const Relationships = preload("res://simulation/relationship_system.gd")
+const Needs = preload("res://simulation/needs_system.gd")
+const Education = preload("res://simulation/education_system.gd")
+const Career = preload("res://simulation/career_system.gd")
 
 const FEMALE_NAMES: Array[String] = ["Sarah", "Elizabeth", "Mary", "Hannah", "Alice", "Ellen", "Martha"]
 const MALE_NAMES: Array[String] = ["James", "John", "Thomas", "George", "William", "Joseph", "Robert"]
@@ -15,6 +19,9 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 	var name_pool: Array[String] = FEMALE_NAMES if spouse_sex == "female" else MALE_NAMES
 	var name_idx: int = Rng.integer(seed_value, "family", delta.year, "spouse", "name", 0, name_pool.size() - 1)
 	var spouse_name: String = name_pool[name_idx] + " Thompson"
+	var partner_id: String = Relationships.best_partner_candidate(state)
+	if partner_id != "" and state.relationships.people.has(partner_id):
+		spouse_name = str(state.relationships.people[partner_id].name)
 
 	var birth_offset: int = Rng.integer(seed_value, "family", delta.year, "spouse", "age_offset", -2, 2)
 	var min_m_age: int = int(pack.get("family_rules", {}).get("min_marriage_age", 19))
@@ -53,6 +60,9 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 		"household_id": state.household.id,
 		"traits": ["pragmatic"]
 	}
+	Needs.initialize_actor(spouse)
+	Education.initialize_actor(spouse)
+	Career.initialize_actor(spouse)
 
 	delta.candidate.actors[spouse_id] = spouse
 	if not delta.candidate.household.member_ids.has(spouse_id):
@@ -64,6 +74,13 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 	fam["marriage_year"] = delta.year
 	delta.set_field("family", "marital_status", "married", cause_event)
 	delta.set_field("family", "marriage_year", delta.year, cause_event)
+
+	Relationships.register_person(state, spouse_id, spouse_name, "spouse", true,
+		"existing_relationship" if partner_id != "" else "courtship", spouse_sex)
+	if partner_id != "" and partner_id != spouse_id:
+		state.relationships.people.erase(partner_id)
+		state.relationships.history.append({"year": delta.year, "kind": "relationship_became_marriage",
+			"person_id": spouse_id, "former_person_id": partner_id})
 
 	var marriage_event: String = delta.record("marriage_formed", cause_event, {
 		"spouse_id": spouse_id,
@@ -160,6 +177,9 @@ static func advance(delta: RefCounted, pack: Dictionary, year_event: String, see
 		"household_id": state.household.id,
 		"traits": []
 	}
+	Needs.initialize_actor(child)
+	Education.initialize_actor(child)
+	Career.initialize_actor(child)
 
 	delta.candidate.actors[child_id] = child
 	if not delta.candidate.household.member_ids.has(child_id):
@@ -172,6 +192,8 @@ static func advance(delta: RefCounted, pack: Dictionary, year_event: String, see
 
 	delta.set_field("family", "children_count", new_child_idx, year_event)
 	delta.set_field("family", "last_birth_year", delta.year, year_event)
+
+	Relationships.register_person(state, child_id, child_name, "child", true, "birth", child_sex)
 
 	delta.record("child_born", year_event, {
 		"child_id": child_id,
