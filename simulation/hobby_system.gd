@@ -5,14 +5,14 @@ const Skills = preload("res://simulation/skill_system.gd")
 static var _cache: Dictionary = {}
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := str(state.get("meta", {}).get("hobbies_path", ""))
+	var path: String = str(state.get("meta", {}).get("hobbies_path", ""))
 	if path.is_empty():
 		return {"hobbies": [], "action_hobby_links": {}}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"hobbies": [], "action_hobby_links": {}}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"hobbies": [], "action_hobby_links": {}}
 	return _cache[path]
@@ -32,7 +32,7 @@ static func practice(state: Dictionary, actor_id: String, hobby_id: String, sour
 		return {"ok": false, "error": "Unknown actor"}
 	var actor: Dictionary = state.actors[actor_id]
 	initialize_actor(actor)
-	var defs := _by_id(state)
+	var defs: Dictionary = _by_id(state)
 	if not defs.has(hobby_id) or int(actor.age) < int(defs[hobby_id].get("min_age", 0)):
 		return {"ok": false, "error": "Hobby unavailable"}
 	var progress: Dictionary = actor.hobbies.active.get(hobby_id, {
@@ -55,7 +55,7 @@ static func practice(state: Dictionary, actor_id: String, hobby_id: String, sour
 	return {"ok": true, "hobby_id": hobby_id}
 
 static func apply_action_link(state: Dictionary, actor_id: String, action_id: String) -> void:
-	var hobby_id := str(_catalog(state).get("action_hobby_links", {}).get(action_id, ""))
+	var hobby_id: String = str(_catalog(state).get("action_hobby_links", {}).get(action_id, ""))
 	if hobby_id != "":
 		practice(state, actor_id, hobby_id, "action:" + action_id)
 
