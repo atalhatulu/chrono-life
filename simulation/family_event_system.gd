@@ -3,7 +3,7 @@ extends RefCounted
 const Rng = preload("res://simulation/deterministic_rng.gd")
 
 static func _last_year(state: Dictionary, kind: String, subject_id: String) -> int:
-	var last := -9999
+	var last = -9999
 	for event: Dictionary in state.family.get("history", []):
 		if str(event.get("kind", "")) == kind and str(event.get("subject_id", "")) == subject_id:
 			last = maxi(last, int(event.get("year", -9999)))
@@ -11,7 +11,7 @@ static func _last_year(state: Dictionary, kind: String, subject_id: String) -> i
 
 static func collect_candidates(state: Dictionary) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var year := int(state.world.year)
+	var year = int(state.world.year)
 	for child_id: String in state.family.get("children_ids", []):
 		if not state.actors.has(child_id):
 			continue
@@ -27,7 +27,7 @@ static func collect_candidates(state: Dictionary) -> Array[Dictionary]:
 			out.append({"type":"child_milestone","subject_id":child_id,"weight":60})
 		if str(child.household_id) != str(state.household.id) and year - _last_year(state, "adult_child_visit", child_id) >= 3:
 			out.append({"type":"adult_child_visit","subject_id":child_id,"weight":35})
-	var player_id := str(state.meta.player_id)
+	var player_id = str(state.meta.player_id)
 	var parents: Array = state.family.get("kinship", {}).get(player_id, {}).get("parents", [])
 	for parent_id: String in parents:
 		if not state.actors.has(parent_id):
