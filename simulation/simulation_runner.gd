@@ -61,6 +61,8 @@ func initial_state(seed_value: int) -> Dictionary:
 			"content_hash": JSON.stringify(pack, "", true).sha256_text(),
 			"engine_version": Engine.get_version_info().string, "rng_version": Rng.VERSION,
 			"master_seed": str(seed_value), "player_id": pack.player_id,
+			"pack_id": str(pack.get("pack_id", pack.location_id)), "era_id": str(pack.get("era_id", "unknown")),
+			"spending_catalog_path": str(pack.get("content_paths", {}).get("spending_catalog", "")),
 			"start_year": int(pack.start_year), "status": "running"},
 		"world": {"year": int(pack.start_year), "location_id": pack.location_id,
 			"economy_index": int(pack.economy.initial_index),
