@@ -339,7 +339,8 @@
           "effects": {
             "cash_grant": 750,
             "willpower_delta": -10,
-            "set_flag": "heirloom_pawned"
+            "set_flag": "heirloom_pawned",
+            "remove_asset": "heirloom_watch"
           }
         },
         {
