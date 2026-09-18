@@ -64,9 +64,9 @@ static func _surname(name: String) -> String:
 	return str(parts[parts.size() - 1]) if parts.size() > 1 else ""
 
 static func _next_spouse_id(state: Dictionary) -> String:
-	var n := 1
+	var n = 1
 	while true:
-		var id := "spouse" if n == 1 else "spouse_%d" % n
+		var id = "spouse" if n == 1 else "spouse_%d" % n
 		if not state.actors.has(id):
 			return id
 		n += 1
@@ -113,7 +113,7 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 		if str(occ.id) == occ_id:
 			base_wage = int(occ.annual_income)
 			break
-	var spouse_wage := int(base_wage * economy_index / 1000.0)
+	var spouse_wage = int(base_wage * economy_index / 1000.0)
 
 	var spouse_id: String = _next_spouse_id(state)
 	var spouse: Dictionary = {
@@ -211,7 +211,7 @@ static func _evaluate_children_leaving(delta: RefCounted, pack: Dictionary, caus
 		var child: Dictionary = state.actors[child_id]
 		if not child.alive or int(child.age) < min_age:
 			continue
-		var chance := base
+		var chance = base
 		if child.occupation_id != "dependent":
 			chance += employed_bonus
 		if int(child.age) >= min_age + 5:
@@ -237,7 +237,7 @@ static func _create_child(delta: RefCounted, pack: Dictionary, cause: String, se
 	if not spouse.alive:
 		return
 	var female: Dictionary = player if player.get("sex", "male") == "female" else spouse
-	var female_id := player_id if player.get("sex", "male") == "female" else spouse_id
+	var female_id = player_id if player.get("sex", "male") == "female" else spouse_id
 	var rules: Dictionary = pack.get("family_rules", {})
 	if int(female.age) < int(rules.get("min_parent_age", 18)) or int(female.age) > int(rules.get("max_parent_age", 42)):
 		return
@@ -249,8 +249,8 @@ static func _create_child(delta: RefCounted, pack: Dictionary, cause: String, se
 	if Rng.integer(seed_value, "family", delta.year, "birth", "conception", 0, 999) >= int(rules.get("conception_chance_permille", 300)):
 		return
 
-	var child_index := int(state.family.children_count) + 1
-	var child_id := "child_%d" % child_index
+	var child_index = int(state.family.children_count) + 1
+	var child_id = "child_%d" % child_index
 	while state.actors.has(child_id):
 		child_index += 1
 		child_id = "child_%d" % child_index
@@ -259,7 +259,7 @@ static func _create_child(delta: RefCounted, pack: Dictionary, cause: String, se
 	var first: String = names[Rng.integer(seed_value, "family", delta.year, child_id, "name", 0, names.size() - 1)]
 	var surname: String = _surname(str(player.name))
 	var child_name: String = first + (" " + surname if surname != "" else "")
-	var child := {
+	var child = {
 		"id":child_id,"name":child_name,"sex":child_sex,"birth_year":delta.year,"age":0,
 		"alive":true,"death_year":0,"death_cause":"","health":80,"constitution":70,"willpower":50,
 		"literacy":0,"conditions":{},"education_state":"none","occupation_id":"dependent","income":0,
