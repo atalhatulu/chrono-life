@@ -69,7 +69,7 @@ func _ready() -> void:
 
 func _label(text: String, font_size: int = 14, color: Color = Palette.INK,
 		serif: bool = false, wrap: bool = false) -> Label:
-	var label := Label.new()
+	var label = Label.new()
 	label.text = text
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.add_theme_font_size_override("font_size", font_size)
@@ -84,7 +84,7 @@ func _label(text: String, font_size: int = 14, color: Color = Palette.INK,
 
 func _field(parent: Node, key: String, text: String, font_size: int = 14,
 		color: Color = Palette.INK, serif: bool = false, wrap: bool = false) -> Label:
-	var label := _label(text, font_size, color, serif, wrap)
+	var label = _label(text, font_size, color, serif, wrap)
 	label.name = key
 	parent.add_child(label)
 	fields[key] = label
@@ -92,20 +92,20 @@ func _field(parent: Node, key: String, text: String, font_size: int = 14,
 
 
 func _column(gap: int = 12) -> VBoxContainer:
-	var box := VBoxContainer.new()
+	var box = VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_theme_constant_override("separation", gap)
 	return box
 
 
 func _row(gap: int = 12) -> HBoxContainer:
-	var box := HBoxContainer.new()
+	var box = HBoxContainer.new()
 	box.add_theme_constant_override("separation", gap)
 	return box
 
 
 func _spacer(parent: Node, vertical: bool = false) -> Control:
-	var spacer := Control.new()
+	var spacer = Control.new()
 	if vertical:
 		spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	else:
@@ -115,7 +115,7 @@ func _spacer(parent: Node, vertical: bool = false) -> Control:
 
 
 func _button(text: String, action: Callable, variation: String = "Button", icon: String = "") -> Button:
-	var button := Button.new()
+	var button = Button.new()
 	button.text = text
 	button.theme_type_variation = variation
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -127,10 +127,10 @@ func _button(text: String, action: Callable, variation: String = "Button", icon:
 
 
 func _card(parent: Node, padding: int = 18) -> VBoxContainer:
-	var panel := PanelContainer.new()
+	var panel = PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", Palette.box(Palette.PAPER, 12, Palette.LINE, padding))
 	parent.add_child(panel)
-	var column := _column(10)
+	var column = _column(10)
 	panel.add_child(column)
 	return column
 
@@ -142,7 +142,7 @@ func _clear(parent: Node) -> void:
 
 
 func _build() -> void:
-	var background := ColorRect.new()
+	var background = ColorRect.new()
 	background.color = Palette.BACKGROUND
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -154,25 +154,25 @@ func _build() -> void:
 	page_margin.add_child(main_column)
 	_build_header(main_column)
 	_build_hero(main_column)
-	var body := _row(20)
+	var body = _row(20)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_column.add_child(body)
 	content_column = _column(12)
 	body.add_child(content_column)
-	var section := _row()
+	var section = _row()
 	content_column.add_child(section)
 	_field(section, "section", "Hayatından sayfalar", 22, Palette.INK, true)
 	_spacer(section)
 	filter_button = _button("Tüm yıllar", _toggle_filter, "Ghost")
 	filter_button.add_theme_font_size_override("font_size", 12)
 	section.add_child(filter_button)
-	var scroll := ScrollContainer.new()
+	var scroll = ScrollContainer.new()
 	chronicle_scroll = scroll
 	scroll.name = "ChronicleScroll"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	content_column.add_child(scroll)
-	var stack := _column(12)
+	var stack = _column(12)
 	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(stack)
 	decision_panel = PanelContainer.new()
@@ -189,7 +189,7 @@ func _build() -> void:
 	right_panel.size_flags_vertical = Control.SIZE_FILL
 	right_panel.add_theme_stylebox_override("panel", Palette.box(Color("eeeee3"), 12, Color.TRANSPARENT, 18))
 	body.add_child(right_panel)
-	var side_scroll := ScrollContainer.new()
+	var side_scroll = ScrollContainer.new()
 	side_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	right_panel.add_child(side_scroll)
 	side_info = _column(16)
@@ -198,9 +198,9 @@ func _build() -> void:
 	error_label = _label("", 13, Palette.RUST, false, true)
 	error_label.hide()
 	main_column.add_child(error_label)
-	var footer := _row(12)
+	var footer = _row(12)
 	main_column.add_child(footer)
-	var footer_copy := _column(2)
+	var footer_copy = _column(2)
 	footer.add_child(footer_copy)
 	_field(footer_copy, "footer", "Her yıl yeni bir sayfa.", 13)
 	_field(footer_copy, "hint", "Büyük kararları şimdilik ailen veriyor.", 11, Palette.MUTED, false, true)
@@ -212,52 +212,52 @@ func _build() -> void:
 
 
 func _build_header(parent: Node) -> void:
-	var header := _row(12)
+	var header = _row(12)
 	parent.add_child(header)
 	header.add_child(_label("C H R O N O L I F E", 16, Palette.INK))
 	_field(header, "tagline", "Bir hayat. Bir hikâye.", 13, Palette.MUTED, true)
 	_spacer(header)
-	var settings := _button("Ayarlar", _open_tools, "Ghost", "settings")
+	var settings = _button("Ayarlar", _open_tools, "Ghost", "settings")
 	settings.tooltip_text = "Simülasyon bilgileri ve otomatik karar ayarları"
 	header.add_child(settings)
-	var profile := _row(18)
+	var profile = _row(18)
 	parent.add_child(profile)
-	var badge := PanelContainer.new()
+	var badge = PanelContainer.new()
 	badge.custom_minimum_size = Vector2(64, 64)
 	badge.add_theme_stylebox_override("panel", Palette.box(Palette.DARK, 32, Color.TRANSPARENT, 8))
 	profile.add_child(badge)
-	var initials := _field(badge, "initials", "WT", 24, Palette.PAPER, true)
+	var initials = _field(badge, "initials", "WT", 24, Palette.PAPER, true)
 	initials.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	initials.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	var identity := _column(2)
+	var identity = _column(2)
 	profile.add_child(identity)
-	var name_label := _field(identity, "name", "William Thompson", 29, Palette.INK, true)
+	var name_label = _field(identity, "name", "William Thompson", 29, Palette.INK, true)
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_label.custom_minimum_size.x = 200
 	_field(identity, "age", "0 yaş · İlk yıllar", 13, Palette.MUTED)
-	var balance := _column(2)
+	var balance = _column(2)
 	balance.size_flags_horizontal = Control.SIZE_SHRINK_END
 	profile.add_child(balance)
-	var caption := _label("HANE BİRİKİMİ", 10, Palette.MUTED)
+	var caption = _label("HANE BİRİKİMİ", 10, Palette.MUTED)
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	balance.add_child(caption)
-	var savings := _field(balance, "savings", "0", 27, Palette.INK, true)
+	var savings = _field(balance, "savings", "0", 27, Palette.INK, true)
 	savings.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	savings.tooltip_text = "Ailenin ortak birikimi · test birimi"
 
 
 func _build_hero(parent: Node) -> void:
-	var hero := Control.new()
+	var hero = Control.new()
 	hero_banner = hero
 	hero.custom_minimum_size.y = 64
 	hero.clip_contents = true
 	parent.add_child(hero)
-	var background := ColorRect.new()
+	var background = ColorRect.new()
 	background.color = Color("e7e6d7")
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hero.add_child(background)
-	var texture := TextureRect.new()
+	var texture = TextureRect.new()
 	texture.texture = preload("res://assets/ui/manchester.svg")
 	texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
@@ -265,13 +265,13 @@ func _build_hero(parent: Node) -> void:
 	texture.anchor_left = 0.45
 	texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hero.add_child(texture)
-	var copy := _row(18)
+	var copy = _row(18)
 	copy.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	copy.offset_left = 18
 	copy.offset_right = -18
 	hero.add_child(copy)
 	_field(copy, "year", "1850", 31, Palette.INK, true)
-	var location := _column(1)
+	var location = _column(1)
 	location.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	copy.add_child(location)
 	_field(location, "location", "MANCHESTER, İNGİLTERE", 10, Palette.INK)
@@ -279,7 +279,7 @@ func _build_hero(parent: Node) -> void:
 
 
 func _build_dock(parent: Node) -> void:
-	var panel := PanelContainer.new()
+	var panel = PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", Palette.box(Palette.DARK, 16, Color.TRANSPARENT, 10))
 	parent.add_child(panel)
 	action_dock = _row(8)
@@ -293,7 +293,7 @@ func _build_dock(parent: Node) -> void:
 			action = _run_auto_life
 		elif key == "new":
 			action = _open_new_game
-		var button := _button(item[1], action, "Primary" if key == "advance" else "Navigation", item[2])
+		var button = _button(item[1], action, "Primary" if key == "advance" else "Navigation", item[2])
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		button.custom_minimum_size.y = 54
@@ -311,17 +311,17 @@ func _build_dock(parent: Node) -> void:
 
 
 func _build_stats(parent: Node) -> void:
-	var stats := _row(18)
+	var stats = _row(18)
 	parent.add_child(stats)
 	for item: Array in [["health", "Sağlık"], ["literacy", "Okuryazarlık"], ["willpower", "İrade"]]:
-		var stat := _column(6)
+		var stat = _column(6)
 		stats.add_child(stat)
-		var line := _row()
+		var line = _row()
 		stat.add_child(line)
 		line.add_child(_label(item[1], 12, Palette.MUTED))
 		_spacer(line)
 		_field(line, item[0], "100", 12)
-		var bar := ProgressBar.new()
+		var bar = ProgressBar.new()
 		bar.show_percentage = false
 		bar.custom_minimum_size.y = 5
 		stat.add_child(bar)
@@ -334,14 +334,14 @@ func _build_modal() -> void:
 	overlay.color = Color(0.08, 0.16, 0.12, 0.65)
 	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(overlay)
-	var center := CenterContainer.new()
+	var center = CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	overlay.add_child(center)
-	var panel := PanelContainer.new()
+	var panel = PanelContainer.new()
 	panel.custom_minimum_size.x = 460
 	panel.add_theme_stylebox_override("panel", Palette.box(Palette.PAPER, 16, Palette.LINE, 28))
 	center.add_child(panel)
-	var content := _column(18)
+	var content = _column(18)
 	panel.add_child(content)
 	modal_title = _label("", 28, Palette.INK, true)
 	content.add_child(modal_title)
@@ -375,7 +375,7 @@ func _confirm_new_game() -> void:
 	if not value.is_valid_int() or value.length() > 10 or value.to_int() < 0 or value.to_int() > 2147483647:
 		seed_input.tooltip_text = "0 ile 2147483647 arasında bir tam sayı gir."
 		seed_input.add_theme_color_override("font_color", Palette.RUST)
-		var note := _label("0 ile 2147483647 arasında bir tam sayı gir.", 12, Palette.RUST)
+		var note = _label("0 ile 2147483647 arasında bir tam sayı gir.", 12, Palette.RUST)
 		if not modal_body.has_node("SeedError"):
 			note.name = "SeedError"
 			modal_body.add_child(note)
@@ -560,7 +560,7 @@ func _render_decision() -> void:
 	decision_box.add_child(_label("%d  /  BİR KARAR ZAMANI" % pending_prep.year, 11, Palette.RUST))
 	decision_box.add_child(_label(wording[0], 25, Palette.INK, true, true))
 	decision_box.add_child(_label(wording[1], 14, Palette.INK, false, true))
-	var choices := GridContainer.new()
+	var choices = GridContainer.new()
 	choices.columns = 2
 	choices.add_theme_constant_override("h_separation", 12)
 	choices.add_theme_constant_override("v_separation", 10)
@@ -568,7 +568,7 @@ func _render_decision() -> void:
 	for choice: Dictionary in story.choices:
 		var copy: Array = Words.CHOICES.get(choice.id, [choice.label, choice.description])
 		var id: String = choice.id
-		var button := _button(str(copy[0]) + "\n" + str(copy[1]), func(): _on_choice_selected(id), "Choice")
+		var button = _button(str(copy[0]) + "\n" + str(copy[1]), func(): _on_choice_selected(id), "Choice")
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.custom_minimum_size.y = 68
@@ -609,7 +609,7 @@ func _render_feed() -> void:
 		_render_status(feed)
 		return
 	if not state.actors[state.meta.player_id].alive:
-		var memorial := _card(feed)
+		var memorial = _card(feed)
 		memorial.add_child(_label("BİR HAYATIN ARDINDAN", 10, Palette.RUST))
 		memorial.add_child(_label(state.actors[state.meta.player_id].name, 27, Palette.INK, true))
 		memorial.add_child(_label("%s · %s" % ["%d — %d" % [state.actors[state.meta.player_id].birth_year, state.actors[state.meta.player_id].death_year], Words.word(str(state.actors[state.meta.player_id].death_cause))], 13, Palette.MUTED, false, true))
@@ -618,20 +618,20 @@ func _render_feed() -> void:
 		var page: Dictionary = pages[index]
 		if not show_quiet and not page.important:
 			continue
-		var entry := _row(20)
+		var entry = _row(20)
 		feed.add_child(entry)
-		var date := _column(2)
+		var date = _column(2)
 		date.size_flags_horizontal = Control.SIZE_FILL
 		date.custom_minimum_size.x = 72
 		entry.add_child(date)
 		date.add_child(_label(str(page.year), 23, Palette.RUST, true))
 		var age: int = int(page.year) - int(state.actors[state.meta.player_id].birth_year)
 		date.add_child(_label("%d yaş" % age, 11, Palette.MUTED))
-		var copy := _column(5)
+		var copy = _column(5)
 		entry.add_child(copy)
 		copy.add_child(_label(page.title, 19, Palette.INK, true, true))
 		copy.add_child(_label(page.body, 14, Color("637063"), false, true))
-		var separator := HSeparator.new()
+		var separator = HSeparator.new()
 		separator.add_theme_stylebox_override("separator", Palette.box(Palette.LINE, 0, Color.TRANSPARENT, 0))
 		separator.add_theme_constant_override("separation", 25)
 		feed.add_child(separator)
@@ -676,11 +676,11 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 					int(relation_data.get("conflict", 0))
 				], 12, Palette.MUTED))
 				if actor.alive:
-					var row := _row(6)
+					var row = _row(6)
 					column.add_child(row)
 					for action: String in ["talk", "spend_time", "apologize"]:
-						var person_id := id
-						var interaction := action
+						var person_id = id
+						var interaction = action
 						row.add_child(_button({
 							"talk": "Konuş",
 							"spend_time": "Vakit geçir",
@@ -692,11 +692,11 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 							int(parenting.get("involvement", 55)), int(parenting.get("support", 55)),
 							int(parenting.get("discipline", 50)), int(parenting.get("conflict", 10))
 						], 11, Palette.MUTED, false, true))
-						var parenting_row := _row(6)
+						var parenting_row = _row(6)
 						column.add_child(parenting_row)
 						for p_action: String in ["support", "spend_time", "education_support", "discipline"]:
-							var child_id := id
-							var parenting_action := p_action
+							var child_id = id
+							var parenting_action = p_action
 							parenting_row.add_child(_button({
 								"support": "Destekle",
 								"spend_time": "Birlikte ol",
@@ -709,11 +709,11 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 						column.add_child(_label("Bakım · Destek %d · Yük %d" % [
 							int(elder.get("care", 0)), int(elder.get("burden", 0))
 						], 11, Palette.MUTED))
-						var elder_row := _row(6)
+						var elder_row = _row(6)
 						column.add_child(elder_row)
 						for care_action: String in ["visit", "care", "financial_support"]:
-							var parent_id := id
-							var elder_action := care_action
+							var parent_id = id
+							var elder_action = care_action
 							elder_row.add_child(_button({
 								"visit": "Ziyaret et",
 								"care": "Bakım ver",
@@ -723,7 +723,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		return
 
 	var fam: Dictionary = state.get("family", {})
-	var family_overview := _card(parent)
+	var family_overview = _card(parent)
 	family_overview.add_child(_label("AİLE GEÇMİŞİ", 10, Palette.MUTED))
 	family_overview.add_child(_label("Durum: %s · Çocuk: %d · Evlilik: %d" % [
 		str(fam.get("marital_status", "unmarried")).replace("_", " ").capitalize(),
@@ -744,7 +744,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 
 	var sibling_bonds: Dictionary = fam.get("sibling_bonds", {})
 	if not sibling_bonds.is_empty():
-		var sibling_card := _card(parent)
+		var sibling_card = _card(parent)
 		sibling_card.add_child(_label("KARDEŞ BAĞLARI", 10, Palette.MUTED))
 		var bond_keys: Array = sibling_bonds.keys()
 		bond_keys.sort()
@@ -760,7 +760,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 				int(bond.get("rivalry", 0)), int(bond.get("support", 0))
 			], 12, Palette.MUTED, false, true))
 
-	var households_card := _card(parent)
+	var households_card = _card(parent)
 	households_card.add_child(_label("AİLE HANELERİ", 10, Palette.MUTED))
 	for household_entry: Dictionary in HouseholdNetwork.active_households(state):
 		var names: Array[String] = []
@@ -783,10 +783,10 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		if not rel.alive:
 			continue
 		if not shown_nonfamily:
-			var heading := _card(parent)
+			var heading = _card(parent)
 			heading.add_child(_label("SOSYAL ÇEVREN", 10, Palette.MUTED))
 			shown_nonfamily = true
-		var card := _card(parent)
+		var card = _card(parent)
 		card.add_child(_label(str(rel.stage).replace("_", " ").to_upper(), 9, Palette.MUTED))
 		card.add_child(_label(str(rel.name), 19, Palette.INK, true))
 		card.add_child(_label("Yakınlık %d · Güven %d · Çatışma %d · Uyum %d · Çekim %d" % [
@@ -796,11 +796,11 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		card.add_child(_label("%d'de tanıştınız · %s" % [
 			int(rel.met_year), str(rel.met_via).replace("_", " ")
 		], 11, Palette.MUTED))
-		var actions := _row(6)
+		var actions = _row(6)
 		card.add_child(actions)
 		for action: String in ["talk", "spend_time", "gift", "flirt", "argue", "apologize"]:
-			var person_id := id
-			var interaction := action
+			var person_id = id
+			var interaction = action
 			actions.add_child(_button({
 				"talk": "Konuş",
 				"spend_time": "Vakit geçir",
@@ -810,7 +810,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 				"apologize": "Özür dile"
 			}[action], func(): _relationship_interaction(person_id, interaction), "Ghost"))
 
-	var meet_card := _card(parent)
+	var meet_card = _card(parent)
 	meet_card.add_child(_label("YENİ İNSANLAR", 10, Palette.MUTED))
 	meet_card.add_child(_label("Sosyal çevreni genişletebilir, yeni arkadaşlar veya romantik bağlar kurabilirsin.", 12, Palette.MUTED, false, true))
 	meet_card.add_child(_button("Yeni biriyle tanış", _meet_new_person, "Primary"))
@@ -857,13 +857,13 @@ func _meet_new_person() -> void:
 
 
 func _render_budget(parent: Node) -> void:
-	var column := _card(parent)
+	var column = _card(parent)
 	column.add_child(_label("AİLENİN ORTAK BÜTÇESİ", 10, Palette.MUTED))
 	column.add_child(_label(Words.word(str(state.household.living_standard)), 23, Palette.INK, true, true))
 	var has_ledger: bool = not state.ledgers.is_empty()
 	var ledger: Dictionary = state.ledgers[state.ledgers.size() - 1] if has_ledger else {}
 	for item: Array in [["Kazanılan gelir", ledger.get("earned_income", 0)], ["Dışarıdan destek", ledger.get("external_income", 0)], ["Yıllık ihtiyaç", ledger.get("planned_expenses", 0)], ["Karşılanamayan ihtiyaç", ledger.get("unmet_needs", 0)], ["Birikim", state.household.savings], ["Borç", state.household.debt]]:
-		var row := _row()
+		var row = _row()
 		column.add_child(row)
 		row.add_child(_label(item[0], 14, Palette.MUTED))
 		_spacer(row)
@@ -875,7 +875,7 @@ func _render_budget(parent: Node) -> void:
 func _render_housing(parent: Node) -> void:
 	var current: Dictionary = Housing.current_dwelling(state)
 	var housing: Dictionary = state.get("housing", {})
-	var card := _card(parent)
+	var card = _card(parent)
 	card.add_child(_label("BARINMA DURUMU", 10, Palette.MUTED))
 	card.add_child(_label(str(current.get("label", "Bilinmeyen konut")), 24, Palette.INK, true))
 	card.add_child(_label("Kullanım biçimi: %s · Yıllık maliyet: %d" % [
@@ -894,21 +894,21 @@ func _render_housing(parent: Node) -> void:
 		int(housing.get("move_count", 0)),
 		int(housing.get("unpaid_years", 0))
 	], 11, Palette.MUTED))
-	var options := _card(parent)
+	var options = _card(parent)
 	options.add_child(_label("KONUT SEÇENEKLERİ", 10, Palette.MUTED))
 	for dwelling: Dictionary in Housing.available_dwellings(state):
 		if str(dwelling.id) == str(housing.get("dwelling_id", "")):
 			continue
-		var row := _row(8)
+		var row = _row(8)
 		options.add_child(row)
-		var copy := _column(2)
+		var copy = _column(2)
 		row.add_child(copy)
 		copy.add_child(_label(str(dwelling.label), 14, Palette.INK, true))
 		copy.add_child(_label("%d/yıl · kalite %d · kapasite %d" % [
 			int(dwelling.annual_cost), int(dwelling.quality), int(dwelling.capacity)
 		], 11, Palette.MUTED))
 		_spacer(row)
-		var dwelling_id := str(dwelling.id)
+		var dwelling_id = str(dwelling.id)
 		row.add_child(_button("Taşın", func(): _move_housing(dwelling_id), "Primary"))
 
 
@@ -926,7 +926,7 @@ func _move_housing(dwelling_id: String) -> void:
 func _render_health(parent: Node) -> void:
 	var player: Dictionary = state.actors[state.meta.player_id]
 	var profile: Dictionary = player.get("health_profile", {})
-	var card := _card(parent)
+	var card = _card(parent)
 	card.add_child(_label("SAĞLIK DURUMU", 10, Palette.MUTED))
 	card.add_child(_label("%d / 100" % int(player.health), 27, Palette.INK, true))
 	card.add_child(_label("Çalışma kapasitesi: %d / 1000" % int(player.work_capacity), 12, Palette.MUTED))
@@ -941,29 +941,29 @@ func _render_health(parent: Node) -> void:
 			], 14, Palette.INK, true))
 	var disabilities: Array = profile.get("disabilities", [])
 	if not disabilities.is_empty():
-		var permanent := _card(parent)
+		var permanent = _card(parent)
 		permanent.add_child(_label("KALICI ETKİLER", 10, Palette.RUST))
 		for disability: Variant in disabilities:
 			permanent.add_child(_label(str(disability).replace("_", " ").capitalize(), 13, Palette.INK))
 	var options: Array[Dictionary] = Treatments.available_treatments(state)
 	if not options.is_empty():
-		var treatment_card := _card(parent)
+		var treatment_card = _card(parent)
 		treatment_card.add_child(_label("TEDAVİ SEÇENEKLERİ", 10, Palette.MUTED))
 		for treatment: Dictionary in options:
-			var row := _row(8)
+			var row = _row(8)
 			treatment_card.add_child(row)
-			var text := _column(2)
+			var text = _column(2)
 			row.add_child(text)
 			text.add_child(_label(str(treatment.label), 14, Palette.INK, true))
 			text.add_child(_label("%d test birimi · başarı %d%%" % [
 				int(treatment.cost), int(treatment.get("success_bp", 0)) / 100
 			], 11, Palette.MUTED))
 			_spacer(row)
-			var treatment_id := str(treatment.id)
+			var treatment_id = str(treatment.id)
 			row.add_child(_button("Tedavi ol", func(): _take_treatment(treatment_id), "Primary"))
 	var history: Array = profile.get("treatment_history", [])
 	if not history.is_empty():
-		var history_card := _card(parent)
+		var history_card = _card(parent)
 		history_card.add_child(_label("TEDAVİ GEÇMİŞİ", 10, Palette.MUTED))
 		for index: int in range(history.size() - 1, maxi(-1, history.size() - 6), -1):
 			var entry: Dictionary = history[index]
@@ -987,7 +987,7 @@ func _take_treatment(treatment_id: String) -> void:
 func _render_career(parent: Node) -> void:
 	var player: Dictionary = state.actors[state.meta.player_id]
 	var career: Dictionary = player.get("career", {})
-	var card := _card(parent)
+	var card = _card(parent)
 	card.add_child(_label("KARİYER DURUMU", 10, Palette.MUTED))
 	var occupation: String = str(player.occupation_id)
 	var title: String = "Çalışmıyor" if occupation == "dependent" else occupation.replace("_", " ").capitalize()
@@ -998,14 +998,14 @@ func _render_career(parent: Node) -> void:
 		["Ulaşılan en yüksek seviye", int(career.get("highest_level", 0))],
 		["İş değişimi", int(career.get("job_changes", 0))]
 	]:
-		var row := _row()
+		var row = _row()
 		card.add_child(row)
 		row.add_child(_label(str(item[0]), 13, Palette.MUTED))
 		_spacer(row)
 		row.add_child(_label(str(item[1]), 15, Palette.INK, true))
 	var tracks: Dictionary = career.get("track_experience", {})
 	if not tracks.is_empty():
-		var track_card := _card(parent)
+		var track_card = _card(parent)
 		track_card.add_child(_label("ALAN DENEYİMİ", 10, Palette.MUTED))
 		var keys: Array = tracks.keys()
 		keys.sort()
@@ -1013,7 +1013,7 @@ func _render_career(parent: Node) -> void:
 			track_card.add_child(_label("%s · %d yıl" % [str(track).replace("_", " ").capitalize(), int(tracks[track])], 13, Palette.INK))
 	var history: Array = career.get("history", [])
 	if not history.is_empty():
-		var history_card := _card(parent)
+		var history_card = _card(parent)
 		history_card.add_child(_label("İŞ GEÇMİŞİ", 10, Palette.MUTED))
 		for index: int in range(history.size() - 1, maxi(-1, history.size() - 8), -1):
 			var entry: Dictionary = history[index]
@@ -1030,10 +1030,10 @@ func _render_career(parent: Node) -> void:
 func _render_education(parent: Node) -> void:
 	var player: Dictionary = state.actors[state.meta.player_id]
 	var education: Dictionary = player.get("education", {})
-	var card := _card(parent)
+	var card = _card(parent)
 	card.add_child(_label("EĞİTİM DURUMU", 10, Palette.MUTED))
 	var current_stage: String = str(education.get("current_stage", ""))
-	var title := "Şu anda eğitim almıyor"
+	var title = "Şu anda eğitim almıyor"
 	if current_stage != "":
 		title = current_stage.replace("_", " ").capitalize()
 	card.add_child(_label(title, 24, Palette.INK, true))
@@ -1041,20 +1041,20 @@ func _render_education(parent: Node) -> void:
 	var performance: int = int(education.get("performance", 0))
 	var progress: int = int(education.get("progress", 0))
 	for item: Array in [["Devam", attendance], ["Performans", performance], ["İlerleme", progress], ["Okuryazarlık", int(player.literacy)]]:
-		var row := _row()
+		var row = _row()
 		card.add_child(row)
 		row.add_child(_label(str(item[0]), 13, Palette.MUTED))
 		_spacer(row)
 		row.add_child(_label("%d%%" % int(item[1]), 15, Palette.INK, true))
 	var completed: Array = education.get("completed_stages", [])
 	if not completed.is_empty():
-		var completed_card := _card(parent)
+		var completed_card = _card(parent)
 		completed_card.add_child(_label("TAMAMLANAN EĞİTİMLER", 10, Palette.MUTED))
 		for stage_id: Variant in completed:
 			completed_card.add_child(_label(str(stage_id).replace("_", " ").capitalize(), 14, Palette.INK))
 	var history: Array = education.get("history", [])
 	if not history.is_empty():
-		var history_card := _card(parent)
+		var history_card = _card(parent)
 		history_card.add_child(_label("EĞİTİM GEÇMİŞİ", 10, Palette.MUTED))
 		for index: int in range(history.size() - 1, maxi(-1, history.size() - 6), -1):
 			var entry: Dictionary = history[index]
@@ -1069,26 +1069,26 @@ func _render_development(parent: Node) -> void:
 	var player: Dictionary = state.actors[state.meta.player_id]
 	var skill_defs: Dictionary = Skills.definitions(state)
 	var skill_values: Dictionary = player.get("skills", {}).get("values", {})
-	var skills_card := _card(parent)
+	var skills_card = _card(parent)
 	skills_card.add_child(_label("BECERİLER", 10, Palette.MUTED))
 	var skill_ids: Array = skill_values.keys()
 	skill_ids.sort()
 	for skill_id: String in skill_ids:
 		var def: Dictionary = skill_defs.get(skill_id, {})
 		var label: String = str(def.get("label", skill_id.replace("_", " ").capitalize()))
-		var row := _row()
+		var row = _row()
 		skills_card.add_child(row)
 		row.add_child(_label(label, 13, Palette.INK))
 		_spacer(row)
 		row.add_child(_label("%d" % int(skill_values[skill_id]), 15, Palette.INK, true))
 
-	var personality_card := _card(parent)
+	var personality_card = _card(parent)
 	personality_card.add_child(_label("KİŞİLİK", 10, Palette.MUTED))
 	var axes: Dictionary = player.get("personality", {}).get("axes", {})
 	var axis_ids: Array = axes.keys()
 	axis_ids.sort()
 	for axis_id: String in axis_ids:
-		var row := _row()
+		var row = _row()
 		personality_card.add_child(row)
 		row.add_child(_label(axis_id.replace("_", " ").capitalize(), 13, Palette.INK))
 		_spacer(row)
@@ -1096,14 +1096,14 @@ func _render_development(parent: Node) -> void:
 	if not player.get("traits", []).is_empty():
 		personality_card.add_child(_label("Traitler: " + ", ".join(player.traits), 11, Palette.MUTED, false, true))
 
-	var hobbies_card := _card(parent)
+	var hobbies_card = _card(parent)
 	hobbies_card.add_child(_label("HOBİLER / UĞRAŞLAR", 10, Palette.MUTED))
 	var active: Dictionary = player.get("hobbies", {}).get("active", {})
 	for hobby: Dictionary in Hobbies.available_hobbies(state):
 		var progress: Dictionary = active.get(hobby.id, {})
-		var row := _row(8)
+		var row = _row(8)
 		hobbies_card.add_child(row)
-		var copy := _column(2)
+		var copy = _column(2)
 		row.add_child(copy)
 		copy.add_child(_label(str(hobby.label), 14, Palette.INK, true))
 		copy.add_child(_label("Ustalık %d · %d yıl · %d oturum" % [
@@ -1126,7 +1126,7 @@ func _practice_hobby(hobby_id: String) -> void:
 
 func _render_status(parent: Node) -> void:
 	var status: Dictionary = state.get("social_status", {})
-	var status_card := _card(parent)
+	var status_card = _card(parent)
 	status_card.add_child(_label("TOPLUMSAL KONUM", 10, Palette.MUTED))
 	status_card.add_child(_label(str(status.get("band_id", "unknown")).replace("_", " ").capitalize(), 25, Palette.INK, true))
 	status_card.add_child(_label("Skor: %d / 100" % int(status.get("score", 0)), 13, Palette.MUTED))
@@ -1134,13 +1134,13 @@ func _render_status(parent: Node) -> void:
 	var component_keys: Array = components.keys()
 	component_keys.sort()
 	for key: String in component_keys:
-		var row := _row()
+		var row = _row()
 		status_card.add_child(row)
 		row.add_child(_label(key.replace("_", " ").capitalize(), 12, Palette.MUTED))
 		_spacer(row)
 		row.add_child(_label(str(components[key]), 13, Palette.INK, true))
 
-	var asset_card := _card(parent)
+	var asset_card = _card(parent)
 	asset_card.add_child(_label("VARLIKLAR", 10, Palette.MUTED))
 	asset_card.add_child(_label("Toplam değer: %d" % Assets.total_value(state), 18, Palette.INK, true))
 	var owned: Dictionary = state.get("assets", {}).get("owned", {})
@@ -1153,9 +1153,9 @@ func _render_status(parent: Node) -> void:
 		for asset_id: String in asset_ids:
 			var entry: Dictionary = owned[asset_id]
 			var def: Dictionary = asset_defs.get(asset_id, {})
-			var row := _row(8)
+			var row = _row(8)
 			asset_card.add_child(row)
-			var copy := _column(2)
+			var copy = _column(2)
 			row.add_child(copy)
 			copy.add_child(_label("%s · değer %d · adet %d" % [
 				str(def.get("label", asset_id)),
@@ -1169,9 +1169,9 @@ func _render_status(parent: Node) -> void:
 	if not buyable.is_empty():
 		asset_card.add_child(_label("EDİNİLEBİLİR", 10, Palette.RUST))
 		for asset: Dictionary in buyable:
-			var row := _row(8)
+			var row = _row(8)
 			asset_card.add_child(row)
-			var copy := _column(2)
+			var copy = _column(2)
 			row.add_child(copy)
 			copy.add_child(_label(str(asset.label), 13, Palette.INK, true))
 			copy.add_child(_label("%d test birimi" % int(asset.acquire_cost), 11, Palette.MUTED))
@@ -1179,7 +1179,7 @@ func _render_status(parent: Node) -> void:
 			var asset_id: String = str(asset.id)
 			row.add_child(_button("Edin", func(): _acquire_asset(asset_id), "Ghost"))
 
-	var migration_card := _card(parent)
+	var migration_card = _card(parent)
 	migration_card.add_child(_label("YER DEĞİŞTİRME", 10, Palette.MUTED))
 	migration_card.add_child(_label("Şu an: %s" % str(state.world.location_id).replace("_", " ").capitalize(), 16, Palette.INK, true))
 	migration_card.add_child(_label("Toplam taşınma: %d" % int(state.get("migration", {}).get("move_count", 0)), 11, Palette.MUTED))
@@ -1188,9 +1188,9 @@ func _render_status(parent: Node) -> void:
 		migration_card.add_child(_label("Şu anda uygun bir taşınma seçeneği yok.", 12, Palette.MUTED))
 	else:
 		for destination: Dictionary in destinations:
-			var row := _row(8)
+			var row = _row(8)
 			migration_card.add_child(row)
-			var copy := _column(2)
+			var copy = _column(2)
 			row.add_child(copy)
 			copy.add_child(_label(str(destination.label), 13, Palette.INK, true))
 			copy.add_child(_label("Taşınma maliyeti: %d" % int(destination.move_cost), 11, Palette.MUTED))
@@ -1233,20 +1233,20 @@ func _migrate_to(destination_id: String) -> void:
 
 func _render_spending(parent: Node) -> void:
 	var economy: Dictionary = state.get("personal_economy", {})
-	var wallet := _card(parent)
+	var wallet = _card(parent)
 	wallet.add_child(_label("KİŞİSEL PARA", 10, Palette.MUTED))
 	wallet.add_child(_label("%d test birimi" % int(economy.get("cash", 0)), 27, Palette.INK, true))
 	wallet.add_child(_label("Toplam kazanç: %d · Toplam harcama: %d" % [
 		int(economy.get("lifetime_income", 0)), int(economy.get("lifetime_spending", 0))], 12, Palette.MUTED))
 	var owned: Array[Dictionary] = Purchases.owned_items(state)
 	if not owned.is_empty():
-		var owned_card := _card(parent)
+		var owned_card = _card(parent)
 		owned_card.add_child(_label("SAHİP OLDUKLARIN", 10, Palette.MUTED))
 		for entry: Dictionary in owned:
 			owned_card.add_child(_label("%s · %d'de alındı" % [str(entry.label), int(entry.year)], 13, Palette.INK))
 	var memberships: Array[Dictionary] = Purchases.active_memberships(state)
 	if not memberships.is_empty():
-		var member_card := _card(parent)
+		var member_card = _card(parent)
 		member_card.add_child(_label("AKTİF ÜYELİKLER", 10, Palette.MUTED))
 		for entry: Dictionary in memberships:
 			member_card.add_child(_label("%s · %d sonuna kadar" % [str(entry.label), int(entry.expires_year)], 13, Palette.INK))
@@ -1259,16 +1259,16 @@ func _render_spending(parent: Node) -> void:
 	var categories: Array = grouped.keys()
 	categories.sort()
 	if categories.is_empty():
-		var empty := _card(parent)
+		var empty = _card(parent)
 		empty.add_child(_label("Şu anda cebindeki parayla alınabilecek bir şey yok.", 14, Palette.MUTED, false, true))
 		return
 	for category: String in categories:
-		var card := _card(parent)
+		var card = _card(parent)
 		card.add_child(_label(category.to_upper(), 10, Palette.RUST))
 		for item: Dictionary in grouped[category]:
-			var row := _row(10)
+			var row = _row(10)
 			card.add_child(row)
-			var text := _column(2)
+			var text = _column(2)
 			row.add_child(text)
 			text.add_child(_label(str(item.label), 15, Palette.INK, true))
 			text.add_child(_label("%d test birimi" % int(item.cost), 11, Palette.MUTED))
@@ -1292,10 +1292,10 @@ func _render_sidebar() -> void:
 	_clear(side_info)
 	side_info.add_child(_label("EVİNDE HAYAT", 10, Palette.MUTED))
 	side_info.add_child(_label(Words.word(str(state.household.living_standard)), 20, Palette.INK, true, true))
-	var summary := _row(16)
+	var summary = _row(16)
 	side_info.add_child(summary)
 	for item: Array in [["BİRİKİM", state.household.savings], ["BORÇ", state.household.debt], ["CEBİN", state.get("personal_economy", {}).get("cash", 0)]]:
-		var value := _column(2)
+		var value = _column(2)
 		summary.add_child(value)
 		value.add_child(_label(item[0], 9, Palette.MUTED))
 		value.add_child(_label(str(item[1]), 24, Palette.INK, true))
