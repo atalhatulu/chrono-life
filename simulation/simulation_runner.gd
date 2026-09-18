@@ -28,6 +28,9 @@ const FamilyEvents = preload("res://simulation/family_event_system.gd")
 const Skills = preload("res://simulation/skill_system.gd")
 const Hobbies = preload("res://simulation/hobby_system.gd")
 const Personality = preload("res://simulation/personality_system.gd")
+const Assets = preload("res://simulation/asset_system.gd")
+const SocialStatus = preload("res://simulation/social_status_system.gd")
+const Migration = preload("res://simulation/migration_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -84,6 +87,9 @@ func initial_state(seed_value: int) -> Dictionary:
 			"skills_path": str(pack.get("content_paths", {}).get("skills", "")),
 			"hobbies_path": str(pack.get("content_paths", {}).get("hobbies", "")),
 			"personality_path": str(pack.get("content_paths", {}).get("personality", "")),
+			"assets_path": str(pack.get("content_paths", {}).get("assets", "")),
+			"status_path": str(pack.get("content_paths", {}).get("status", "")),
+			"migration_path": str(pack.get("content_paths", {}).get("migration", "")),
 			"start_year": int(pack.start_year), "status": "running"},
 		"world": {"year": int(pack.start_year), "location_id": pack.location_id,
 			"economy_index": int(pack.economy.initial_index),
@@ -118,6 +124,10 @@ func initial_state(seed_value: int) -> Dictionary:
 	PersonalEconomy.initialize(result_state)
 	Housing.initialize(result_state, str(pack.get("initial_dwelling_id", "")))
 	HouseholdNetwork.initialize(result_state)
+	Assets.initialize(result_state)
+	Migration.initialize(result_state)
+	SocialStatus.initialize(result_state)
+	SocialStatus.recompute(result_state)
 	for actor_id: String in result_state.actors:
 		Skills.initialize_actor(result_state, result_state.actors[actor_id])
 		Hobbies.initialize_actor(result_state.actors[actor_id])
@@ -275,6 +285,16 @@ func validate_state(state: Dictionary) -> Array[String]:
 				resident_seen[actor_id] = household_id
 				if str(state.actors[actor_id].household_id) != household_id:
 					errors.append("Actor household registry mismatch: " + actor_id)
+	if not state.has("assets") or not state.assets is Dictionary:
+		errors.append("Invalid assets state")
+	if not state.has("social_status") or not state.social_status is Dictionary:
+		errors.append("Invalid social status state")
+	elif int(state.social_status.get("score", -1)) < 0 or int(state.social_status.get("score", -1)) > 100:
+		errors.append("Invalid social status score")
+	if not state.has("migration") or not state.migration is Dictionary:
+		errors.append("Invalid migration state")
+	elif str(state.migration.get("current_location_id", "")) != str(state.world.location_id):
+		errors.append("Migration/world location mismatch")
 	if not state.has("housing") or not state.housing is Dictionary:
 		errors.append("Invalid housing state structure")
 	else:
@@ -388,6 +408,8 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 	delta.candidate.ledgers.append(ledger)
 	Housing.record_payment(delta.candidate, int(ledger.rent_due), int(ledger.rent_paid))
 	Housing.apply_wellbeing(delta.candidate)
+	Assets.annual_update(delta.candidate)
+	SocialStatus.recompute(delta.candidate)
 
 	var storylet: Dictionary = {}
 	if not delta.candidate.actors[state.meta.player_id].alive:
