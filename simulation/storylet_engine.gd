@@ -22,6 +22,8 @@ static func is_eligible(storylet: Dictionary, state: Dictionary) -> bool:
 		return false
 	if reqs.has("not_occupation") and player.occupation_id == reqs.not_occupation:
 		return false
+	if reqs.has("marital_status_in") and str(state.family.get("marital_status", "unmarried")) not in reqs.marital_status_in:
+		return false
 
 	if reqs.has("education_states") and player.education_state not in reqs.education_states:
 		return false
@@ -269,8 +271,9 @@ static func apply_choice(delta: RefCounted, storylet: Dictionary, choice_id: Str
 
 	# 11. Evlilik oluşturma (marry seçimi veya create_spouse)
 	if selected_choice.id == "marry" or effects.has("create_spouse"):
-		if not state.actors.has("spouse") and not pack.is_empty():
-			Family.create_spouse(delta, pack, cause_event, seed_value)
-			outcome.applied_effects["married"] = true
+		Family.ensure_state(state)
+		if str(state.family.get("current_spouse_id", "")) == "" and not pack.is_empty():
+			var marriage_event := Family.create_spouse(delta, pack, cause_event, seed_value)
+			outcome.applied_effects["married"] = marriage_event != ""
 
 	return outcome
