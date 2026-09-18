@@ -5,14 +5,14 @@ const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 static var _cache: Dictionary = {}
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := str(state.get("meta", {}).get("migration_path", ""))
+	var path: String = str(state.get("meta", {}).get("migration_path", ""))
 	if path.is_empty():
 		return {"destinations": [], "rules": {}}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"destinations": [], "rules": {}}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"destinations": [], "rules": {}}
 	return _cache[path]
@@ -32,8 +32,8 @@ static func available_destinations(state: Dictionary) -> Array[Dictionary]:
 	PersonalEconomy.normalize(state)
 	var p: Dictionary = state.actors[state.meta.player_id]
 	var rules: Dictionary = _catalog(state).get("rules", {})
-	var cooldown := int(rules.get("migration_cooldown_years", 0))
-	var buffer := int(rules.get("minimum_cash_buffer", 0))
+	var cooldown: int = int(rules.get("migration_cooldown_years", 0))
+	var buffer: int = int(rules.get("minimum_cash_buffer", 0))
 	var out: Array[Dictionary] = []
 	for d: Dictionary in _catalog(state).get("destinations", []):
 		if str(d.id) == str(state.world.location_id):
@@ -57,12 +57,12 @@ static func move_to(state: Dictionary, destination_id: String) -> Dictionary:
 			break
 	if target.is_empty():
 		return {"ok": false, "error": "Destination unavailable"}
-	var cost := int(target.get("move_cost", 0))
+	var cost: int = int(target.get("move_cost", 0))
 	if cost > 0:
-		var spend := PersonalEconomy.spend(state, cost, "migration", destination_id)
+		var spend: Dictionary = PersonalEconomy.spend(state, cost, "migration", destination_id)
 		if not spend.ok:
 			return spend
-	var previous := str(state.world.location_id)
+	var previous: String = str(state.world.location_id)
 	state.world.location_id = destination_id
 	state.household.location_id = destination_id
 	state.migration.current_location_id = destination_id
