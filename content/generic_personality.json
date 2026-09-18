@@ -1,0 +1,120 @@
+{
+  "version": "generic_personality_0.1.0",
+  "axes": [
+    {
+      "id": "discipline",
+      "label": "Disiplin",
+      "min": 0,
+      "max": 100,
+      "default": 50
+    },
+    {
+      "id": "sociability",
+      "label": "Sosyallik",
+      "min": 0,
+      "max": 100,
+      "default": 50
+    },
+    {
+      "id": "curiosity",
+      "label": "Merak",
+      "min": 0,
+      "max": 100,
+      "default": 50
+    },
+    {
+      "id": "resilience",
+      "label": "Dayanıklılık",
+      "min": 0,
+      "max": 100,
+      "default": 50
+    },
+    {
+      "id": "risk_tolerance",
+      "label": "Risk eğilimi",
+      "min": 0,
+      "max": 100,
+      "default": 50
+    },
+    {
+      "id": "empathy",
+      "label": "Empati",
+      "min": 0,
+      "max": 100,
+      "default": 50
+    }
+  ],
+  "action_deltas": {
+    "study": {
+      "discipline": 2,
+      "curiosity": 2
+    },
+    "self_education": {
+      "discipline": 2,
+      "curiosity": 3
+    },
+    "work_hard": {
+      "discipline": 3,
+      "resilience": 1,
+      "risk_tolerance": 1
+    },
+    "family_time": {
+      "empathy": 2,
+      "sociability": 1
+    },
+    "socialize": {
+      "sociability": 3,
+      "empathy": 1
+    },
+    "cheap_leisure": {
+      "sociability": 2
+    },
+    "rest": {
+      "resilience": 1
+    },
+    "play": {
+      "sociability": 1,
+      "risk_tolerance": 1
+    },
+    "buy_book": {
+      "curiosity": 3
+    }
+  },
+  "thresholds": [
+    {
+      "axis": "discipline",
+      "min": 70,
+      "trait": "disciplined"
+    },
+    {
+      "axis": "curiosity",
+      "min": 70,
+      "trait": "curious"
+    },
+    {
+      "axis": "sociability",
+      "min": 70,
+      "trait": "outgoing"
+    },
+    {
+      "axis": "resilience",
+      "min": 70,
+      "trait": "resilient"
+    },
+    {
+      "axis": "empathy",
+      "min": 70,
+      "trait": "empathetic"
+    },
+    {
+      "axis": "risk_tolerance",
+      "min": 70,
+      "trait": "bold"
+    },
+    {
+      "axis": "risk_tolerance",
+      "max": 30,
+      "trait": "cautious"
+    }
+  ]
+}
