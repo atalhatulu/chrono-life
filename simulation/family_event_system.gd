@@ -47,21 +47,21 @@ static func collect_candidates(state: Dictionary) -> Array[Dictionary]:
 	return out
 
 static func resolve_one(state: Dictionary) -> Dictionary:
-	var candidates := collect_candidates(state)
+	var candidates: Array[Dictionary] = collect_candidates(state)
 	if candidates.is_empty():
 		return {}
 	var weights: Array[int] = []
 	for c: Dictionary in candidates:
 		weights.append(int(c.weight))
-	var seed := str(state.meta.master_seed).to_int()
-	var idx := Rng.weighted(seed, "family_events", int(state.world.year), str(state.meta.player_id), "pick", weights)
+	var seed: int = str(state.meta.master_seed).to_int()
+	var idx: int = Rng.weighted(seed, "family_events", int(state.world.year), str(state.meta.player_id), "pick", weights)
 	return _apply(state, candidates[idx])
 
 static func _apply(state: Dictionary, event: Dictionary) -> Dictionary:
-	var kind := str(event.type)
-	var subject := str(event.subject_id)
-	var title := ""
-	var text := ""
+	var kind: String = str(event.type)
+	var subject: String = str(event.subject_id)
+	var title: String = ""
+	var text: String = ""
 	match kind:
 		"parent_child_conflict":
 			var child: Dictionary = state.actors[subject]
