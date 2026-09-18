@@ -10,6 +10,8 @@ const Purchases = preload("res://simulation/purchase_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
 const Housing = preload("res://simulation/housing_system.gd")
+const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
+const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -669,6 +671,23 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 							"spend_time": "Vakit geçir",
 							"apologize": "Özür dile"
 						}[action], func(): _relationship_interaction(person_id, interaction), "Ghost"))
+					if id in state.family.get("children_ids", []):
+						var parenting := state.family.get("parenting", {}).get(id, {})
+						column.add_child(_label("Ebeveynlik · İlgi %d · Destek %d · Disiplin %d · Çatışma %d" % [
+							int(parenting.get("involvement", 55)), int(parenting.get("support", 55)),
+							int(parenting.get("discipline", 50)), int(parenting.get("conflict", 10))
+						], 11, Palette.MUTED, false, true))
+						var parenting_row := _row(6)
+						column.add_child(parenting_row)
+						for p_action: String in ["support", "spend_time", "education_support", "discipline"]:
+							var child_id := id
+							var parenting_action := p_action
+							parenting_row.add_child(_button({
+								"support": "Destekle",
+								"spend_time": "Birlikte ol",
+								"education_support": "Eğitime yardım",
+								"discipline": "Disiplin"
+							}[p_action], func(): _parenting_interaction(child_id, parenting_action), "Ghost"))
 	if compact:
 		return
 
@@ -691,6 +710,37 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		else:
 			line += "–"
 		family_overview.add_child(_label(line, 12, Palette.MUTED))
+
+	var sibling_bonds: Dictionary = fam.get("sibling_bonds", {})
+	if not sibling_bonds.is_empty():
+		var sibling_card := _card(parent)
+		sibling_card.add_child(_label("KARDEŞ BAĞLARI", 10, Palette.MUTED))
+		var bond_keys: Array = sibling_bonds.keys()
+		bond_keys.sort()
+		for key: Variant in bond_keys:
+			var bond: Dictionary = sibling_bonds[key]
+			var pair: Array = bond.get("actors", [])
+			if pair.size() < 2:
+				continue
+			var a_name := str(state.actors.get(pair[0], {}).get("name", pair[0]))
+			var b_name := str(state.actors.get(pair[1], {}).get("name", pair[1]))
+			sibling_card.add_child(_label("%s ↔ %s · Yakınlık %d · Rekabet %d · Destek %d" % [
+				a_name, b_name, int(bond.get("closeness", 0)),
+				int(bond.get("rivalry", 0)), int(bond.get("support", 0))
+			], 12, Palette.MUTED, false, true))
+
+	var households_card := _card(parent)
+	households_card.add_child(_label("AİLE HANELERİ", 10, Palette.MUTED))
+	for household_entry: Dictionary in HouseholdNetwork.active_households(state):
+		var names: Array[String] = []
+		for member_id: String in household_entry.get("member_ids", []):
+			if state.actors.has(member_id):
+				names.append(str(state.actors[member_id].name))
+		households_card.add_child(_label("%s · %s · %s" % [
+			str(household_entry.id),
+			str(household_entry.get("kind", "")).replace("_", " "),
+			", ".join(names)
+		], 12, Palette.MUTED, false, true))
 
 	var social_ids: Array = state.relationships.people.keys()
 	social_ids.sort()
@@ -733,6 +783,16 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 	meet_card.add_child(_label("YENİ İNSANLAR", 10, Palette.MUTED))
 	meet_card.add_child(_label("Sosyal çevreni genişletebilir, yeni arkadaşlar veya romantik bağlar kurabilirsin.", 12, Palette.MUTED, false, true))
 	meet_card.add_child(_button("Yeni biriyle tanış", _meet_new_person, "Primary"))
+
+
+func _parenting_interaction(child_id: String, interaction: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result: Dictionary = FamilyDynamics.interact_with_child(state, child_id, interaction)
+	if not result.ok:
+		_show_error(str(result.get("error", "Ebeveynlik etkileşimi başarısız.")))
+		return
+	_refresh_ui()
 
 
 func _relationship_interaction(person_id: String, interaction: String) -> void:
