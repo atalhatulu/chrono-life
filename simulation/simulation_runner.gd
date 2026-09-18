@@ -562,6 +562,11 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 			Relationships.meet_person(working)
 		elif str(social_decision.get("person_id", "")) != "":
 			Relationships.interact(working, str(social_decision.person_id), str(social_decision.action))
+	var hobby_id: String = AutoLife.choose_hobby(working, policy_name)
+	if hobby_id != "":
+		var hobby_result: Dictionary = Hobbies.practice(working, str(working.meta.player_id), hobby_id, "autolife")
+		if not hobby_result.ok:
+			return {"ok": false, "errors": [hobby_result.error]}
 	var treatment_id: String = AutoLife.choose_treatment(working, policy_name)
 	if treatment_id != "":
 		var treatment_result: Dictionary = Treatments.apply(working, treatment_id)
@@ -582,6 +587,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		PersonalEconomy.settle_year(result.state)
 		PersonalEconomy.maybe_allowance(result.state)
 		result.action_id = action_id
+		result.hobby_id = hobby_id
 		result.purchase_id = purchase_id
 		result.treatment_id = treatment_id
 		result.social_decision = social_decision
@@ -594,6 +600,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Dictionary:
 	var state: Dictionary = initial_state(seed_value)
 	var actions: Array = []
+	var hobbies: Array = []
 	var purchases: Array = []
 	var social_actions: Array = []
 	var social_events: Array = []
@@ -620,6 +627,8 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 			social_actions.append({"year": int(result.state.world.year), "decision": result.social_decision})
 		if str(result.get("treatment_id", "")) != "":
 			treatments.append({"year": int(result.state.world.year), "treatment_id": result.treatment_id})
+		if str(result.get("hobby_id", "")) != "":
+			hobbies.append({"year": int(result.state.world.year), "hobby_id": result.hobby_id})
 		if str(result.get("purchase_id", "")) != "":
 			purchases.append({"year": int(result.state.world.year), "item_id": result.purchase_id})
 		if str(result.get("action_id", "")) != "":
@@ -627,5 +636,5 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 		state = result.state
 	var player: Dictionary = state.actors[state.meta.player_id]
 	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
-		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "family_events": family_events, "parenting_actions": parenting_actions, "elder_care_actions": elder_care_actions, "treatments": treatments, "life_result": LifeSummary.build(state),
+		"state": state, "actions": actions, "hobbies": hobbies, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "family_events": family_events, "parenting_actions": parenting_actions, "elder_care_actions": elder_care_actions, "treatments": treatments, "life_result": LifeSummary.build(state),
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
