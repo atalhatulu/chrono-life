@@ -22,6 +22,7 @@ const Education = preload("res://simulation/education_system.gd")
 const SocialEvents = preload("res://simulation/social_event_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
 const Housing = preload("res://simulation/housing_system.gd")
+const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -107,6 +108,7 @@ func initial_state(seed_value: int) -> Dictionary:
 	Relationships.initialize(result_state)
 	PersonalEconomy.initialize(result_state)
 	Housing.initialize(result_state, str(pack.get("initial_dwelling_id", "")))
+	HouseholdNetwork.initialize(result_state)
 	return result_state
 
 
