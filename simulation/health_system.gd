@@ -53,12 +53,18 @@ static func _new_condition(seed_value: int, year: int, actor_id: String,
 		"treated_this_year": false
 	}
 
+static func _household_context(state: Dictionary, actor: Dictionary) -> Dictionary:
+	var household_id := str(actor.get("household_id", ""))
+	if household_id == str(state.household.id):
+		return state.household
+	return state.get("households", {}).get(household_id, {"food_security": 1000, "debt": 0, "savings": 0})
+
 static func _incidence_chance(state: Dictionary, actor: Dictionary,
 		definition: Dictionary, occupations: Dictionary) -> int:
 	var chance := int(definition.get("incidence_bp", 0))
 	match str(definition.get("exposure", "ambient")):
 		"nutrition":
-			if int(state.household.food_security) >= int(definition.get("food_threshold", 0)):
+			if int(_household_context(state, actor).get("food_security", 1000)) >= int(definition.get("food_threshold", 0)):
 				chance = 0
 		"ambient":
 			chance = int(chance * int(state.world.disease_pressure) / 1000.0)
@@ -113,7 +119,8 @@ static func advance(delta: RefCounted, pack: Dictionary, occupations: Dictionary
 				if not condition.has("severity"):
 					condition.severity = 50
 				condition.treated_this_year = false
-				var nutrition_recovered := str(definition.get("exposure", "")) == "nutrition" and 					int(state.household.food_security) >= int(definition.get("food_threshold", 0))
+				var nutrition_recovered := str(definition.get("exposure", "")) == "nutrition" and \
+					int(_household_context(state, actor).get("food_security", 1000)) >= int(definition.get("food_threshold", 0))
 				var duration_recovered := int(condition.get("remaining_years", -1)) == 1
 				var natural_recovery := false
 				var recovery_bp := int(definition.get("natural_recovery_bp", 0))
@@ -139,7 +146,7 @@ static func advance(delta: RefCounted, pack: Dictionary, occupations: Dictionary
 					actor.health_profile.lifetime_conditions.append(condition_id)
 				var event: String = delta.record("condition_acquired", parent_event,
 					{"actor_id": id, "condition_id": condition_id,
-					"previous_food_security": state.household.food_security, "chance_bp": chance,
+					"previous_food_security": int(_household_context(state, actor).get("food_security", 1000)), "chance_bp": chance,
 					"severity": conditions[condition_id].severity})
 				delta.set_field("actors", "conditions", conditions.duplicate(true), event, id)
 
