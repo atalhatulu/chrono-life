@@ -88,7 +88,17 @@
     "health": true,
     "education": true,
     "adaptation": true,
-    "storylets": true
+    "storylets": true,
+    "family": true
+  },
+  "family_rules": {
+    "min_marriage_age": 19,
+    "max_marriage_age": 40,
+    "marriage_savings_threshold": 800,
+    "conception_chance_permille": 300,
+    "min_birth_interval_years": 2,
+    "max_children": 6,
+    "maternal_health_cost": 8
   },
   "world_rules": {
     "disease_min": 100,
@@ -456,6 +466,48 @@
           "description": "Trust only your own savings ledger.",
           "effects": {
             "cash_cost": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "courtship_and_marriage",
+      "family": "family_life",
+      "title": "A Walk by the Irwell",
+      "text": "After months of shared walks after chapel and careful courtesies, your partner speaks openly of taking wedding vows and sharing a hearth together.",
+      "requirements": {
+        "min_age": 19,
+        "max_age": 38,
+        "player_alive": true,
+        "not_occupation": "dependent",
+        "min_savings": 800,
+        "not_flag": "married",
+        "cooldown_years": 2
+      },
+      "utility": {
+        "base": 45,
+        "modifiers": [
+          {"condition": "high_savings", "add": 25},
+          {"condition": "budget_deficit_gt_zero", "add": -25}
+        ]
+      },
+      "choices": [
+        {
+          "id": "marry",
+          "label": "Take wedding vows and unite your households",
+          "description": "Your spouse enters the household. Two incomes strengthen the home, but family obligations begin.",
+          "effects": {
+            "willpower_delta": 10,
+            "set_flag": "married",
+            "cash_cost": 200
+          }
+        },
+        {
+          "id": "remain_single",
+          "label": "Postpone wedding plans until finances are firmer",
+          "description": "Avoid the costs and responsibilities of married life for now.",
+          "effects": {
+            "willpower_delta": -2
           }
         }
       ]

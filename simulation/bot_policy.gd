@@ -18,13 +18,13 @@ static func decide(storylet: Dictionary, state: Dictionary, ledger: Dictionary,
 	match policy_name:
 		"pragmatic":
 			for ch: Dictionary in choices:
-				if ch.id in ["comply", "rest", "pawn_heirloom", "accept_overtime", "errands_contribution", "seek_cure", "join_society"]:
+				if ch.id in ["comply", "rest", "pawn_heirloom", "accept_overtime", "errands_contribution", "seek_cure", "join_society", "marry"]:
 					return ch.id
 			return choices[0].id
 
 		"education_first":
 			for ch: Dictionary in choices:
-				if ch.id in ["protest_for_school", "study_diligently", "decline_overtime", "refuse_pawn", "seek_cure", "join_society"]:
+				if ch.id in ["protest_for_school", "study_diligently", "decline_overtime", "refuse_pawn", "seek_cure", "join_society", "remain_single"]:
 					return ch.id
 			return choices[0].id
 
@@ -75,5 +75,11 @@ static func decide(storylet: Dictionary, state: Dictionary, ledger: Dictionary,
 						return "join_society"
 					else:
 						return "decline_society"
+
+				"courtship_and_marriage":
+					if savings >= 1200 and deficit == 0:
+						return "marry"
+					else:
+						return "remain_single"
 
 	return choices[0].id

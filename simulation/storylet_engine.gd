@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Rng = preload("res://simulation/deterministic_rng.gd")
+const Family = preload("res://simulation/family_system.gd")
 
 
 static func is_eligible(storylet: Dictionary, state: Dictionary) -> bool:
@@ -133,7 +134,7 @@ static func select_storylet(pack: Dictionary, state: Dictionary, ledger: Diction
 
 
 static func apply_choice(delta: RefCounted, storylet: Dictionary, choice_id: String,
-		cause_event: String, seed_value: int) -> Dictionary:
+		cause_event: String, seed_value: int, pack: Dictionary = {}) -> Dictionary:
 	var state: Dictionary = delta.candidate
 	var player_id: String = str(state.meta.player_id)
 	var player: Dictionary = state.actors[player_id]
@@ -264,5 +265,12 @@ static func apply_choice(delta: RefCounted, storylet: Dictionary, choice_id: Str
 				"cause_id": cause_event
 			})
 			delta.set_field("household", "pending_effects", pending, cause_event)
+			outcome.applied_effects["agency_success"] = false
+
+	# 11. Evlilik oluşturma (marry seçimi veya create_spouse)
+	if selected_choice.id == "marry" or effects.has("create_spouse"):
+		if not state.actors.has("spouse") and not pack.is_empty():
+			Family.create_spouse(delta, pack, cause_event, seed_value)
+			outcome.applied_effects["married"] = true
 
 	return outcome

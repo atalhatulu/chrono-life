@@ -10,6 +10,7 @@ test: check-engine
 	$(GODOT) --headless --path . --script tests/run_tests.gd
 	$(GODOT) --headless --path . --script tests/run_life_tests.gd
 	$(GODOT) --headless --path . --script tests/run_storylet_tests.gd
+	$(GODOT) --headless --path . --script tests/run_family_tests.gd
 
 simulate: check-engine
 	$(GODOT) --headless --path . --script cli/simulate.gd -- --seed 42 --years 12

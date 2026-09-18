@@ -10,7 +10,8 @@ const Responses = preload("res://simulation/household_response_system.gd")
 const Consequences = preload("res://simulation/consequence_engine.gd")
 const Storylets = preload("res://simulation/storylet_engine.gd")
 const BotPolicy = preload("res://simulation/bot_policy.gd")
-const VERSION: String = "0.3.0-phase-0c"
+const Family = preload("res://simulation/family_system.gd")
+const VERSION: String = "0.4.0-phase-1"
 
 var pack: Dictionary
 var occupations: Dictionary
@@ -65,6 +66,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"expenses": 0, "food_security": 1000, "living_standard": "unassessed",
 			"pending_effects": [], "aid_uses": 0, "care_mode": "family", "guardian_id": ""},
 		"storylets": {"last_seen": {}, "flags": {}},
+		"family": {"marital_status": "unmarried", "marriage_year": 0, "children_count": 0, "last_birth_year": 0},
 		"ledgers": [], "history": [{"id": "%d:initial" % int(pack.start_year),
 			"year": int(pack.start_year), "kind": "household_created", "cause_id": "",
 			"details": {"location_id": pack.location_id, "member_ids": ids.duplicate()}}]
@@ -181,6 +183,10 @@ func validate_state(state: Dictionary) -> Array[String]:
 		if not state.storylets is Dictionary or not state.storylets.get("last_seen") is Dictionary or \
 				not state.storylets.get("flags") is Dictionary:
 			errors.append("Invalid storylet state structure")
+	if state.has("family"):
+		if not state.family is Dictionary or not state.family.has("marital_status") or \
+				state.family.marital_status not in ["unmarried", "married", "widowed"]:
+			errors.append("Invalid family state structure")
 	return errors
 
 
@@ -248,6 +254,7 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 	if not consequences.ok:
 		return {"ok": false, "errors": consequences.errors, "diagnostic_events": delta.events}
 	Career.education(delta, pack, year_event)
+	Family.advance(delta, pack, year_event, seed_value)
 	var care_event: String = delta.record("household_care_evaluated", year_event,
 		{"consequence_ids": consequences.event_ids})
 	var orphan_support: int = Responses.update_care(delta, pack, care_event) if pack.systems.adaptation else 0
@@ -315,7 +322,7 @@ func step_resolve(prep: Dictionary, choice_id: String = "") -> Dictionary:
 	if not storylet.is_empty() and choice_id != "":
 		var st_event: String = delta.record("storylet_triggered", budget_event,
 			{"storylet_id": storylet.id, "title": storylet.title, "family": storylet.family})
-		var outcome: Dictionary = Storylets.apply_choice(delta, storylet, choice_id, st_event, seed_value)
+		var outcome: Dictionary = Storylets.apply_choice(delta, storylet, choice_id, st_event, seed_value, pack)
 		delta.record("storylet_choice_made", st_event, outcome)
 	elif pack.systems.get("storylets", false) and delta.candidate.actors[delta.candidate.meta.player_id].alive:
 		delta.record("quiet_year", budget_event, {"year": year})

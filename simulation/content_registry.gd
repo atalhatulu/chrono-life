@@ -116,6 +116,17 @@ static func _validate_life(pack: Dictionary) -> Array[String]:
 			errors.append("systems." + key + " must be a boolean")
 	if pack.systems.has("storylets") and not pack.systems.storylets is bool:
 		errors.append("systems.storylets must be a boolean")
+	if pack.systems.has("family") and not pack.systems.family is bool:
+		errors.append("systems.family must be a boolean")
+	if pack.has("family_rules"):
+		if not pack.family_rules is Dictionary:
+			errors.append("family_rules must be an object")
+		else:
+			for key: String in ["min_marriage_age", "max_marriage_age", "marriage_savings_threshold",
+					"conception_chance_permille", "min_birth_interval_years", "max_children", "maternal_health_cost"]:
+				if not is_integer(pack.family_rules.get(key)) or float(pack.family_rules.get(key, -1)) < 0:
+					errors.append("Invalid family rule: " + key)
+			_check_range(pack.family_rules, "conception_chance_permille", 0, 1000, errors)
 	for key: String in ["disease_min", "disease_max", "employment_min", "employment_max"]:
 		_check_range(pack.world_rules, key, 0, 1000, errors)
 	for prefix: String in ["disease", "employment"]:
