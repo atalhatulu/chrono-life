@@ -4,6 +4,7 @@ const Rng = preload("res://simulation/deterministic_rng.gd")
 const Actions = preload("res://simulation/life_action_system.gd")
 const BotPolicy = preload("res://simulation/bot_policy.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
+const Relationships = preload("res://simulation/relationship_system.gd")
 
 static func choose_action(state: Dictionary, policy: String = "balanced") -> String:
 	var ids: Array[String] = Actions.available_actions(state)
@@ -99,3 +100,47 @@ static func choose_purchase(state: Dictionary, policy: String = "balanced") -> S
 			best_score = score
 			best_id = str(item.id)
 	return best_id if best_score >= 8 else ""
+
+
+static func choose_relationship_action(state: Dictionary, policy: String = "balanced") -> Dictionary:
+	Relationships.normalize(state)
+	var p: Dictionary = state.actors[state.meta.player_id]
+	var social_need := int(p.get("needs", {}).get("social", 50))
+	var candidates: Array[String] = []
+	for id: String in state.relationships.people:
+		var rel: Dictionary = state.relationships.people[id]
+		if rel.alive and rel.role not in ["parent", "child", "family", "spouse", "ex_partner", "estranged"]:
+			candidates.append(id)
+	if candidates.is_empty():
+		if social_need < 65 or int(p.age) >= 10:
+			return {"action": "meet", "person_id": ""}
+		return {}
+	candidates.sort()
+	var best_id := ""
+	var best_score := -999999
+	for id: String in candidates:
+		var rel: Dictionary = state.relationships.people[id]
+		var score := int(rel.closeness) + int(rel.trust) + int(rel.compatibility) - int(rel.conflict)
+		if rel.stage in ["romantic_interest", "dating"]:
+			score += int(rel.attraction)
+		if score > best_score:
+			best_score = score
+			best_id = id
+	if best_id == "":
+		return {}
+	var rel: Dictionary = state.relationships.people[best_id]
+	if int(rel.conflict) >= 45:
+		return {"action": "apologize", "person_id": best_id}
+	if rel.stage == "romantic_interest" and int(p.age) >= 16:
+		return {"action": "flirt", "person_id": best_id}
+	if social_need < 45:
+		return {"action": "spend_time", "person_id": best_id}
+	if policy == "pragmatic" and int(rel.trust) < 45:
+		return {"action": "talk", "person_id": best_id}
+	var roll := Rng.integer(str(state.meta.master_seed).to_int(), "social_ai",
+		int(state.world.year), str(p.id), best_id, 0, 99)
+	if roll < 45:
+		return {"action": "talk", "person_id": best_id}
+	elif roll < 85:
+		return {"action": "spend_time", "person_id": best_id}
+	return {}
