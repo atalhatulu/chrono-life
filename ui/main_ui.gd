@@ -12,6 +12,8 @@ const Treatments = preload("res://simulation/health_treatment_system.gd")
 const Housing = preload("res://simulation/housing_system.gd")
 const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
+const Hobbies = preload("res://simulation/hobby_system.gd")
+const Skills = preload("res://simulation/skill_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -279,7 +281,7 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["health", "Sağlık", "plus"], ["housing", "Barınma", "home"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["health", "Sağlık", "plus"], ["housing", "Barınma", "home"], ["development", "Gelişim", "book"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
@@ -436,7 +438,7 @@ func start_game(seed_value: int) -> void:
 
 
 func switch_view(view: String) -> void:
-	if view not in ["life", "family", "budget", "education", "career", "health", "housing", "spending"]:
+	if view not in ["life", "family", "budget", "education", "career", "health", "housing", "development", "spending"]:
 		return
 	current_view = view
 	_refresh_ui()
@@ -523,7 +525,7 @@ func _refresh_ui() -> void:
 		fields[key].text = str(player[key])
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
-	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "health": "Sağlığın ve tedavilerin", "housing": "Nerede ve nasıl yaşadığın", "spending": "Cebindeki para ve harcamalar"}[current_view]
+	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "health": "Sağlığın ve tedavilerin", "housing": "Nerede ve nasıl yaşadığın", "development": "Becerilerin, kişiliğin ve uğraşların", "spending": "Cebindeki para ve harcamalar"}[current_view]
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
@@ -596,6 +598,9 @@ func _render_feed() -> void:
 		return
 	if current_view == "housing":
 		_render_housing(feed)
+		return
+	if current_view == "development":
+		_render_development(feed)
 		return
 	if not state.actors[state.meta.player_id].alive:
 		var memorial := _card(feed)
@@ -1051,6 +1056,65 @@ func _render_education(parent: Node) -> void:
 				str(entry.get("stage_id", "")).replace("_", " ").capitalize(),
 				str(entry.get("kind", "")).replace("_", " ").capitalize()
 			], 12, Palette.MUTED))
+
+
+func _render_development(parent: Node) -> void:
+	var player: Dictionary = state.actors[state.meta.player_id]
+	var skill_defs := Skills.definitions(state)
+	var skill_values: Dictionary = player.get("skills", {}).get("values", {})
+	var skills_card := _card(parent)
+	skills_card.add_child(_label("BECERİLER", 10, Palette.MUTED))
+	var skill_ids: Array = skill_values.keys()
+	skill_ids.sort()
+	for skill_id: String in skill_ids:
+		var def: Dictionary = skill_defs.get(skill_id, {})
+		var label := str(def.get("label", skill_id.replace("_", " ").capitalize()))
+		var row := _row()
+		skills_card.add_child(row)
+		row.add_child(_label(label, 13, Palette.INK))
+		_spacer(row)
+		row.add_child(_label("%d" % int(skill_values[skill_id]), 15, Palette.INK, true))
+
+	var personality_card := _card(parent)
+	personality_card.add_child(_label("KİŞİLİK", 10, Palette.MUTED))
+	var axes: Dictionary = player.get("personality", {}).get("axes", {})
+	var axis_ids: Array = axes.keys()
+	axis_ids.sort()
+	for axis_id: String in axis_ids:
+		var row := _row()
+		personality_card.add_child(row)
+		row.add_child(_label(axis_id.replace("_", " ").capitalize(), 13, Palette.INK))
+		_spacer(row)
+		row.add_child(_label("%d" % int(axes[axis_id]), 15, Palette.INK, true))
+	if not player.get("traits", []).is_empty():
+		personality_card.add_child(_label("Traitler: " + ", ".join(player.traits), 11, Palette.MUTED, false, true))
+
+	var hobbies_card := _card(parent)
+	hobbies_card.add_child(_label("HOBİLER / UĞRAŞLAR", 10, Palette.MUTED))
+	var active: Dictionary = player.get("hobbies", {}).get("active", {})
+	for hobby: Dictionary in Hobbies.available_hobbies(state):
+		var progress: Dictionary = active.get(hobby.id, {})
+		var row := _row(8)
+		hobbies_card.add_child(row)
+		var copy := _column(2)
+		row.add_child(copy)
+		copy.add_child(_label(str(hobby.label), 14, Palette.INK, true))
+		copy.add_child(_label("Ustalık %d · %d yıl · %d oturum" % [
+			int(progress.get("mastery", 0)), int(progress.get("years", 0)), int(progress.get("sessions", 0))
+		], 11, Palette.MUTED))
+		_spacer(row)
+		var hobby_id := str(hobby.id)
+		row.add_child(_button("Uğraş", func(): _practice_hobby(hobby_id), "Ghost"))
+
+
+func _practice_hobby(hobby_id: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result: Dictionary = Hobbies.practice(state, str(state.meta.player_id), hobby_id, "manual")
+	if not result.ok:
+		_show_error(str(result.get("error", "Hobi uygulanamadı.")))
+		return
+	_refresh_ui()
 
 
 func _render_spending(parent: Node) -> void:
