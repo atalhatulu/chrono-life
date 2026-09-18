@@ -100,3 +100,31 @@ static func total_value(state: Dictionary) -> int:
 	for asset_id: String in state.assets.owned:
 		total += int(state.assets.owned[asset_id].get("value", 0))
 	return total
+
+
+static func liquidate(state: Dictionary, asset_id: String) -> Dictionary:
+	initialize(state)
+	var defs := definitions(state)
+	if not defs.has(asset_id) or not state.assets.owned.has(asset_id):
+		return {"ok": false, "error": "Asset is not owned"}
+	var entry: Dictionary = state.assets.owned[asset_id]
+	var quantity := int(entry.get("quantity", 1))
+	if quantity <= 0:
+		return {"ok": false, "error": "Asset is not owned"}
+	var definition: Dictionary = defs[asset_id]
+	var unit_value := int(entry.get("value", 0)) / maxi(quantity, 1)
+	var proceeds := int(unit_value * int(definition.get("liquidate_permille", 700)) / 1000.0)
+	entry.quantity = quantity - 1
+	entry.value = maxi(0, int(entry.value) - unit_value)
+	if int(entry.quantity) <= 0:
+		state.assets.owned.erase(asset_id)
+	else:
+		state.assets.owned[asset_id] = entry
+	if proceeds > 0:
+		PersonalEconomy.grant_income(state, proceeds, "asset_liquidation:" + asset_id)
+	state.assets.history.append({"year": int(state.world.year), "kind": "liquidated",
+		"asset_id": asset_id, "proceeds": proceeds})
+	state.history.append({"id":"%d:asset_liquidated:%s:%d" % [int(state.world.year), asset_id, state.history.size()],
+		"year":int(state.world.year),"kind":"asset_liquidated","cause_id":"",
+		"details":{"asset_id":asset_id,"proceeds":proceeds}})
+	return {"ok": true, "proceeds": proceeds}
