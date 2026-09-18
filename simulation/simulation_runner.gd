@@ -25,6 +25,9 @@ const Housing = preload("res://simulation/housing_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
 const FamilyEvents = preload("res://simulation/family_event_system.gd")
+const Skills = preload("res://simulation/skill_system.gd")
+const Hobbies = preload("res://simulation/hobby_system.gd")
+const Personality = preload("res://simulation/personality_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -78,6 +81,9 @@ func initial_state(seed_value: int) -> Dictionary:
 			"relationships_path": str(pack.get("content_paths", {}).get("relationships", "")),
 			"health_path": str(pack.get("content_paths", {}).get("health", "")),
 			"housing_path": str(pack.get("content_paths", {}).get("housing", "")),
+			"skills_path": str(pack.get("content_paths", {}).get("skills", "")),
+			"hobbies_path": str(pack.get("content_paths", {}).get("hobbies", "")),
+			"personality_path": str(pack.get("content_paths", {}).get("personality", "")),
 			"start_year": int(pack.start_year), "status": "running"},
 		"world": {"year": int(pack.start_year), "location_id": pack.location_id,
 			"economy_index": int(pack.economy.initial_index),
@@ -112,6 +118,10 @@ func initial_state(seed_value: int) -> Dictionary:
 	PersonalEconomy.initialize(result_state)
 	Housing.initialize(result_state, str(pack.get("initial_dwelling_id", "")))
 	HouseholdNetwork.initialize(result_state)
+	for actor_id: String in result_state.actors:
+		Skills.initialize_actor(result_state, result_state.actors[actor_id])
+		Hobbies.initialize_actor(result_state.actors[actor_id])
+		Personality.initialize_actor(result_state, result_state.actors[actor_id])
 	return result_state
 
 
@@ -180,6 +190,17 @@ func validate_state(state: Dictionary) -> Array[String]:
 				errors.append("Invalid actor field: " + field)
 		if actor.work_capacity < 0 or actor.work_capacity > 1000:
 			errors.append("Invalid work capacity")
+		if not actor.has("skills") or not actor.skills is Dictionary:
+			errors.append("Invalid skills state")
+		if not actor.has("personality") or not actor.personality is Dictionary:
+			errors.append("Invalid personality state")
+		else:
+			for axis: String in actor.personality.get("axes", {}):
+				var axis_value := int(actor.personality.axes[axis])
+				if axis_value < 0 or axis_value > 100:
+					errors.append("Invalid personality axis: " + axis)
+		if not actor.has("hobbies") or not actor.hobbies is Dictionary:
+			errors.append("Invalid hobbies state")
 		if not actor.has("career") or not actor.career is Dictionary:
 			errors.append("Invalid career state")
 		elif int(actor.career.get("experience_years", -1)) < 0 or int(actor.career.get("job_changes", -1)) < 0:
@@ -528,6 +549,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	var social_event: Dictionary = SocialEvents.resolve_one(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
 	Needs.annual_drift(player)
+	Personality.annual_drift(working, player)
 	var parenting_decision: Dictionary = AutoLife.choose_parenting_action(working, policy_name)
 	if not parenting_decision.is_empty():
 		FamilyDynamics.interact_with_child(working, str(parenting_decision.child_id), str(parenting_decision.action))
