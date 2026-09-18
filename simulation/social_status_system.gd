@@ -48,9 +48,12 @@ static func recompute(state: Dictionary) -> void:
 	var wealth := int(state.household.savings) + int(state.get("personal_economy", {}).get("cash", 0))
 	for asset_id: String in state.get("assets", {}).get("owned", {}):
 		wealth += int(state.assets.owned[asset_id].get("value", 0))
+	var normalization: Dictionary = _catalog(state).get("normalization", {})
+	var income_full := maxi(1, int(normalization.get("income_full_score", 1)))
+	var wealth_full := maxi(1, int(normalization.get("wealth_full_score", 1)))
 	var components := {
-		"income": clampi(household_income / 80, 0, 100),
-		"wealth": clampi(wealth / 80, 0, 100),
+		"income": clampi(int(household_income * 100.0 / income_full), 0, 100),
+		"wealth": clampi(int(wealth * 100.0 / wealth_full), 0, 100),
 		"occupation": _occupation_component(state),
 		"education": _education_component(state),
 		"housing": _housing_component(state),
