@@ -24,6 +24,7 @@ func run() -> void:
 	await process_frame
 	check(ui.state.world.year == 1850 and ui.pages.size() == 1, "Birth page is initialized")
 	check(not ui.overlay.visible and not ui.decision_panel.visible, "No modal blocks initial play")
+	check(ui.fields.savings.text == str(ui.state.household.savings), "Profile shows actual shared household savings")
 	ui.navigation.family.pressed.emit()
 	check(ui.current_view == "family" and ui.feed.get_child_count() > 0, "Family navigation renders actual relatives")
 	ui.navigation.budget.pressed.emit()
@@ -40,6 +41,19 @@ func run() -> void:
 		var year: int = int(ui.state.world.year)
 		check(ui.btn_advance.disabled and ui.decision_panel.visible, "Pending choice blocks next year")
 		check(ui.choice_buttons.size() == ui.pending_prep.storylet.choices.size(), "All real choices are rendered")
+		var before_navigation: String = JSON.stringify(ui.state)
+		ui.navigation.family.pressed.emit()
+		check(ui.return_to_decision.visible and not ui.decision_panel.visible, "Pending decision has a return action on family view")
+		ui.return_to_decision.pressed.emit()
+		check(ui.current_view == "life" and ui.decision_panel.visible and JSON.stringify(ui.state) == before_navigation, "Return action restores the same decision without committing a year")
+		root.size = Vector2i(960, 640)
+		await process_frame
+		await process_frame
+		check(Rect2(Vector2.ZERO, ui.size).encloses(ui.action_dock.get_global_rect()), "All bottom actions fit at minimum size while a decision is pending")
+		var choices_visible: bool = true
+		for button: Button in ui.choice_buttons:
+			choices_visible = choices_visible and ui.chronicle_scroll.get_global_rect().encloses(button.get_global_rect())
+		check(choices_visible, "Initial decision options are visible without scrolling at minimum size")
 		ui._on_advance_pressed()
 		check(ui.state.world.year == year, "Calling advance cannot silently pick the first choice")
 		ui._on_choice_selected("not_a_choice")
@@ -49,6 +63,7 @@ func run() -> void:
 		check(ui.state.world.year == year + 1 and ui.pending_prep.is_empty(), "A choice commits exactly one year")
 		check(not ui.btn_advance.disabled and not ui.decision_panel.visible, "Choice restores normal progression")
 		check(not ui.error_label.visible, "Successful choice clears the previous validation error")
+		check(ui.fields.savings.text == str(ui.state.household.savings), "Profile balance follows committed choices")
 	ui._open_new_game()
 	var previous: String = JSON.stringify(ui.state)
 	ui.seed_input.text = "not a number"
@@ -71,6 +86,8 @@ func run() -> void:
 	check(ui.state.meta.status == "player_dead", "UI reaches actual end of life")
 	check(ui.btn_advance.disabled and ui.pages.size() > 1, "Memorial keeps history and disables advancement")
 	await process_frame
+	check(Rect2(Vector2.ZERO, ui.size).encloses(ui.action_dock.get_global_rect()), "End-of-life actions remain inside the minimum window")
+	await process_frame
 	ui.chronicle_scroll.scroll_vertical = 1000
 	await process_frame
 	check(ui.chronicle_scroll.scroll_vertical > 0, "Long life history can be scrolled")
@@ -86,12 +103,17 @@ func run() -> void:
 	check(ui.feed.get_child_count() == ui.state.actors.size() - 1, "Family view includes later family members and deceased relatives")
 	ui.switch_view("budget")
 	check(not ui.feed.get_children().is_empty(), "Final budget remains inspectable")
-	ui.size = Vector2(1000, 720)
+	root.size = Vector2i(1000, 720)
+	await process_frame
+	await process_frame
 	ui._responsive()
 	check(not ui.right_panel.visible, "Narrow layout hides duplicate aside, navigation keeps details accessible")
-	ui.size = Vector2(1440, 900)
+	root.size = Vector2i(1440, 900)
+	await process_frame
+	await process_frame
 	ui._responsive()
 	check(ui.right_panel.visible, "Wide layout restores aside")
+	check(absf(ui.btn_advance.get_global_rect().get_center().x - ui.size.x / 2.0) < 2.0, "Year advance stays centered in the action bar")
 	ui.queue_free()
 	await process_frame
 	print("UI interactions: %d checks, %d failures" % [checks, failures.size()])

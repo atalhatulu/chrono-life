@@ -5,20 +5,28 @@ sunmak; HTML'e geçiş kararını bu görünüm üzerinden verebilmek.
 
 ## Görünüm ve kullanım
 
-- Kâğıt tonları, koyu yeşil yan menü, Noto Serif Display başlıklar, Noto Sans metinler.
+- Kâğıt tonları, koyu yeşil alt eylem çubuğu, Noto Serif Display başlıklar, Noto Sans metinler.
+- BitLife referansındaki erişim düzeninden esinlenen ikinci sürüm: üstte kompakt
+  karakter ve ortak hane birikimi; altta merkezde **+1 yıl**, yanında Hayatım,
+  Ailem, Geçim ve Yeni hayat. Durum göstergeleri alt çubuğun altında sabittir.
 - Manchester için projeye ait SVG çizim; harici servis veya indirme gerektirmez.
-- Hayatım: son yıl en üstte, önemli anlar / tüm yıllar filtresi, Türkçe karar kartları.
+- Hayatım: yıl ve yaş sütunlu sıkı günlük düzeni, son yıl en üstte,
+  önemli anlar / tüm yıllar filtresi, yan yana seçenekli Türkçe karar kartları.
 - Ailem: gerçek aktör adları, yaş, meslek ve hayatta olma durumu.
 - Geçim: son tamamlanan yılın gelir, ihtiyaç, birikim ve borç bilgileri.
-- 1160 pikselden dar pencerede sağdaki özet kapanır; ayrıntılara menüden erişilir.
+- 1280 pikselden dar pencerede sağdaki özet kapanır; ayrıntılara alt menüden erişilir.
+- 760 pikselden kısa pencerede şehir şeridi gizlenir ve boşluklar daralır;
+  karar seçenekleri için daha fazla alan kalır.
 - Ölümde geçmiş korunur, ilerleme kapanır ve yeni hayat başlatılabilir.
-- Teknik endeksler ve otomatik bot seçimi ayrı geliştirici penceresindedir.
+- Teknik endeksler ve otomatik bot seçimi **Ayarlar** içindeki geliştirici penceresindedir.
 
 Karar beklerken yıl henüz tamamlanmış sayılmaz. Yeni yıl düğmesi kilitlenir;
 geçerli seçim, hazırlanan yılı bir kez tamamlar. Başarısız çözümün bekleyen kararı
 bozmaması için çözüm kopyalanmış işlem üzerinde yürütülür. Yeni hayat açmak önce
 başlangıç sayısının doğrulanmasını gerektirir. Görünüm yenilendiğinde en üstteki
 güncel sayfa/karar görünür olur.
+Bekleyen karar sırasında başka sekmeye geçildiğinde **Karara dön** görünür;
+aynı karara dönmek simülasyonu ilerletmez.
 
 ## Kod sınırı
 
@@ -39,10 +47,11 @@ Font License 1.1 metni `assets/fonts/OFL.txt` içindedir.
 
 Godot 4.7.2 Standard üzerinde:
 
-- Mevcut çalışma klasöründe ekonomik, yaşam, storylet ve aile testleri: 278 kontrol geçti.
-- Gerçek sahne ve gerçek simülasyonla arayüz testi: 26 kontrol geçti.
+- İlk görsel teslimde ekonomik, yaşam, storylet ve aile testleri: 278 kontrol geçti.
+  İkinci düzenlemede simülasyon dosyaları değiştirilmedi.
+- İkinci düzenlemede gerçek sahne ve gerçek simülasyonla arayüz testi: 34 kontrol geçti.
 - Commit'e alınacak dosyalardan oluşturulan temiz kopyada, önceki Phase 0C
-  çekirdeğiyle aynı 26 arayüz kontrolü de geçti; yerel aile geliştirmelerine
+  çekirdeğiyle aynı 34 arayüz kontrolü de geçti; yerel aile geliştirmelerine
   zorunlu bağımlılık yoktur.
 - Gerçek OpenGL penceresinde doğum, karar, aile, bütçe, dar pencere, yeniden
   başlatma ve ölüm ekranları yakalandı; headless görüntü taklidi kullanılmadı.

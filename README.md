@@ -15,9 +15,11 @@ godot scenes/main.tscn
 # veya doğrudan editörden / proje kökünden F5 ile
 ```
 
-**Bir yıl ilerle** ile oyna; karar geldiğinde karttaki seçeneklerden birini seç.
+Alt çubuğun ortasındaki **+1 yıl** ile oyna; karar geldiğinde karttaki seçeneklerden birini seç.
 **Ailem** ve **Geçim** sekmeleri ayrıntıları gösterir. **Yeni hayat** başlangıç sayısını
-değiştirerek yeniden başlatır. Otomatik karar seçimi, geliştirici araçlarında bulunur.
+değiştirerek yeniden başlatır. Otomatik karar seçimi, **Ayarlar** içindeki geliştirici araçlarında bulunur.
+Üstte karakter ve hane birikimi, ortada yıl/yaş sütunlu günlük, altta sabit eylemler ve
+durum göstergeleri yer alır. Karar beklerken başka sekmeye geçersen **Karara dön** ile geri gel.
 Pencere 1440×900 açılır; 960×640 boyutuna kadar yeniden düzenlenir.
 
 ### 2. Headless Komut Satırı ve Testler

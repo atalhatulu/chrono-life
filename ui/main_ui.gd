@@ -27,6 +27,10 @@ var decision_panel: PanelContainer
 var choice_buttons: Array[Button] = []
 var btn_advance: Button
 var filter_button: Button
+var return_to_decision: Button
+var page_margin: MarginContainer
+var action_dock: HBoxContainer
+var hero_banner: Control
 var error_label: Label
 var overlay: ColorRect
 var modal_body: VBoxContainer
@@ -132,49 +136,18 @@ func _build() -> void:
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
-	var layout := _row(0)
-	layout.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(layout)
-	_build_sidebar(layout)
-	var margin := MarginContainer.new()
-	for edge: String in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + edge, 26)
-	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	layout.add_child(margin)
-	main_column = _column(16)
-	margin.add_child(main_column)
-	var header := _row()
-	main_column.add_child(header)
-	header.add_child(_label("H A Y A T   D E F T E R İ", 11, Palette.MUTED))
-	_spacer(header)
-	_field(header, "location", "MANCHESTER  /  1850", 11, Palette.MUTED)
-	var heading := _row()
-	main_column.add_child(heading)
-	_field(heading, "name", "William Thompson", 32, Palette.INK, true)
-	_spacer(heading)
-	var age := _field(heading, "age", "0 yaş · İlk yıllar", 13, Palette.MUTED)
-	age.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	page_margin = MarginContainer.new()
+	page_margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(page_margin)
+	main_column = _column(14)
+	page_margin.add_child(main_column)
+	_build_header(main_column)
 	_build_hero(main_column)
 	var body := _row(20)
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	main_column.add_child(body)
 	content_column = _column(12)
 	body.add_child(content_column)
-	var stats := _row(18)
-	content_column.add_child(stats)
-	for item: Array in [["health", "Sağlık"], ["literacy", "Okuryazarlık"], ["willpower", "İrade"]]:
-		var stat := _column(6)
-		stats.add_child(stat)
-		var line := _row()
-		stat.add_child(line)
-		line.add_child(_label(item[1], 12, Palette.MUTED))
-		_spacer(line)
-		_field(line, item[0], "100", 12)
-		var bar := ProgressBar.new()
-		bar.show_percentage = false
-		bar.custom_minimum_size.y = 5
-		stat.add_child(bar)
-		bars[item[0]] = bar
 	var section := _row()
 	content_column.add_child(section)
 	_field(section, "section", "Hayatından sayfalar", 22, Palette.INK, true)
@@ -188,7 +161,7 @@ func _build() -> void:
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	content_column.add_child(scroll)
-	var stack := _column(14)
+	var stack := _column(12)
 	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(stack)
 	decision_panel = PanelContainer.new()
@@ -198,7 +171,7 @@ func _build() -> void:
 	decision_box = _column(12)
 	decision_panel.add_child(decision_box)
 	decision_panel.hide()
-	feed = _column(12)
+	feed = _column(0)
 	stack.add_child(feed)
 	right_panel = PanelContainer.new()
 	right_panel.custom_minimum_size.x = 260
@@ -214,75 +187,132 @@ func _build() -> void:
 	error_label = _label("", 13, Palette.RUST, false, true)
 	error_label.hide()
 	main_column.add_child(error_label)
-	var footer := _row()
+	var footer := _row(12)
 	main_column.add_child(footer)
-	var footer_copy := _column(3)
+	var footer_copy := _column(2)
 	footer.add_child(footer_copy)
-	_field(footer_copy, "footer", "Her yıl yeni bir sayfa.", 14)
+	_field(footer_copy, "footer", "Her yıl yeni bir sayfa.", 13)
 	_field(footer_copy, "hint", "Büyük kararları şimdilik ailen veriyor.", 11, Palette.MUTED, false, true)
-	btn_advance = _button("Bir yıl ilerle", _on_advance_pressed, "Primary", "arrow")
-	btn_advance.name = "AdvanceYear"
-	btn_advance.custom_minimum_size = Vector2(185, 52)
-	footer.add_child(btn_advance)
+	return_to_decision = _button("Karara dön", func(): switch_view("life"), "Ghost", "arrow")
+	footer.add_child(return_to_decision)
+	_build_dock(main_column)
+	_build_stats(main_column)
 	_build_modal()
 
 
-func _build_sidebar(parent: Node) -> void:
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size.x = 208
-	panel.add_theme_stylebox_override("panel", Palette.box(Palette.DARK, 0, Color.TRANSPARENT, 22))
-	parent.add_child(panel)
-	var column := _column(12)
-	panel.add_child(column)
-	column.add_child(_label("C H R O N O L I F E", 14, Color("f5f0db")))
-	column.add_child(_label("Bir hayat. Bir hikâye.", 13, Color("a4b8a4"), true))
-	var gap := Control.new()
-	gap.custom_minimum_size.y = 38
-	column.add_child(gap)
-	column.add_child(_label("01  /  SANAYİ ÇAĞI", 10, Color("94a998")))
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["budget", "Geçim", "wallet"]]:
-		var key: String = item[0]
-		var button := _button(item[1], func(): switch_view(key), "Navigation", item[2])
-		button.name = "Nav_" + key
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		column.add_child(button)
-		navigation[key] = button
-	_spacer(column, true)
-	column.add_child(_label("SENİN HİKÂYEN", 10, Color("94a998")))
-	_field(column, "sidebar_name", "William\nThompson", 23, Color("f5f0db"), true)
-	_field(column, "sidebar_life", "1850 — …", 12, Color("a4b8a4"))
-	var rule := HSeparator.new()
-	rule.modulate = Color("607465")
-	column.add_child(rule)
-	var new_button := _button("Yeni hayat", _open_new_game, "Navigation", "plus")
-	new_button.name = "NewLife"
-	new_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	column.add_child(new_button)
-	var settings := _button("Geliştirici araçları", _open_tools, "Navigation", "settings")
-	settings.add_theme_font_size_override("font_size", 11)
-	settings.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	column.add_child(settings)
+func _build_header(parent: Node) -> void:
+	var header := _row(12)
+	parent.add_child(header)
+	header.add_child(_label("C H R O N O L I F E", 16, Palette.INK))
+	_field(header, "tagline", "Bir hayat. Bir hikâye.", 13, Palette.MUTED, true)
+	_spacer(header)
+	var settings := _button("Ayarlar", _open_tools, "Ghost", "settings")
+	settings.tooltip_text = "Simülasyon bilgileri ve otomatik karar ayarları"
+	header.add_child(settings)
+	var profile := _row(18)
+	parent.add_child(profile)
+	var badge := PanelContainer.new()
+	badge.custom_minimum_size = Vector2(64, 64)
+	badge.add_theme_stylebox_override("panel", Palette.box(Palette.DARK, 32, Color.TRANSPARENT, 8))
+	profile.add_child(badge)
+	var initials := _field(badge, "initials", "WT", 24, Palette.PAPER, true)
+	initials.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	initials.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	var identity := _column(2)
+	profile.add_child(identity)
+	var name_label := _field(identity, "name", "William Thompson", 29, Palette.INK, true)
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.custom_minimum_size.x = 200
+	_field(identity, "age", "0 yaş · İlk yıllar", 13, Palette.MUTED)
+	var balance := _column(2)
+	balance.size_flags_horizontal = Control.SIZE_SHRINK_END
+	profile.add_child(balance)
+	var caption := _label("HANE BİRİKİMİ", 10, Palette.MUTED)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	balance.add_child(caption)
+	var savings := _field(balance, "savings", "0", 27, Palette.INK, true)
+	savings.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	savings.tooltip_text = "Ailenin ortak birikimi · test birimi"
 
 
 func _build_hero(parent: Node) -> void:
 	var hero := Control.new()
-	hero.custom_minimum_size.y = 144
+	hero_banner = hero
+	hero.custom_minimum_size.y = 64
 	hero.clip_contents = true
 	parent.add_child(hero)
+	var background := ColorRect.new()
+	background.color = Color("e7e6d7")
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hero.add_child(background)
 	var texture := TextureRect.new()
 	texture.texture = preload("res://assets/ui/manchester.svg")
 	texture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	texture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	texture.anchor_left = 0.45
 	texture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hero.add_child(texture)
-	var copy := _column(3)
-	copy.position = Vector2(24, 16)
-	copy.size = Vector2(355, 118)
+	var copy := _row(18)
+	copy.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	copy.offset_left = 18
+	copy.offset_right = -18
 	hero.add_child(copy)
-	_field(copy, "hero_eyebrow", "MANCHESTER, İNGİLTERE", 10, Color("63745f"))
-	_field(copy, "year", "1850", 46, Palette.INK, true)
-	_field(copy, "hero_caption", "Hikâyen burada başlıyor.", 13, Color("53654f"))
+	_field(copy, "year", "1850", 31, Palette.INK, true)
+	var location := _column(1)
+	location.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	copy.add_child(location)
+	_field(location, "location", "MANCHESTER, İNGİLTERE", 10, Palette.INK)
+	_field(location, "hero_caption", "Hikâyen burada başlıyor.", 12, Palette.INK)
+
+
+func _build_dock(parent: Node) -> void:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", Palette.box(Palette.DARK, 16, Color.TRANSPARENT, 10))
+	parent.add_child(panel)
+	action_dock = _row(8)
+	panel.add_child(action_dock)
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["budget", "Geçim", "wallet"], ["new", "Yeni hayat", "plus"]]:
+		var key: String = item[0]
+		var action: Callable = func(): switch_view(key)
+		if key == "advance":
+			action = _on_advance_pressed
+		elif key == "new":
+			action = _open_new_game
+		var button := _button(item[1], action, "Primary" if key == "advance" else "Navigation", item[2])
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		button.custom_minimum_size.y = 54
+		action_dock.add_child(button)
+		if key == "advance":
+			btn_advance = button
+			button.name = "AdvanceYear"
+			button.custom_minimum_size = Vector2(196, 68)
+			button.add_theme_font_size_override("font_size", 22)
+		elif key == "new":
+			button.name = "NewLife"
+		else:
+			button.name = "Nav_" + key
+			navigation[key] = button
+
+
+func _build_stats(parent: Node) -> void:
+	var stats := _row(18)
+	parent.add_child(stats)
+	for item: Array in [["health", "Sağlık"], ["literacy", "Okuryazarlık"], ["willpower", "İrade"]]:
+		var stat := _column(6)
+		stats.add_child(stat)
+		var line := _row()
+		stat.add_child(line)
+		line.add_child(_label(item[1], 12, Palette.MUTED))
+		_spacer(line)
+		_field(line, item[0], "100", 12)
+		var bar := ProgressBar.new()
+		bar.show_percentage = false
+		bar.custom_minimum_size.y = 5
+		stat.add_child(bar)
+		bars[item[0]] = bar
 
 
 func _build_modal() -> void:
@@ -444,10 +474,12 @@ func _refresh_ui() -> void:
 	var player: Dictionary = state.actors[state.meta.player_id]
 	fields.name.text = player.name
 	fields.age.text = "%d yaş · %s" % [player.age, Words.stage(int(player.age))]
-	fields.location.text = "MANCHESTER  /  %d" % state.world.year
+	fields.location.text = "MANCHESTER, İNGİLTERE"
 	fields.year.text = str(state.world.year)
-	fields.sidebar_name.text = str(player.name).replace(" ", "\n")
-	fields.sidebar_life.text = "%d — %s" % [player.birth_year, "…" if player.alive else str(player.death_year)]
+	fields.initials.text = ""
+	for part: String in str(player.name).split(" ", false):
+		fields.initials.text += part.left(1)
+	fields.savings.text = str(state.household.savings)
 	fields.hero_caption.text = "Hikâyen burada başlıyor." if player.age == 0 else "Bu yıl, hayatının %d. sayfası." % player.age
 	if not player.alive:
 		fields.hero_caption.text = "Yaşanmış bir hayat, geride kalan izler."
@@ -460,7 +492,8 @@ func _refresh_ui() -> void:
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
-	btn_advance.text = "Hayat tamamlandı" if not player.alive else ("Kararını bekliyor" if not pending_prep.is_empty() else "Bir yıl ilerle")
+	btn_advance.text = "Hayat tamamlandı" if not player.alive else ("Kararını bekliyor" if not pending_prep.is_empty() else "+1 yıl")
+	return_to_decision.visible = not pending_prep.is_empty() and current_view != "life"
 	fields.footer.text = "Her yıl yeni bir sayfa." if player.alive else "%d yıllık bir hayat." % player.age
 	fields.hint.text = "Büyük kararları şimdilik ailen veriyor." if player.age < 16 else "Geçmişin seninle. Sıradaki yıl henüz yazılmadı."
 	if not pending_prep.is_empty():
@@ -487,6 +520,11 @@ func _render_decision() -> void:
 	decision_box.add_child(_label("%d  /  BİR KARAR ZAMANI" % pending_prep.year, 11, Palette.RUST))
 	decision_box.add_child(_label(wording[0], 25, Palette.INK, true, true))
 	decision_box.add_child(_label(wording[1], 14, Palette.INK, false, true))
+	var choices := GridContainer.new()
+	choices.columns = 2
+	choices.add_theme_constant_override("h_separation", 12)
+	choices.add_theme_constant_override("v_separation", 10)
+	decision_box.add_child(choices)
 	for choice: Dictionary in story.choices:
 		var copy: Array = Words.CHOICES.get(choice.id, [choice.label, choice.description])
 		var id: String = choice.id
@@ -496,12 +534,13 @@ func _render_decision() -> void:
 		button.custom_minimum_size.y = 68
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.name = "Choice_" + id
-		decision_box.add_child(button)
+		choices.add_child(button)
 		choice_buttons.append(button)
 
 
 func _render_feed() -> void:
 	_clear(feed)
+	feed.add_theme_constant_override("separation", 0 if current_view == "life" else 12)
 	if current_view == "family":
 		_render_family(feed)
 		return
@@ -512,20 +551,29 @@ func _render_feed() -> void:
 		var memorial := _card(feed)
 		memorial.add_child(_label("BİR HAYATIN ARDINDAN", 10, Palette.RUST))
 		memorial.add_child(_label(state.actors[state.meta.player_id].name, 27, Palette.INK, true))
-		memorial.add_child(_label("%s · %s" % [fields.sidebar_life.text, Words.word(str(state.actors[state.meta.player_id].death_cause))], 13, Palette.MUTED, false, true))
+		memorial.add_child(_label("%s · %s" % ["%d — %d" % [state.actors[state.meta.player_id].birth_year, state.actors[state.meta.player_id].death_year], Words.word(str(state.actors[state.meta.player_id].death_cause))], 13, Palette.MUTED, false, true))
 		memorial.add_child(_button("Yeni bir hayat başlat", _open_new_game, "Primary"))
 	for index: int in range(pages.size() - 1, -1, -1):
 		var page: Dictionary = pages[index]
 		if not show_quiet and not page.important:
 			continue
-		var card := _card(feed)
-		var meta := _row()
-		card.add_child(meta)
-		meta.add_child(_label(str(page.year), 15, Palette.RUST, true))
-		_spacer(meta)
-		meta.add_child(_label(page.tag, 9, Palette.MUTED))
-		card.add_child(_label(page.title, 22, Palette.INK, true, true))
-		card.add_child(_label(page.body, 13, Color("637063"), false, true))
+		var entry := _row(20)
+		feed.add_child(entry)
+		var date := _column(2)
+		date.size_flags_horizontal = Control.SIZE_FILL
+		date.custom_minimum_size.x = 72
+		entry.add_child(date)
+		date.add_child(_label(str(page.year), 23, Palette.RUST, true))
+		var age: int = int(page.year) - int(state.actors[state.meta.player_id].birth_year)
+		date.add_child(_label("%d yaş" % age, 11, Palette.MUTED))
+		var copy := _column(5)
+		entry.add_child(copy)
+		copy.add_child(_label(page.title, 19, Palette.INK, true, true))
+		copy.add_child(_label(page.body, 14, Color("637063"), false, true))
+		var separator := HSeparator.new()
+		separator.add_theme_stylebox_override("separator", Palette.box(Palette.LINE, 0, Color.TRANSPARENT, 0))
+		separator.add_theme_constant_override("separation", 25)
+		feed.add_child(separator)
 
 
 func _render_family(parent: Node, compact: bool = false) -> void:
@@ -588,5 +636,14 @@ func _render_sidebar() -> void:
 
 
 func _responsive() -> void:
+	if hero_banner != null:
+		hero_banner.visible = size.y >= 760
+		main_column.add_theme_constant_override("separation", 14 if size.y >= 760 else 10)
 	if right_panel != null:
-		right_panel.visible = size.x >= 1160
+		right_panel.visible = size.x >= 1280
+	if page_margin != null:
+		var inset: int = maxi(24, int((size.x - 1280) / 2))
+		page_margin.add_theme_constant_override("margin_left", inset)
+		page_margin.add_theme_constant_override("margin_right", inset)
+		page_margin.add_theme_constant_override("margin_top", 12)
+		page_margin.add_theme_constant_override("margin_bottom", 16)

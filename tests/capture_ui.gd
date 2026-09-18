@@ -34,12 +34,19 @@ func run() -> void:
 		ui._on_advance_pressed()
 		await process_frame
 	await capture("ui_decision_1440.png")
+	root.size = Vector2i(960, 640)
+	await capture("ui_decision_960.png")
+	ui.switch_view("family")
+	await capture("ui_pending_family_960.png")
+	ui.return_to_decision.pressed.emit()
+	root.size = Vector2i(1440, 900)
 	if not ui.pending_prep.is_empty():
 		ui._on_choice_selected(ui.pending_prep.storylet.choices[0].id)
 	ui.auto_policy.button_pressed = true
 	while int(ui.state.world.year) < 1875 and ui.state.meta.status == "running":
 		ui._on_advance_pressed()
 		await process_frame
+	await capture("ui_journal_1440.png")
 	ui.switch_view("family")
 	await capture("ui_family_1440.png")
 	ui.switch_view("budget")
