@@ -640,13 +640,16 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		var relation: String = str(relation_data.get("stage", "Aile üyesi"))
 		if id in ["parent_1", "parent_2"]:
 			relation = "Annen" if actor.get("sex", "male") == "female" else "Baban"
-		elif id == "spouse":
+		elif str(state.family.get("current_spouse_id", "")) == id:
 			relation = "Eşin"
+		elif id.begins_with("spouse"):
+			relation = "Eski eşin"
 		elif id.begins_with("child"):
 			relation = "Çocuğun"
 		column.add_child(_label(relation.to_upper(), 9, Palette.MUTED))
 		column.add_child(_label(str(actor.name), 15 if compact else 21, Palette.INK, true, true))
-		column.add_child(_label("%d yaş · %s" % [actor.age, "Hayatta" if actor.alive else "Anısına"], 11, Palette.MUTED))
+		var residence := "Aynı hanede" if str(actor.get("household_id", "")) == str(state.household.id) else "Ayrı hanede"
+		column.add_child(_label("%d yaş · %s · %s" % [actor.age, "Hayatta" if actor.alive else "Anısına", residence], 11, Palette.MUTED))
 		if not compact:
 			column.add_child(_label(Words.word(str(actor.occupation_id)) if actor.alive else "%d yılında hayatını kaybetti." % actor.death_year, 13, Palette.MUTED, false, true))
 			if not relation_data.is_empty():
@@ -668,6 +671,26 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 						}[action], func(): _relationship_interaction(person_id, interaction), "Ghost"))
 	if compact:
 		return
+
+	var fam: Dictionary = state.get("family", {})
+	var family_overview := _card(parent)
+	family_overview.add_child(_label("AİLE GEÇMİŞİ", 10, Palette.MUTED))
+	family_overview.add_child(_label("Durum: %s · Çocuk: %d · Evlilik: %d" % [
+		str(fam.get("marital_status", "unmarried")).replace("_", " ").capitalize(),
+		int(fam.get("children_count", 0)),
+		fam.get("marriages", []).size()
+	], 13, Palette.INK))
+	var marriages: Array = fam.get("marriages", [])
+	for marriage: Dictionary in marriages:
+		var spouse_id := str(marriage.get("spouse_id", ""))
+		var spouse_name := str(state.actors.get(spouse_id, {}).get("name", spouse_id))
+		var end_year := int(marriage.get("end_year", 0))
+		var line := "%s · %d" % [spouse_name, int(marriage.get("start_year", 0))]
+		if end_year > 0:
+			line += "–%d · %s" % [end_year, str(marriage.get("end_reason", "")).replace("_", " ")]
+		else:
+			line += "–"
+		family_overview.add_child(_label(line, 12, Palette.MUTED))
 
 	var social_ids: Array = state.relationships.people.keys()
 	social_ids.sort()
