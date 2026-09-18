@@ -8,14 +8,14 @@ static func _path(state: Dictionary) -> String:
 	return str(state.get("meta", {}).get("relationships_path", ""))
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := _path(state)
+	var path: String = _path(state)
 	if path.is_empty():
 		return {"encounter_pools": [], "first_names": [], "surnames": [], "rules": {}}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"encounter_pools": [], "first_names": [], "surnames": [], "rules": {}}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"encounter_pools": [], "first_names": [], "surnames": [], "rules": {}}
 	return _cache[path]
@@ -30,7 +30,7 @@ static func initialize(state: Dictionary) -> void:
 		if id == player_id:
 			continue
 		var actor: Dictionary = state.actors[id]
-		var role := "family"
+		var role: String = "family"
 		if id.begins_with("parent"):
 			role = "parent"
 		elif id.begins_with("child"):
@@ -50,12 +50,12 @@ static func register_person(state: Dictionary, id: String, name: String, role: S
 		if sex != "":
 			current.sex = sex
 		return
-	var year := int(state.world.year)
-	var seed := str(state.meta.master_seed).to_int()
-	var attraction := Rng.integer(seed, "relationships", year, id, "attraction", 20, 80)
-	var compatibility := Rng.integer(seed, "relationships", year, id, "compatibility", 25, 85)
-	var base_close := 65 if role in ["parent", "child", "spouse", "family"] else 35
-	var base_trust := 60 if role in ["parent", "child", "spouse", "family"] else 30
+	var year: int = int(state.world.year)
+	var seed: int = str(state.meta.master_seed).to_int()
+	var attraction: int = Rng.integer(seed, "relationships", year, id, "attraction", 20, 80)
+	var compatibility: int = Rng.integer(seed, "relationships", year, id, "compatibility", 25, 85)
+	var base_close: int = 65 if role in ["parent", "child", "spouse", "family"] else 35
+	var base_trust: int = 60 if role in ["parent", "child", "spouse", "family"] else 30
 	state.relationships.people[id] = {
 		"id": id, "name": name, "sex": sex, "role": role, "stage": role,
 		"closeness": base_close, "trust": base_trust, "conflict": 8,
@@ -81,9 +81,9 @@ static func _rules(state: Dictionary) -> Dictionary:
 
 static func annual_drift(state: Dictionary) -> void:
 	normalize(state)
-	var rules := _rules(state)
-	var close_decay := int(rules.get("annual_closeness_decay", 2))
-	var contact_decay := int(rules.get("annual_contact_decay", 1))
+	var rules: Dictionary = _rules(state)
+	var close_decay: int = int(rules.get("annual_closeness_decay", 2))
+	var contact_decay: int = int(rules.get("annual_contact_decay", 1))
 	for id: String in state.relationships.people:
 		var rel: Dictionary = state.relationships.people[id]
 		if not rel.alive:
@@ -96,7 +96,7 @@ static func annual_drift(state: Dictionary) -> void:
 
 static func _update_stage(state: Dictionary, id: String) -> void:
 	var rel: Dictionary = state.relationships.people[id]
-	var rules := _rules(state)
+	var rules: Dictionary = _rules(state)
 	if rel.role in ["parent", "child", "spouse", "family"]:
 		rel.stage = rel.role
 		return
@@ -108,7 +108,7 @@ static func _update_stage(state: Dictionary, id: String) -> void:
 	if int(rel.closeness) <= int(rules.get("estranged_closeness_threshold", 15)):
 		rel.stage = "estranged"
 		return
-	var player_age := int(state.actors[state.meta.player_id].age)
+	var player_age: int = int(state.actors[state.meta.player_id].age)
 	if player_age >= int(rules.get("romance_min_age", 16)) and int(rel.attraction) >= int(rules.get("romance_attraction_threshold", 55)) and int(rel.closeness) >= int(rules.get("dating_threshold", 68)):
 		if rel.stage not in ["dating", "ex_partner"]:
 			rel.stage = "dating"
@@ -173,7 +173,7 @@ static func interact(state: Dictionary, id: String, kind: String) -> Dictionary:
 
 static func spend_time_with_family(state: Dictionary) -> Dictionary:
 	normalize(state)
-	var changed := 0
+	var changed: int = 0
 	for id: String in state.relationships.people:
 		var rel: Dictionary = state.relationships.people[id]
 		if rel.alive and rel.role in ["parent", "family", "child", "spouse"]:
@@ -182,7 +182,7 @@ static func spend_time_with_family(state: Dictionary) -> Dictionary:
 	return {"changed": changed}
 
 static func _nonfamily_count(state: Dictionary) -> int:
-	var n := 0
+	var n: int = 0
 	for id: String in state.relationships.people:
 		if state.relationships.people[id].role not in ["parent", "family", "child", "spouse"]:
 			n += 1
@@ -201,31 +201,31 @@ static func _eligible_pools(state: Dictionary) -> Array[Dictionary]:
 
 static func meet_person(state: Dictionary, preferred_context: String = "") -> String:
 	normalize(state)
-	var rules := _rules(state)
+	var rules: Dictionary = _rules(state)
 	if _nonfamily_count(state) >= int(rules.get("max_active_nonfamily", 8)):
 		return ""
-	var pools := _eligible_pools(state)
+	var pools: Array[Dictionary] = _eligible_pools(state)
 	if pools.is_empty():
 		return ""
-	var seed := str(state.meta.master_seed).to_int()
-	var year := int(state.world.year)
+	var seed: int = str(state.meta.master_seed).to_int()
+	var year: int = int(state.world.year)
 	var weights: Array[int] = []
 	for pool: Dictionary in pools:
 		weights.append(int(pool.get("weight", 1)) + (30 if preferred_context != "" and str(pool.id) == preferred_context else 0))
-	var index := Rng.weighted(seed, "relationships", year, str(state.meta.player_id), "encounter_pool", weights)
+	var index: int = Rng.weighted(seed, "relationships", year, str(state.meta.player_id), "encounter_pool", weights)
 	var pool: Dictionary = pools[index]
-	var serial := state.relationships.people.size()
-	var person_id := "social_%d_%d" % [year, serial]
+	var serial: int = state.relationships.people.size()
+	var person_id: String = "social_%d_%d" % [year, serial]
 	var names: Array = _catalog(state).get("first_names", [])
 	var surnames: Array = _catalog(state).get("surnames", [])
-	var first := "Person"
-	var surname := ""
+	var first: String = "Person"
+	var surname: String = ""
 	if not names.is_empty():
 		first = str(names[Rng.integer(seed, "relationships", year, person_id, "first_name", 0, names.size() - 1)])
 	if not surnames.is_empty():
 		surname = str(surnames[Rng.integer(seed, "relationships", year, person_id, "surname", 0, surnames.size() - 1)])
 	var roles: Array = pool.get("roles", ["acquaintance"])
-	var role := str(roles[Rng.integer(seed, "relationships", year, person_id, "role", 0, roles.size() - 1)])
+	var role: String = str(roles[Rng.integer(seed, "relationships", year, person_id, "role", 0, roles.size() - 1)])
 	register_person(state, person_id, (first + " " + surname).strip_edges(), role, true, str(pool.id), "")
 	var rel: Dictionary = state.relationships.people[person_id]
 	rel.closeness = 38
@@ -249,23 +249,23 @@ static func socialize(state: Dictionary) -> Dictionary:
 			candidates.append(id)
 	candidates.sort()
 	if candidates.is_empty():
-		var new_id := meet_person(state)
+		var new_id: String = meet_person(state)
 		return {"person_id": new_id, "new_person": new_id != ""}
-	var seed := str(state.meta.master_seed).to_int()
-	var pick := Rng.integer(seed, "relationships", int(state.world.year), str(state.meta.player_id), "social_target", 0, candidates.size() - 1)
-	var id := candidates[pick]
+	var seed: int = str(state.meta.master_seed).to_int()
+	var pick: int = Rng.integer(seed, "relationships", int(state.world.year), str(state.meta.player_id), "social_target", 0, candidates.size() - 1)
+	var id: String = candidates[pick]
 	interact(state, id, "spend_time")
 	return {"person_id": id, "new_person": false}
 
 static func best_partner_candidate(state: Dictionary) -> String:
 	normalize(state)
-	var best := ""
-	var best_score := -1
+	var best: String = ""
+	var best_score: int = -1
 	for id: String in state.relationships.people:
 		var rel: Dictionary = state.relationships.people[id]
 		if not rel.alive or rel.stage not in ["romantic_interest", "dating"]:
 			continue
-		var score := int(rel.closeness) + int(rel.trust) + int(rel.attraction) + int(rel.compatibility) - int(rel.conflict) * 2
+		var score: int = int(rel.closeness) + int(rel.trust) + int(rel.attraction) + int(rel.compatibility) - int(rel.conflict) * 2
 		if score > best_score:
 			best_score = score
 			best = id
