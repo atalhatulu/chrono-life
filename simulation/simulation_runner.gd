@@ -20,6 +20,7 @@ const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
 const Education = preload("res://simulation/education_system.gd")
 const SocialEvents = preload("res://simulation/social_event_system.gd")
+const Treatments = preload("res://simulation/health_treatment_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -54,6 +55,7 @@ func initial_state(seed_value: int) -> Dictionary:
 		Education.initialize_actor(actor)
 		Career.initialize_actor(actor)
 		Needs.initialize_actor(actor)
+		Health.initialize_actor(actor)
 		actor.household_id = "household_1"
 		actor.income = _annual_income(actor.occupation_id, int(pack.economy.initial_index))
 		active_income += actor.income
@@ -70,6 +72,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"life_actions_path": str(pack.get("content_paths", {}).get("life_actions", "")),
 			"education_path": str(pack.get("content_paths", {}).get("education", "")),
 			"relationships_path": str(pack.get("content_paths", {}).get("relationships", "")),
+			"health_path": str(pack.get("content_paths", {}).get("health", "")),
 			"start_year": int(pack.start_year), "status": "running"},
 		"world": {"year": int(pack.start_year), "location_id": pack.location_id,
 			"economy_index": int(pack.economy.initial_index),
@@ -478,6 +481,11 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 			Relationships.meet_person(working)
 		elif str(social_decision.get("person_id", "")) != "":
 			Relationships.interact(working, str(social_decision.person_id), str(social_decision.action))
+	var treatment_id: String = AutoLife.choose_treatment(working, policy_name)
+	if treatment_id != "":
+		var treatment_result: Dictionary = Treatments.apply(working, treatment_id)
+		if not treatment_result.ok:
+			return {"ok": false, "errors": [treatment_result.error]}
 	var purchase_id: String = AutoLife.choose_purchase(working, policy_name)
 	if purchase_id != "":
 		var purchase_result: Dictionary = Purchases.purchase(working, purchase_id)
@@ -494,6 +502,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		PersonalEconomy.maybe_allowance(result.state)
 		result.action_id = action_id
 		result.purchase_id = purchase_id
+		result.treatment_id = treatment_id
 		result.social_decision = social_decision
 		result.social_event = social_event
 	return result
@@ -505,6 +514,7 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 	var purchases: Array = []
 	var social_actions: Array = []
 	var social_events: Array = []
+	var treatments: Array = []
 	while state.meta.status == "running":
 		if int(state.world.year) - int(pack.start_year) >= int(pack.limits.max_years):
 			break
@@ -515,6 +525,8 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 			social_events.append({"year": int(result.state.world.year), "event": result.social_event})
 		if not result.get("social_decision", {}).is_empty():
 			social_actions.append({"year": int(result.state.world.year), "decision": result.social_decision})
+		if str(result.get("treatment_id", "")) != "":
+			treatments.append({"year": int(result.state.world.year), "treatment_id": result.treatment_id})
 		if str(result.get("purchase_id", "")) != "":
 			purchases.append({"year": int(result.state.world.year), "item_id": result.purchase_id})
 		if str(result.get("action_id", "")) != "":
@@ -522,5 +534,5 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 		state = result.state
 	var player: Dictionary = state.actors[state.meta.player_id]
 	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
-		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "life_result": LifeSummary.build(state),
+		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "treatments": treatments, "life_result": LifeSummary.build(state),
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
