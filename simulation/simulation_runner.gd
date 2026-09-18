@@ -88,7 +88,17 @@ func initial_state(seed_value: int) -> Dictionary:
 			"expenses": 0, "food_security": 1000, "living_standard": "unassessed",
 			"pending_effects": [], "aid_uses": 0, "care_mode": "family", "guardian_id": ""},
 		"storylets": {"last_seen": {}, "flags": {}},
-		"family": {"marital_status": "unmarried", "marriage_year": 0, "children_count": 0, "last_birth_year": 0},
+		"family": {
+			"marital_status": "unmarried",
+			"marriage_year": 0,
+			"last_marriage_end_year": 0,
+			"current_spouse_id": "",
+			"marriages": [],
+			"children_count": 0,
+			"children_ids": [],
+			"last_birth_year": 0,
+			"kinship": {}
+		},
 		"ledgers": [], "history": [{"id": "%d:initial" % int(pack.start_year),
 			"year": int(pack.start_year), "kind": "household_created", "cause_id": "",
 			"details": {"location_id": pack.location_id, "member_ids": ids.duplicate()}}]
