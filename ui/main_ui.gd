@@ -514,7 +514,7 @@ func _refresh_ui() -> void:
 	var player: Dictionary = state.actors[state.meta.player_id]
 	fields.name.text = player.name
 	fields.age.text = "%d yaş · %s" % [player.age, Words.stage(int(player.age))]
-	fields.location.text = "MANCHESTER, İNGİLTERE"
+	fields.location.text = str(state.world.location_id).replace("_", " ").to_upper()
 	fields.year.text = str(state.world.year)
 	fields.initials.text = ""
 	for part: String in str(player.name).split(" ", false):
@@ -1153,11 +1153,18 @@ func _render_status(parent: Node) -> void:
 		for asset_id: String in asset_ids:
 			var entry: Dictionary = owned[asset_id]
 			var def: Dictionary = asset_defs.get(asset_id, {})
-			asset_card.add_child(_label("%s · değer %d · adet %d" % [
+			var row := _row(8)
+			asset_card.add_child(row)
+			var copy := _column(2)
+			row.add_child(copy)
+			copy.add_child(_label("%s · değer %d · adet %d" % [
 				str(def.get("label", asset_id)),
 				int(entry.get("value", 0)),
 				int(entry.get("quantity", 1))
 			], 12, Palette.INK))
+			_spacer(row)
+			var owned_asset_id := asset_id
+			row.add_child(_button("Elden çıkar", func(): _liquidate_asset(owned_asset_id), "Ghost"))
 	var buyable := Assets.available_assets(state)
 	if not buyable.is_empty():
 		asset_card.add_child(_label("EDİNİLEBİLİR", 10, Palette.RUST))
@@ -1198,6 +1205,17 @@ func _acquire_asset(asset_id: String) -> void:
 	var result := Assets.acquire(state, asset_id)
 	if not result.ok:
 		_show_error(str(result.get("error", "Varlık edinilemedi.")))
+		return
+	SocialStatus.recompute(state)
+	_refresh_ui()
+
+
+func _liquidate_asset(asset_id: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result := Assets.liquidate(state, asset_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "Varlık elden çıkarılamadı.")))
 		return
 	SocialStatus.recompute(state)
 	_refresh_ui()
