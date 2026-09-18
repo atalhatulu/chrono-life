@@ -16,6 +16,7 @@ const Hobbies = preload("res://simulation/hobby_system.gd")
 const Skills = preload("res://simulation/skill_system.gd")
 const Assets = preload("res://simulation/asset_system.gd")
 const Migration = preload("res://simulation/migration_system.gd")
+const SocialStatus = preload("res://simulation/social_status_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -918,6 +919,7 @@ func _move_housing(dwelling_id: String) -> void:
 	if not result.ok:
 		_show_error(str(result.get("error", "Taşınma başarısız.")))
 		return
+	SocialStatus.recompute(state)
 	_refresh_ui()
 
 
@@ -1197,6 +1199,7 @@ func _acquire_asset(asset_id: String) -> void:
 	if not result.ok:
 		_show_error(str(result.get("error", "Varlık edinilemedi.")))
 		return
+	SocialStatus.recompute(state)
 	_refresh_ui()
 
 
