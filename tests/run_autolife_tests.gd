@@ -95,11 +95,13 @@ func _initialize() -> void:
 	check(dev_one.ok and dev_two.ok, "Repeated life actions can drive long-term development")
 	check(int(development_state.actors.player.personality.axes.curiosity) > curiosity_before,
 		"Life actions shift personality axes")
-	check(int(development_state.actors.player.skills["values"].literacy) > 0,
+	check(int(development_state.actors.player.skills["values"].reading_comprehension) > 0,
 		"Life actions convert repeated skill XP into skill levels")
 	check(development_state.actors.player.hobbies.active.has("reading"),
 		"Linked life actions establish hobby progress")
 	var hobby_before := int(development_state.actors.player.hobbies.active.reading.mastery)
+	development_state.world.year += 1
+	development_state.actors.player.age += 1
 	var hobby_result := Hobbies.practice(development_state, "player", "reading", "test")
 	check(hobby_result.ok and int(development_state.actors.player.hobbies.active.reading.mastery) > hobby_before,
 		"Manual hobby practice increases mastery")
