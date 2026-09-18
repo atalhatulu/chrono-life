@@ -1,7 +1,7 @@
 extends RefCounted
 
 const Rng = preload("res://simulation/deterministic_rng.gd")
-const Career = preload("res://simulation/career_education_system.gd")
+const Career = preload("res://simulation/career_system.gd")
 
 
 static func update_care(delta: RefCounted, pack: Dictionary, cause: String) -> int:
