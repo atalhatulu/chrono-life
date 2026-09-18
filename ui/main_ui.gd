@@ -688,6 +688,22 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 								"education_support": "Eğitime yardım",
 								"discipline": "Disiplin"
 							}[p_action], func(): _parenting_interaction(child_id, parenting_action), "Ghost"))
+					var parent_ids: Array = state.family.get("kinship", {}).get(player_id, {}).get("parents", [])
+					if id in parent_ids and actor.alive and (int(actor.age) >= 60 or int(actor.health) < 55):
+						var elder: Dictionary = state.family.get("elder_care", {}).get(id, {})
+						column.add_child(_label("Bakım · Destek %d · Yük %d" % [
+							int(elder.get("care", 0)), int(elder.get("burden", 0))
+						], 11, Palette.MUTED))
+						var elder_row := _row(6)
+						column.add_child(elder_row)
+						for care_action: String in ["visit", "care", "financial_support"]:
+							var parent_id := id
+							var elder_action := care_action
+							elder_row.add_child(_button({
+								"visit": "Ziyaret et",
+								"care": "Bakım ver",
+								"financial_support": "Maddi destek"
+							}[care_action], func(): _elder_care_interaction(parent_id, elder_action), "Ghost"))
 	if compact:
 		return
 
@@ -783,6 +799,16 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 	meet_card.add_child(_label("YENİ İNSANLAR", 10, Palette.MUTED))
 	meet_card.add_child(_label("Sosyal çevreni genişletebilir, yeni arkadaşlar veya romantik bağlar kurabilirsin.", 12, Palette.MUTED, false, true))
 	meet_card.add_child(_button("Yeni biriyle tanış", _meet_new_person, "Primary"))
+
+
+func _elder_care_interaction(parent_id: String, interaction: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result: Dictionary = FamilyDynamics.care_for_parent(state, parent_id, interaction)
+	if not result.ok:
+		_show_error(str(result.get("error", "Bakım etkileşimi başarısız.")))
+		return
+	_refresh_ui()
 
 
 func _parenting_interaction(child_id: String, interaction: String) -> void:
