@@ -657,6 +657,18 @@ func _render_spending(parent: Node) -> void:
 	wallet.add_child(_label("%d test birimi" % int(economy.get("cash", 0)), 27, Palette.INK, true))
 	wallet.add_child(_label("Toplam kazanç: %d · Toplam harcama: %d" % [
 		int(economy.get("lifetime_income", 0)), int(economy.get("lifetime_spending", 0))], 12, Palette.MUTED))
+	var owned: Array[Dictionary] = Purchases.owned_items(state)
+	if not owned.is_empty():
+		var owned_card := _card(parent)
+		owned_card.add_child(_label("SAHİP OLDUKLARIN", 10, Palette.MUTED))
+		for entry: Dictionary in owned:
+			owned_card.add_child(_label("%s · %d'de alındı" % [str(entry.label), int(entry.year)], 13, Palette.INK))
+	var memberships: Array[Dictionary] = Purchases.active_memberships(state)
+	if not memberships.is_empty():
+		var member_card := _card(parent)
+		member_card.add_child(_label("AKTİF ÜYELİKLER", 10, Palette.MUTED))
+		for entry: Dictionary in memberships:
+			member_card.add_child(_label("%s · %d sonuna kadar" % [str(entry.label), int(entry.expires_year)], 13, Palette.INK))
 	var grouped: Dictionary = {}
 	for item: Dictionary in Purchases.available_items(state):
 		var category := str(item.category)
