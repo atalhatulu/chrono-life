@@ -57,3 +57,16 @@ static func apply_action_link(state: Dictionary, actor_id: String, action_id: St
 	var hobby_id := str(_catalog(state).get("action_hobby_links", {}).get(action_id, ""))
 	if hobby_id != "":
 		practice(state, actor_id, hobby_id, "action:" + action_id)
+
+
+static func available_hobbies(state: Dictionary, actor_id: String = "") -> Array[Dictionary]:
+	if actor_id == "":
+		actor_id = str(state.meta.player_id)
+	if not state.actors.has(actor_id):
+		return []
+	var actor: Dictionary = state.actors[actor_id]
+	var result: Array[Dictionary] = []
+	for hobby: Dictionary in _catalog(state).get("hobbies", []):
+		if int(actor.age) >= int(hobby.get("min_age", 0)):
+			result.append(hobby)
+	return result
