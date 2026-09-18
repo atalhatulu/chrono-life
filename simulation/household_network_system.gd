@@ -3,7 +3,7 @@ extends RefCounted
 static func initialize(state: Dictionary) -> void:
 	if not state.has("households") or not state.households is Dictionary:
 		state.households = {}
-	var primary_id := str(state.household.id)
+	var primary_id: String = str(state.household.id)
 	if not state.households.has(primary_id):
 		state.households[primary_id] = {
 			"id": primary_id,
@@ -16,7 +16,7 @@ static func initialize(state: Dictionary) -> void:
 
 static func sync_primary(state: Dictionary) -> void:
 	initialize(state)
-	var id := str(state.household.id)
+	var id: String = str(state.household.id)
 	var entry: Dictionary = state.households[id]
 	entry.member_ids = state.household.member_ids.duplicate()
 	entry.location_id = str(state.household.location_id)
@@ -25,9 +25,9 @@ static func sync_primary(state: Dictionary) -> void:
 static func create_external_household(state: Dictionary, founder_id: String,
 		kind: String = "independent") -> String:
 	initialize(state)
-	var base := "household_" + founder_id
-	var id := base
-	var suffix := 2
+	var base: String = "household_" + founder_id
+	var id: String = base
+	var suffix: int = 2
 	while state.households.has(id):
 		id = "%s_%d" % [base, suffix]
 		suffix += 1
@@ -69,7 +69,7 @@ static func household_of(state: Dictionary, actor_id: String) -> Dictionary:
 	initialize(state)
 	if not state.actors.has(actor_id):
 		return {}
-	var household_id := str(state.actors[actor_id].get("household_id", ""))
+	var household_id: String = str(state.actors[actor_id].get("household_id", ""))
 	return state.households.get(household_id, {})
 
 static func add_member(state: Dictionary, household_id: String, actor_id: String) -> void:
