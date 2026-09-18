@@ -297,7 +297,7 @@ static func choose_asset(state: Dictionary, policy: String = "balanced") -> Stri
 	var best_id: String = ""
 	var best_score: int = -999999
 	for asset: Dictionary in options:
-		var cost := int(asset.get("acquire_cost", 0))
+		var cost = int(asset.get("acquire_cost", 0))
 		var value: int = int(asset.get("base_value", cost))
 		var score: int = int(asset.get("status_value", 0)) * 3 + maxi(0, value - cost) / 50
 		if str(asset.get("category", "")) == "productive":
