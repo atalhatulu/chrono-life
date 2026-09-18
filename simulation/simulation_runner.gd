@@ -19,6 +19,7 @@ const Relationships = preload("res://simulation/relationship_system.gd")
 const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
 const Education = preload("res://simulation/education_system.gd")
+const SocialEvents = preload("res://simulation/social_event_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -468,6 +469,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	var working: Dictionary = state.duplicate(true)
 	PersonalEconomy.begin_year(working)
 	Relationships.annual_drift(working)
+	var social_event: Dictionary = SocialEvents.resolve_one(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
 	Needs.annual_drift(player)
 	var social_decision: Dictionary = AutoLife.choose_relationship_action(working, policy_name)
@@ -493,6 +495,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		result.action_id = action_id
 		result.purchase_id = purchase_id
 		result.social_decision = social_decision
+		result.social_event = social_event
 	return result
 
 
@@ -501,12 +504,15 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 	var actions: Array = []
 	var purchases: Array = []
 	var social_actions: Array = []
+	var social_events: Array = []
 	while state.meta.status == "running":
 		if int(state.world.year) - int(pack.start_year) >= int(pack.limits.max_years):
 			break
 		var result: Dictionary = auto_step(state, policy_name)
 		if not result.ok:
 			return result
+		if not result.get("social_event", {}).is_empty():
+			social_events.append({"year": int(result.state.world.year), "event": result.social_event})
 		if not result.get("social_decision", {}).is_empty():
 			social_actions.append({"year": int(result.state.world.year), "decision": result.social_decision})
 		if str(result.get("purchase_id", "")) != "":
@@ -516,5 +522,5 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 		state = result.state
 	var player: Dictionary = state.actors[state.meta.player_id]
 	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
-		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "life_result": LifeSummary.build(state),
+		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "life_result": LifeSummary.build(state),
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
