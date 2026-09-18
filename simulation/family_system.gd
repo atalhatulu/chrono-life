@@ -32,7 +32,7 @@ static func ensure_state(state: Dictionary) -> void:
 	if not fam.has("last_birth_year"): fam.last_birth_year = 0
 	if not fam.has("kinship"): fam.kinship = {}
 	if not fam.has("history"): fam.history = []
-	var player_id := str(state.meta.player_id)
+	var player_id: String = str(state.meta.player_id)
 	_ensure_kin(state, player_id)
 	for id: String in state.actors:
 		if id.begins_with("parent"):
@@ -60,8 +60,8 @@ static func _link_parent_child(state: Dictionary, parent_id: String, child_id: S
 		_append_unique(state.family.kinship[sibling_id].siblings, child_id)
 
 static func _surname(name: String) -> String:
-	var parts := name.split(" ", false)
-	return str(parts.back()) if parts.size() > 1 else ""
+	var parts: PackedStringArray = name.split(" ", false)
+	return str(parts[parts.size() - 1]) if parts.size() > 1 else ""
 
 static func _next_spouse_id(state: Dictionary) -> String:
 	var n := 1
@@ -106,16 +106,16 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 	var spouse_birth_year: int = clampi(int(player.birth_year) + birth_offset,
 		int(pack.start_year) - 60, delta.year - min_m_age)
 	var spouse_age: int = delta.year - spouse_birth_year
-	var occ_id := _choose_spouse_occupation(pack, spouse_age)
+	var occ_id: String = _choose_spouse_occupation(pack, spouse_age)
 	var economy_index: int = int(state.world.economy_index)
-	var base_wage := 0
+	var base_wage: int = 0
 	for occ: Dictionary in pack.get("occupations", []):
 		if str(occ.id) == occ_id:
 			base_wage = int(occ.annual_income)
 			break
 	var spouse_wage := int(base_wage * economy_index / 1000.0)
 
-	var spouse_id := _next_spouse_id(state)
+	var spouse_id: String = _next_spouse_id(state)
 	var spouse: Dictionary = {
 		"id": spouse_id, "name": spouse_name, "sex": spouse_sex,
 		"birth_year": spouse_birth_year, "age": spouse_age,
@@ -182,7 +182,7 @@ static func _end_marriage(delta: RefCounted, state: Dictionary, spouse_id: Strin
 
 static func _evaluate_marriage(delta: RefCounted, pack: Dictionary, cause: String, seed_value: int) -> void:
 	var state: Dictionary = delta.candidate
-	var spouse_id := str(state.family.current_spouse_id)
+	var spouse_id: String = str(state.family.current_spouse_id)
 	if spouse_id == "" or not state.actors.has(spouse_id):
 		return
 	var spouse: Dictionary = state.actors[spouse_id]
@@ -190,10 +190,10 @@ static func _evaluate_marriage(delta: RefCounted, pack: Dictionary, cause: Strin
 		_end_marriage(delta, state, spouse_id, "death", cause)
 		return
 	var rel: Dictionary = state.relationships.people.get(spouse_id, {})
-	var threshold := int(pack.get("family_rules", {}).get("divorce_conflict_threshold", 80))
+	var threshold: int = int(pack.get("family_rules", {}).get("divorce_conflict_threshold", 80))
 	if rel.is_empty() or int(rel.get("conflict", 0)) < threshold:
 		return
-	var chance := int(pack.get("family_rules", {}).get("divorce_chance_permille", 0))
+	var chance: int = int(pack.get("family_rules", {}).get("divorce_chance_permille", 0))
 	chance += maxi(0, int(rel.get("conflict", 0)) - threshold) * 10
 	chance -= int(rel.get("trust", 50)) * 2
 	if Rng.integer(seed_value, "family", delta.year, spouse_id, "divorce", 0, 999) < clampi(chance, 0, 950):
@@ -202,9 +202,9 @@ static func _evaluate_marriage(delta: RefCounted, pack: Dictionary, cause: Strin
 static func _evaluate_children_leaving(delta: RefCounted, pack: Dictionary, cause: String, seed_value: int) -> void:
 	var state: Dictionary = delta.candidate
 	var rules: Dictionary = pack.get("family_rules", {})
-	var min_age := int(rules.get("adult_child_leave_min_age", 18))
-	var base := int(rules.get("adult_child_leave_base_permille", 100))
-	var employed_bonus := int(rules.get("adult_child_leave_employed_bonus_permille", 300))
+	var min_age: int = int(rules.get("adult_child_leave_min_age", 18))
+	var base: int = int(rules.get("adult_child_leave_base_permille", 100))
+	var employed_bonus: int = int(rules.get("adult_child_leave_employed_bonus_permille", 300))
 	for child_id: String in state.family.children_ids.duplicate():
 		if not state.actors.has(child_id) or child_id not in state.household.member_ids:
 			continue
@@ -219,7 +219,7 @@ static func _evaluate_children_leaving(delta: RefCounted, pack: Dictionary, caus
 		if Rng.integer(seed_value, "family", delta.year, child_id, "leave_home", 0, 999) >= clampi(chance, 0, 950):
 			continue
 		state.household.member_ids.erase(child_id)
-		var new_household_id := HouseholdNetwork.create_external_household(state, child_id, "adult_child")
+		var new_household_id: String = HouseholdNetwork.create_external_household(state, child_id, "adult_child")
 		state.family.history.append({"year": delta.year, "kind": "child_left_home", "child_id": child_id})
 		delta.record("child_left_home", cause, {"child_id": child_id, "age": child.age,
 			"occupation_id": child.occupation_id, "household_id": new_household_id})
@@ -228,9 +228,9 @@ static func _evaluate_children_leaving(delta: RefCounted, pack: Dictionary, caus
 
 static func _create_child(delta: RefCounted, pack: Dictionary, cause: String, seed_value: int) -> void:
 	var state: Dictionary = delta.candidate
-	var player_id := str(state.meta.player_id)
+	var player_id: String = str(state.meta.player_id)
 	var player: Dictionary = state.actors[player_id]
-	var spouse_id := str(state.family.current_spouse_id)
+	var spouse_id: String = str(state.family.current_spouse_id)
 	if spouse_id == "" or not state.actors.has(spouse_id):
 		return
 	var spouse: Dictionary = state.actors[spouse_id]
@@ -241,7 +241,7 @@ static func _create_child(delta: RefCounted, pack: Dictionary, cause: String, se
 	var rules: Dictionary = pack.get("family_rules", {})
 	if int(female.age) < int(rules.get("min_parent_age", 18)) or int(female.age) > int(rules.get("max_parent_age", 42)):
 		return
-	var last_birth := int(state.family.last_birth_year)
+	var last_birth: int = int(state.family.last_birth_year)
 	if last_birth > 0 and delta.year - last_birth < int(rules.get("min_birth_interval_years", 2)):
 		return
 	if int(state.family.children_count) >= int(rules.get("max_children", 6)):
@@ -254,11 +254,11 @@ static func _create_child(delta: RefCounted, pack: Dictionary, cause: String, se
 	while state.actors.has(child_id):
 		child_index += 1
 		child_id = "child_%d" % child_index
-	var child_sex := "female" if Rng.integer(seed_value, "family", delta.year, child_id, "sex", 0, 1) == 0 else "male"
+	var child_sex: String = "female" if Rng.integer(seed_value, "family", delta.year, child_id, "sex", 0, 1) == 0 else "male"
 	var names: Array[String] = FEMALE_NAMES if child_sex == "female" else MALE_NAMES
-	var first := names[Rng.integer(seed_value, "family", delta.year, child_id, "name", 0, names.size() - 1)]
-	var surname := _surname(str(player.name))
-	var child_name := first + (" " + surname if surname != "" else "")
+	var first: String = names[Rng.integer(seed_value, "family", delta.year, child_id, "name", 0, names.size() - 1)]
+	var surname: String = _surname(str(player.name))
+	var child_name: String = first + (" " + surname if surname != "" else "")
 	var child := {
 		"id":child_id,"name":child_name,"sex":child_sex,"birth_year":delta.year,"age":0,
 		"alive":true,"death_year":0,"death_cause":"","health":80,"constitution":70,"willpower":50,
@@ -280,7 +280,7 @@ static func _create_child(delta: RefCounted, pack: Dictionary, cause: String, se
 	_link_parent_child(state, player_id, child_id)
 	_link_parent_child(state, spouse_id, child_id)
 
-	var maternal_cost := int(rules.get("maternal_health_cost", 8))
+	var maternal_cost: int = int(rules.get("maternal_health_cost", 8))
 	female.health = clampi(int(female.health) - maternal_cost, 1, 100)
 	Relationships.register_person(state, child_id, child_name, "child", true, "birth", child_sex)
 	delta.record("child_born", cause, {"child_id":child_id,"name":child_name,"sex":child_sex,
