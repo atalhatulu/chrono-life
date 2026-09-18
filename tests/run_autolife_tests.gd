@@ -16,6 +16,9 @@ const FamilyEvents = preload("res://simulation/family_event_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 const Hobbies = preload("res://simulation/hobby_system.gd")
 const Career = preload("res://simulation/career_system.gd")
+const Assets = preload("res://simulation/asset_system.gd")
+const SocialStatus = preload("res://simulation/social_status_system.gd")
+const Migration = preload("res://simulation/migration_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -43,6 +46,13 @@ func _initialize() -> void:
 	check(str(state.meta.get("skills_path", "")) != "", "Skills content path is carried into state")
 	check(str(state.meta.get("hobbies_path", "")) != "", "Hobbies content path is carried into state")
 	check(str(state.meta.get("personality_path", "")) != "", "Personality content path is carried into state")
+	check(str(state.meta.get("assets_path", "")) != "", "Asset content path is carried into state")
+	check(str(state.meta.get("status_path", "")) != "", "Status content path is carried into state")
+	check(str(state.meta.get("migration_path", "")) != "", "Migration content path is carried into state")
+	check(state.has("assets"), "Initial state has assets")
+	check(state.has("social_status"), "Initial state has social status")
+	check(state.has("migration"), "Initial state has migration state")
+	check(state.assets.owned.has("heirloom_watch"), "Configured initial asset is owned")
 	check(state.actors.player.has("skills"), "Initial player has skills state")
 	check(state.actors.player.has("hobbies"), "Initial player has hobbies state")
 	check(state.actors.player.has("personality"), "Initial player has personality state")
@@ -119,6 +129,32 @@ func _initialize() -> void:
 	check(Career.eligible(career_probe, jobs.skilled_textile_worker, 25),
 		"Skill growth can unlock a qualified career")
 
+	var mobility_state: Dictionary = runner.initial_state(88)
+	mobility_state.actors.player.age = 22
+	mobility_state.world.year = mobility_state.actors.player.birth_year + 22
+	PersonalEconomy.grant_income(mobility_state, 5000, "mobility_test")
+	var status_before := int(mobility_state.social_status.score)
+	var asset_result := Assets.acquire(mobility_state, "work_tools")
+	check(asset_result.ok, "Player can acquire a persistent asset")
+	check(mobility_state.assets.owned.has("work_tools"), "Acquired asset is stored in persistent asset state")
+	check(Assets.total_value(mobility_state) > 0, "Persistent assets contribute durable value")
+	SocialStatus.recompute(mobility_state)
+	check(int(mobility_state.social_status.score) >= 0 and int(mobility_state.social_status.score) <= 100,
+		"Social status recomputes into a valid score")
+	check(int(mobility_state.social_status.score) >= status_before or mobility_state.social_status.band_id != "",
+		"Asset-aware status remains classified after recompute")
+	var destinations := Migration.available_destinations(mobility_state)
+	check(not destinations.is_empty(), "Eligible adult with cash can see migration destinations")
+	if not destinations.is_empty():
+		var destination_id := str(destinations[0].id)
+		var move_result := Migration.move_to(mobility_state, destination_id)
+		check(move_result.ok, "Migration can move the player household")
+		check(str(mobility_state.world.location_id) == destination_id, "Migration updates world location")
+		check(str(mobility_state.household.location_id) == destination_id, "Migration updates household location")
+		check(str(mobility_state.migration.current_location_id) == destination_id, "Migration state tracks current location")
+		check(str(mobility_state.households[mobility_state.household.id].location_id) == destination_id,
+			"Migration updates primary household registry location")
+
 	var family_state: Dictionary = runner.initial_state(77)
 	Family.ensure_state(family_state)
 	check(family_state.family.kinship.has("player"), "Player has kinship record")
@@ -194,6 +230,9 @@ func _initialize() -> void:
 	check(first.life_result.has("skills"), "Life summary includes skill progression")
 	check(first.life_result.has("personality"), "Life summary includes personality progression")
 	check(first.life_result.has("hobbies"), "Life summary includes hobbies")
+	check(first.life_result.has("assets"), "Life summary includes assets")
+	check(first.life_result.has("social_status"), "Life summary includes social status")
+	check(first.life_result.has("migration"), "Life summary includes migration history")
 	check(first.life_result.has("relationships"), "Life summary includes relationship history")
 	check(first.has("social_actions"), "AutoLife exposes social decisions")
 	check(first.has("treatments"), "AutoLife exposes treatment history")
@@ -209,6 +248,8 @@ func _initialize() -> void:
 	check(first.state.family.has("kinship"), "Family 2.0 maintains kinship graph")
 	check(first.has("purchases"), "AutoLife exposes purchase history")
 	check(first.has("hobbies"), "AutoLife exposes hobby choices")
+	check(first.has("assets"), "AutoLife exposes asset acquisitions")
+	check(first.has("migrations"), "AutoLife exposes migrations")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
 	var varied := {}
 	for seed_value: int in range(20):
