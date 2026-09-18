@@ -20,9 +20,9 @@ static func initialize_actor(state: Dictionary, actor: Dictionary) -> void:
 		actor.skills = {"values": {}, "xp": {}, "history": []}
 	for definition: Dictionary in _catalog(state).get("skills", []):
 		var id := str(definition.id)
-		if not actor.skills.values.has(id):
-			actor.skills.values[id] = 0
-			actor.skills.xp[id] = 0
+		if not actor.skills["values"].has(id):
+			actor.skills["values"][id] = 0
+			actor.skills["xp"][id] = 0
 
 static func definitions(state: Dictionary) -> Dictionary:
 	var out: Dictionary = {}
@@ -38,14 +38,14 @@ static func add_xp(state: Dictionary, actor_id: String, skill_id: String, amount
 	var defs := definitions(state)
 	if not defs.has(skill_id):
 		return
-	var xp := int(actor.skills.xp.get(skill_id, 0)) + amount
-	var value := int(actor.skills.values.get(skill_id, 0))
+	var xp := int(actor.skills["xp"].get(skill_id, 0)) + amount
+	var value := int(actor.skills["values"].get(skill_id, 0))
 	while xp >= 10 + value * 2 and value < int(defs[skill_id].get("max_level", 100)):
 		xp -= 10 + value * 2
 		value += 1
-	actor.skills.xp[skill_id] = xp
-	actor.skills.values[skill_id] = value
-	actor.skills.history.append({"year": int(state.world.year), "skill_id": skill_id,
+	actor.skills["xp"][skill_id] = xp
+	actor.skills["values"][skill_id] = value
+	actor.skills["history"].append({"year": int(state.world.year), "skill_id": skill_id,
 		"xp": amount, "source": source, "value": value})
 
 static func apply_action(state: Dictionary, actor_id: String, action_id: String) -> void:
