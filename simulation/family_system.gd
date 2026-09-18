@@ -27,6 +27,7 @@ static func ensure_state(state: Dictionary) -> void:
 				fam.children_ids.append(id)
 	if not fam.has("last_birth_year"): fam.last_birth_year = 0
 	if not fam.has("kinship"): fam.kinship = {}
+	if not fam.has("history"): fam.history = []
 	var player_id := str(state.meta.player_id)
 	_ensure_kin(state, player_id)
 	for id: String in state.actors:
