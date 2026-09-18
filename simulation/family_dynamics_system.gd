@@ -5,6 +5,9 @@ const Needs = preload("res://simulation/needs_system.gd")
 const Education = preload("res://simulation/education_system.gd")
 const Career = preload("res://simulation/career_system.gd")
 const Health = preload("res://simulation/health_system.gd")
+const Skills = preload("res://simulation/skill_system.gd")
+const Hobbies = preload("res://simulation/hobby_system.gd")
+const Personality = preload("res://simulation/personality_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 
 static func initialize(state: Dictionary) -> void:
@@ -229,6 +232,9 @@ static func _create_descendant_partner(state: Dictionary, child_id: String, seed
 	Education.initialize_actor(partner)
 	Career.initialize_actor(partner)
 	Health.initialize_actor(partner)
+	Skills.initialize_actor(state, partner)
+	Hobbies.initialize_actor(partner)
+	Personality.initialize_actor(state, partner)
 	state.actors[partner_id] = partner
 	HouseholdNetwork.add_member(state, str(child.household_id), partner_id)
 	profile.partner_id = partner_id
@@ -274,6 +280,9 @@ static func _create_grandchild(state: Dictionary, child_id: String, seed_value: 
 	Education.initialize_actor(gc)
 	Career.initialize_actor(gc)
 	Health.initialize_actor(gc)
+	Skills.initialize_actor(state, gc)
+	Hobbies.initialize_actor(gc)
+	Personality.initialize_actor(state, gc)
 	state.actors[id] = gc
 	HouseholdNetwork.add_member(state, str(child.household_id), id)
 	profile.children_ids.append(id)
