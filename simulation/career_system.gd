@@ -60,7 +60,7 @@ static func _record_job_end(delta: RefCounted, id: String, reason: String, cause
 	if actor.occupation_id == "dependent":
 		return
 	initialize_actor(actor)
-	var event := delta.record("occupation_ended", cause, {"actor_id": id, "occupation_id": actor.occupation_id, "reason": reason})
+	var event: String = delta.record("occupation_ended", cause, {"actor_id": id, "occupation_id": actor.occupation_id, "reason": reason})
 	actor.career.history.append({"year": delta.year, "kind": "ended", "occupation_id": actor.occupation_id, "reason": reason})
 	actor.career.current_job = "dependent"
 	delta.set_field("actors", "occupation_id", "dependent", event, id)
