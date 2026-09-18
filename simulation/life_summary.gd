@@ -20,7 +20,9 @@ static func build(state: Dictionary) -> Dictionary:
 		if event.get("kind") == "life_action":
 			var id: String = str(event.details.get("action_id", "unknown"))
 			actions[id] = int(actions.get(id, 0)) + 1
-		elif event.get("kind") in ["occupation_started", "condition_acquired", "marriage", "child_born", "actor_died"]:
+		elif event.get("kind") in ["occupation_started", "condition_acquired", "marriage_formed",
+				"marriage_ended", "child_born", "child_left_home", "child_married",
+				"grandchild_born", "family_event", "actor_died"]:
 			important.append(event)
 	return {
 		"name": p.name,
