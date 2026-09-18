@@ -5,6 +5,7 @@ const Actions = preload("res://simulation/life_action_system.gd")
 const BotPolicy = preload("res://simulation/bot_policy.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
+const Treatments = preload("res://simulation/health_treatment_system.gd")
 
 static func choose_action(state: Dictionary, policy: String = "balanced") -> String:
 	var ids: Array[String] = Actions.available_actions(state)
@@ -144,3 +145,31 @@ static func choose_relationship_action(state: Dictionary, policy: String = "bala
 	elif roll < 85:
 		return {"action": "spend_time", "person_id": best_id}
 	return {}
+
+
+static func choose_treatment(state: Dictionary, policy: String = "balanced") -> String:
+	var options: Array[Dictionary] = Treatments.available_treatments(state)
+	if options.is_empty():
+		return ""
+	var p: Dictionary = state.actors[state.meta.player_id]
+	var severity_total := 0
+	for id: String in p.conditions:
+		severity_total += int(p.conditions[id].get("severity", 50))
+	if severity_total < 35 and int(p.health) >= 70:
+		return ""
+	var best_id := ""
+	var best_score := -999999
+	for t: Dictionary in options:
+		var score := int(t.get("success_bp", 0)) / 100
+		score += int(t.get("severity_reduction", 0)) * 2
+		score += int(t.get("health_restore", 0))
+		score -= int(t.get("cost", 0))
+		if policy == "pragmatic":
+			score -= int(t.get("cost", 0)) / 2
+		var noise := Rng.integer(str(state.meta.master_seed).to_int(), "treatment_ai",
+			int(state.world.year), str(p.id), str(t.id), -3, 3)
+		score += noise
+		if score > best_score:
+			best_score = score
+			best_id = str(t.id)
+	return best_id
