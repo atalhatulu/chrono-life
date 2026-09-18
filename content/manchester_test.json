@@ -492,8 +492,10 @@
     "education": "res://content/manchester_education.json",
     "careers": "res://content/manchester_careers.json",
     "relationships": "res://content/manchester_relationships.json",
-    "health": "res://content/manchester_health.json"
+    "health": "res://content/manchester_health.json",
+    "housing": "res://content/manchester_housing.json"
   },
   "pack_id": "manchester_1850",
-  "era_id": "industrial_revolution"
+  "era_id": "industrial_revolution",
+  "initial_dwelling_id": "family_room"
 }
