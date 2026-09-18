@@ -274,7 +274,7 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
@@ -431,7 +431,7 @@ func start_game(seed_value: int) -> void:
 
 
 func switch_view(view: String) -> void:
-	if view not in ["life", "family", "budget", "spending"]:
+	if view not in ["life", "family", "budget", "education", "spending"]:
 		return
 	current_view = view
 	_refresh_ui()
@@ -518,7 +518,7 @@ func _refresh_ui() -> void:
 		fields[key].text = str(player[key])
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
-	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "spending": "Cebindeki para ve harcamalar"}[current_view]
+	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "spending": "Cebindeki para ve harcamalar"}[current_view]
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
@@ -579,6 +579,9 @@ func _render_feed() -> void:
 		return
 	if current_view == "spending":
 		_render_spending(feed)
+		return
+	if current_view == "education":
+		_render_education(feed)
 		return
 	if not state.actors[state.meta.player_id].alive:
 		var memorial := _card(feed)
@@ -648,6 +651,44 @@ func _render_budget(parent: Node) -> void:
 		row.add_child(_label(str(item[1]), 17, Palette.INK, true))
 	column.add_child(_label("Son tamamlanan yılın hesabı. Tutarlar test birimidir." if has_ledger else "İlk yılın hesabı henüz kapanmadı. Tutarlar test birimidir.", 11, Palette.MUTED, false, true))
 	column.add_child(_label("Gıda ihtiyacının %%%d kadarı karşılanıyor." % int(state.household.food_security / 10), 13, Palette.MUTED, false, true))
+
+
+func _render_education(parent: Node) -> void:
+	var player: Dictionary = state.actors[state.meta.player_id]
+	var education: Dictionary = player.get("education", {})
+	var card := _card(parent)
+	card.add_child(_label("EĞİTİM DURUMU", 10, Palette.MUTED))
+	var current_stage := str(education.get("current_stage", ""))
+	var title := "Şu anda eğitim almıyor"
+	if current_stage != "":
+		title = current_stage.replace("_", " ").capitalize()
+	card.add_child(_label(title, 24, Palette.INK, true))
+	var attendance := int(education.get("attendance", 0))
+	var performance := int(education.get("performance", 0))
+	var progress := int(education.get("progress", 0))
+	for item: Array in [["Devam", attendance], ["Performans", performance], ["İlerleme", progress], ["Okuryazarlık", int(player.literacy)]]:
+		var row := _row()
+		card.add_child(row)
+		row.add_child(_label(str(item[0]), 13, Palette.MUTED))
+		_spacer(row)
+		row.add_child(_label("%d%%" % int(item[1]), 15, Palette.INK, true))
+	var completed: Array = education.get("completed_stages", [])
+	if not completed.is_empty():
+		var completed_card := _card(parent)
+		completed_card.add_child(_label("TAMAMLANAN EĞİTİMLER", 10, Palette.MUTED))
+		for stage_id: Variant in completed:
+			completed_card.add_child(_label(str(stage_id).replace("_", " ").capitalize(), 14, Palette.INK))
+	var history: Array = education.get("history", [])
+	if not history.is_empty():
+		var history_card := _card(parent)
+		history_card.add_child(_label("EĞİTİM GEÇMİŞİ", 10, Palette.MUTED))
+		for index: int in range(history.size() - 1, maxi(-1, history.size() - 6), -1):
+			var entry: Dictionary = history[index]
+			history_card.add_child(_label("%d · %s · %s" % [
+				int(entry.get("year", 0)),
+				str(entry.get("stage_id", "")).replace("_", " ").capitalize(),
+				str(entry.get("kind", "")).replace("_", " ").capitalize()
+			], 12, Palette.MUTED))
 
 
 func _render_spending(parent: Node) -> void:
