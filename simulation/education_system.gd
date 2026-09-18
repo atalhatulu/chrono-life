@@ -8,14 +8,14 @@ static func _path(state: Dictionary) -> String:
 	return str(state.get("meta", {}).get("education_path", ""))
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := _path(state)
+	var path: String = _path(state)
 	if path.is_empty():
 		return {"stages": []}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"stages": []}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"stages": []}
 	return _cache[path]
@@ -42,13 +42,13 @@ static func _eligible_for_stage(actor: Dictionary, stage: Dictionary) -> bool:
 	return actor.alive and int(actor.age) >= int(stage.get("min_age", 0)) and int(actor.age) <= int(stage.get("max_age", 200))
 
 static func _household_context(state: Dictionary, actor: Dictionary) -> Dictionary:
-	var household_id := str(actor.get("household_id", ""))
+	var household_id: String = str(actor.get("household_id", ""))
 	if household_id == str(state.household.id):
 		return state.household
 	return state.get("households", {}).get(household_id, {"food_security": 1000, "debt": 0, "savings": 0})
 
 static func _sync_legacy(actor: Dictionary) -> void:
-	var current := str(actor.education.get("current_stage", ""))
+	var current: String = str(actor.education.get("current_stage", ""))
 	if current == "":
 		if actor.education.completed_stages.has("elementary"):
 			actor.education_state = "completed"
@@ -63,7 +63,7 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 	if not pack.systems.get("education", false):
 		return
 	var state: Dictionary = delta.candidate
-	var seed := str(state.meta.master_seed).to_int()
+	var seed: int = str(state.meta.master_seed).to_int()
 	var ids: Array = state.actors.keys()
 	ids.sort()
 	for id: String in ids:
@@ -71,7 +71,7 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 		if not actor.alive:
 			continue
 		initialize_actor(actor)
-		var current_id := str(actor.education.current_stage)
+		var current_id: String = str(actor.education.current_stage)
 		if current_id == "":
 			for stage: Dictionary in _catalog(state).get("stages", []):
 				if str(stage.get("enrollment", "")) != "automatic_if_dependent":
@@ -90,7 +90,7 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 		if current_id == "":
 			_sync_legacy(actor)
 			continue
-		var stage := _stage_by_id(state, current_id)
+		var stage: Dictionary = _stage_by_id(state, current_id)
 		if stage.is_empty():
 			_sync_legacy(actor)
 			continue
@@ -105,8 +105,8 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 			actor.education.attendance = maxi(0, int(actor.education.attendance) - 15)
 			_sync_legacy(actor)
 			continue
-		var attendance := int(stage.get("attendance_base", 60))
-		var household_context := _household_context(state, actor)
+		var attendance: int = int(stage.get("attendance_base", 60))
+		var household_context: Dictionary = _household_context(state, actor)
 		if int(household_context.get("food_security", 1000)) < 800:
 			attendance -= 12
 		if int(household_context.get("debt", 0)) > 0:
@@ -114,14 +114,14 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 		attendance += Rng.integer(seed, "education", delta.year, id, current_id + ":attendance", -10, 10)
 		attendance = clampi(attendance, 0, 100)
 		actor.education.attendance = attendance
-		var performance := clampi(int(actor.willpower) / 2 + int(actor.literacy) / 3 + attendance / 3, 0, 100)
+		var performance: int = clampi(int(actor.willpower) / 2 + int(actor.literacy) / 3 + attendance / 3, 0, 100)
 		actor.education.performance = performance
-		var gained := int(stage.get("progress_per_year", 10)) * attendance / 100
+		var gained: int = int(stage.get("progress_per_year", 10)) * attendance / 100
 		actor.education.progress = mini(100, int(actor.education.progress) + gained)
-		var literacy_gain := int(stage.get("literacy_per_year", 0))
+		var literacy_gain: int = int(stage.get("literacy_per_year", 0))
 		if literacy_gain > 0:
 			delta.set_field("actors", "literacy", mini(100, int(actor.literacy) + literacy_gain), cause, id)
-		var completion_age := int(stage.get("completion_age", int(stage.get("max_age", 200)) + 1))
+		var completion_age: int = int(stage.get("completion_age", int(stage.get("max_age", 200)) + 1))
 		if int(actor.education.progress) >= 100 or int(actor.age) >= completion_age:
 			var ev: String = delta.record("education_completed", cause, {"actor_id": id, "stage_id": current_id})
 			if not actor.education.completed_stages.has(current_id):
