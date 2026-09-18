@@ -38,9 +38,10 @@ static func practice(state: Dictionary, actor_id: String, hobby_id: String, sour
 	var progress: Dictionary = actor.hobbies.active.get(hobby_id, {
 		"years": 0, "sessions": 0, "mastery": 0, "last_year": -1
 	})
+	if int(progress.last_year) == int(state.world.year):
+		return {"ok": false, "error": "This hobby was already practiced this year"}
 	progress.sessions = int(progress.sessions) + 1
-	if int(progress.last_year) != int(state.world.year):
-		progress.years = int(progress.years) + 1
+	progress.years = int(progress.years) + 1
 	progress.last_year = int(state.world.year)
 	progress.mastery = clampi(int(progress.mastery) + 2 + int(progress.years) / 3, 0, 100)
 	actor.hobbies.active[hobby_id] = progress
