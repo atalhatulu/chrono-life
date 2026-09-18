@@ -42,6 +42,16 @@ static func _hydrate_external_catalogs(pack: Dictionary) -> Dictionary:
 		if not loaded.data.get("jobs") is Array or loaded.data.jobs.is_empty():
 			return {"ok": false, "errors": ["Career catalog requires nonempty jobs array"]}
 		pack.occupations = loaded.data.jobs.duplicate(true)
+	if paths.has("health"):
+		var health_loaded := _load_json_dictionary(str(paths.health))
+		if not health_loaded.ok:
+			return health_loaded
+		if not health_loaded.data.get("conditions") is Array or not health_loaded.data.get("rules") is Dictionary:
+			return {"ok": false, "errors": ["Health catalog requires conditions and rules"]}
+		pack.conditions = health_loaded.data.conditions.duplicate(true)
+		pack.health_rules = health_loaded.data.rules.duplicate(true)
+		pack.health_treatments = health_loaded.data.get("treatments", []).duplicate(true)
+		pack.medical_context = health_loaded.data.get("medical_context", {}).duplicate(true)
 	return {"ok": true}
 
 
