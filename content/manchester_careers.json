@@ -1,0 +1,139 @@
+{
+  "version": "manchester_careers_0.1.0",
+  "jobs": [
+    {
+      "id": "dependent",
+      "label": "Bağımlı / çalışmıyor",
+      "annual_income": 0,
+      "minimum_age": 0,
+      "maximum_age": 200,
+      "minimum_literacy": 0,
+      "risk_permille": 0,
+      "career_track": "none",
+      "level": 0,
+      "tags": []
+    },
+    {
+      "id": "child_factory_worker",
+      "label": "Çocuk fabrika işçisi",
+      "annual_income": 900,
+      "minimum_age": 9,
+      "maximum_age": 15,
+      "minimum_literacy": 0,
+      "risk_permille": 1000,
+      "career_track": "textile",
+      "level": 1,
+      "tags": [
+        "manual",
+        "factory",
+        "child_labor"
+      ]
+    },
+    {
+      "id": "sewing_worker",
+      "label": "Dikiş işçisi",
+      "annual_income": 1800,
+      "minimum_age": 16,
+      "maximum_age": 75,
+      "minimum_literacy": 0,
+      "risk_permille": 200,
+      "career_track": "textile",
+      "level": 1,
+      "tags": [
+        "manual",
+        "textile"
+      ]
+    },
+    {
+      "id": "textile_worker",
+      "label": "Tekstil işçisi",
+      "annual_income": 3200,
+      "minimum_age": 16,
+      "maximum_age": 75,
+      "minimum_literacy": 0,
+      "risk_permille": 1000,
+      "career_track": "textile",
+      "level": 1,
+      "tags": [
+        "manual",
+        "factory",
+        "textile"
+      ]
+    },
+    {
+      "id": "skilled_textile_worker",
+      "label": "Nitelikli tekstil işçisi",
+      "annual_income": 4100,
+      "minimum_age": 20,
+      "maximum_age": 75,
+      "minimum_literacy": 25,
+      "risk_permille": 800,
+      "career_track": "textile",
+      "level": 2,
+      "minimum_experience_years": 3,
+      "tags": [
+        "skilled",
+        "factory",
+        "textile"
+      ]
+    },
+    {
+      "id": "mill_overlooker",
+      "label": "Fabrika gözetmeni",
+      "annual_income": 5200,
+      "minimum_age": 24,
+      "maximum_age": 75,
+      "minimum_literacy": 45,
+      "risk_permille": 450,
+      "career_track": "textile",
+      "level": 3,
+      "minimum_experience_years": 6,
+      "required_education_stages": [
+        "elementary"
+      ],
+      "tags": [
+        "supervision",
+        "factory",
+        "textile"
+      ]
+    },
+    {
+      "id": "clerk",
+      "label": "Katip",
+      "annual_income": 4000,
+      "minimum_age": 16,
+      "maximum_age": 75,
+      "minimum_literacy": 60,
+      "risk_permille": 50,
+      "career_track": "clerical",
+      "level": 1,
+      "required_education_stages": [
+        "elementary"
+      ],
+      "tags": [
+        "clerical",
+        "literate"
+      ]
+    },
+    {
+      "id": "bookkeeper",
+      "label": "Muhasebe katibi",
+      "annual_income": 5000,
+      "minimum_age": 20,
+      "maximum_age": 75,
+      "minimum_literacy": 75,
+      "risk_permille": 40,
+      "career_track": "clerical",
+      "level": 2,
+      "minimum_experience_years": 3,
+      "required_education_stages": [
+        "elementary"
+      ],
+      "tags": [
+        "clerical",
+        "literate",
+        "skilled"
+      ]
+    }
+  ]
+}
