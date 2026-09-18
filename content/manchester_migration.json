@@ -7,7 +7,10 @@
       "region_id": "northwest_england",
       "min_age": 0,
       "move_cost": 0,
-      "kind": "current"
+      "kind": "current",
+      "world_modifiers": {
+        "employment_pressure": 0
+      }
     },
     {
       "id": "salford",
@@ -16,7 +19,9 @@
       "min_age": 16,
       "move_cost": 450,
       "kind": "nearby_city",
-      "employment_modifier": 20
+      "world_modifiers": {
+        "employment_pressure": 20
+      }
     },
     {
       "id": "ancoats",
@@ -25,7 +30,9 @@
       "min_age": 16,
       "move_cost": 300,
       "kind": "district",
-      "employment_modifier": 30
+      "world_modifiers": {
+        "employment_pressure": 30
+      }
     },
     {
       "id": "rural_lancashire",
@@ -34,7 +41,9 @@
       "min_age": 16,
       "move_cost": 500,
       "kind": "rural",
-      "employment_modifier": -80
+      "world_modifiers": {
+        "employment_pressure": -80
+      }
     }
   ],
   "rules": {
