@@ -13,14 +13,14 @@ static func _catalog_path(state: Dictionary) -> String:
 	return str(state.get("meta", {}).get("life_actions_path", ""))
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := _catalog_path(state)
+	var path: String = _catalog_path(state)
 	if path.is_empty():
 		return {"actions": []}
 	if _catalog_cache.has(path):
 		return _catalog_cache[path]
 	if not FileAccess.file_exists(path):
 		return {"actions": []}
-	var file := FileAccess.open(path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
 	if parsed is Dictionary:
 		_catalog_cache[path] = parsed
@@ -41,7 +41,7 @@ static func available_actions(state: Dictionary) -> Array[String]:
 	if not player.alive:
 		return result
 	for action: Dictionary in _catalog(state).get("actions", []):
-		var id := str(action.id)
+		var id: String = str(action.id)
 		if int(player.age) < int(action.get("min_age", 0)) or int(player.age) > int(action.get("max_age", 200)):
 			continue
 		var req: Dictionary = action.get("requirements", {})
@@ -56,11 +56,11 @@ static func available_actions(state: Dictionary) -> Array[String]:
 static func apply(state: Dictionary, action_id: String) -> Dictionary:
 	if action_id not in available_actions(state):
 		return {"ok": false, "error": "Action is not currently available: " + action_id}
-	var by_id := actions_by_id(state)
+	var by_id: Dictionary = actions_by_id(state)
 	var action: Dictionary = by_id[action_id]
 	var player: Dictionary = state.actors[state.meta.player_id]
 	Needs.normalize_actor(player)
-	var cash_cost := int(action.get("cash_cost", 0))
+	var cash_cost: int = int(action.get("cash_cost", 0))
 	if cash_cost > 0:
 		var spend_result: Dictionary = PersonalEconomy.spend(state, cash_cost, "life_action", action_id)
 		if not spend_result.ok:
