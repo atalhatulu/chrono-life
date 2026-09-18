@@ -530,6 +530,9 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	var parenting_decision: Dictionary = AutoLife.choose_parenting_action(working, policy_name)
 	if not parenting_decision.is_empty():
 		FamilyDynamics.interact_with_child(working, str(parenting_decision.child_id), str(parenting_decision.action))
+	var elder_care_decision: Dictionary = AutoLife.choose_elder_care_action(working, policy_name)
+	if not elder_care_decision.is_empty():
+		FamilyDynamics.care_for_parent(working, str(elder_care_decision.parent_id), str(elder_care_decision.action))
 	var social_decision: Dictionary = AutoLife.choose_relationship_action(working, policy_name)
 	if not social_decision.is_empty():
 		if social_decision.action == "meet":
@@ -560,6 +563,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		result.treatment_id = treatment_id
 		result.social_decision = social_decision
 		result.parenting_decision = parenting_decision
+		result.elder_care_decision = elder_care_decision
 		result.social_event = social_event
 	return result
 
@@ -572,6 +576,7 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 	var social_events: Array = []
 	var treatments: Array = []
 	var parenting_actions: Array = []
+	var elder_care_actions: Array = []
 	var family_events: Array = []
 	while state.meta.status == "running":
 		if int(state.world.year) - int(pack.start_year) >= int(pack.limits.max_years):
@@ -584,6 +589,8 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 				family_events.append({"year": int(result.state.world.year), "event": ev.details})
 		if not result.get("parenting_decision", {}).is_empty():
 			parenting_actions.append({"year": int(result.state.world.year), "decision": result.parenting_decision})
+		if not result.get("elder_care_decision", {}).is_empty():
+			elder_care_actions.append({"year": int(result.state.world.year), "decision": result.elder_care_decision})
 		if not result.get("social_event", {}).is_empty():
 			social_events.append({"year": int(result.state.world.year), "event": result.social_event})
 		if not result.get("social_decision", {}).is_empty():
@@ -597,5 +604,5 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 		state = result.state
 	var player: Dictionary = state.actors[state.meta.player_id]
 	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
-		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "family_events": family_events, "parenting_actions": parenting_actions, "treatments": treatments, "life_result": LifeSummary.build(state),
+		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "family_events": family_events, "parenting_actions": parenting_actions, "elder_care_actions": elder_care_actions, "treatments": treatments, "life_result": LifeSummary.build(state),
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
