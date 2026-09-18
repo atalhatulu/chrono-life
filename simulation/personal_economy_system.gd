@@ -26,7 +26,7 @@ static func begin_year(state: Dictionary) -> void:
 	normalize(state)
 	state.personal_economy.year_income = 0
 	state.personal_economy.year_spending = 0
-	var year := int(state.world.year)
+	var year: int = int(state.world.year)
 	var expired: Array[String] = []
 	for id: String in state.personal_economy.memberships:
 		if int(state.personal_economy.memberships[id].get("expires_year", year)) < year:
@@ -56,7 +56,7 @@ static func spend(state: Dictionary, amount: int, category: String, item_id: Str
 	state.personal_economy.cash -= amount
 	state.personal_economy.year_spending += amount
 	state.personal_economy.lifetime_spending += amount
-	var purchase := {"year": int(state.world.year), "amount": amount, "category": category, "item_id": item_id}
+	var purchase: Dictionary = {"year": int(state.world.year), "amount": amount, "category": category, "item_id": item_id}
 	state.personal_economy.purchases.append(purchase)
 	state.history.append({
 		"id": "%d:personal_spending:%s:%d" % [int(state.world.year), category, state.history.size()],
@@ -70,8 +70,8 @@ static func annual_income_share(state: Dictionary) -> int:
 	var p: Dictionary = state.actors[state.meta.player_id]
 	if not p.alive or int(p.income) <= 0:
 		return 0
-	var age := int(p.age)
-	var permille := 0
+	var age: int = int(p.age)
+	var permille: int = 0
 	if age < 16:
 		permille = 150
 	elif age < 21:
@@ -81,21 +81,21 @@ static func annual_income_share(state: Dictionary) -> int:
 	return int(int(p.income) * permille / 1000.0)
 
 static func settle_year(state: Dictionary) -> void:
-	var share := annual_income_share(state)
+	var share: int = annual_income_share(state)
 	if share > 0:
 		grant_income(state, share, "wage_share")
 
 static func maybe_allowance(state: Dictionary) -> void:
 	normalize(state)
 	var p: Dictionary = state.actors[state.meta.player_id]
-	var year := int(state.world.year)
+	var year: int = int(state.world.year)
 	if int(p.age) < 7 or int(p.age) > 15:
 		return
 	if int(state.personal_economy.last_allowance_year) == year:
 		return
 	if int(state.household.savings) <= 0:
 		return
-	var seed := str(state.meta.master_seed).to_int()
-	var amount := Rng.integer(seed, "personal_economy", year, str(p.id), "allowance", 5, 25)
+	var seed: int = str(state.meta.master_seed).to_int()
+	var amount: int = Rng.integer(seed, "personal_economy", year, str(p.id), "allowance", 5, 25)
 	grant_income(state, amount, "allowance")
 	state.personal_economy.last_allowance_year = year
