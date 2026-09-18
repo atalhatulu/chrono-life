@@ -15,6 +15,7 @@ const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
 const FamilyEvents = preload("res://simulation/family_event_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 const Hobbies = preload("res://simulation/hobby_system.gd")
+const Career = preload("res://simulation/career_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -105,6 +106,18 @@ func _initialize() -> void:
 	var hobby_result := Hobbies.practice(development_state, "player", "reading", "test")
 	check(hobby_result.ok and int(development_state.actors.player.hobbies.active.reading.mastery) > hobby_before,
 		"Manual hobby practice increases mastery")
+
+	var jobs := Content.occupations_by_id(loaded.pack)
+	var career_probe: Dictionary = development_state.actors.player
+	career_probe.age = 25
+	career_probe.literacy = 50
+	career_probe.career.track_experience["textile"] = 5
+	check(not Career.eligible(career_probe, jobs.skilled_textile_worker, 25),
+		"Skill requirements can block an otherwise qualified career")
+	career_probe.skills["values"].craftsmanship = 5
+	career_probe.skills["values"].work_discipline = 5
+	check(Career.eligible(career_probe, jobs.skilled_textile_worker, 25),
+		"Skill growth can unlock a qualified career")
 
 	var family_state: Dictionary = runner.initial_state(77)
 	Family.ensure_state(family_state)
