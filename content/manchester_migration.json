@@ -1,0 +1,44 @@
+{
+  "version": "manchester_migration_0.1.0",
+  "destinations": [
+    {
+      "id": "manchester",
+      "label": "Manchester",
+      "region_id": "northwest_england",
+      "min_age": 0,
+      "move_cost": 0,
+      "kind": "current"
+    },
+    {
+      "id": "liverpool",
+      "label": "Liverpool",
+      "region_id": "northwest_england",
+      "min_age": 16,
+      "move_cost": 700,
+      "kind": "city",
+      "employment_modifier": 40
+    },
+    {
+      "id": "london",
+      "label": "London",
+      "region_id": "england",
+      "min_age": 18,
+      "move_cost": 1300,
+      "kind": "city",
+      "employment_modifier": 70
+    },
+    {
+      "id": "rural_lancashire",
+      "label": "Kırsal Lancashire",
+      "region_id": "northwest_england",
+      "min_age": 16,
+      "move_cost": 500,
+      "kind": "rural",
+      "employment_modifier": -80
+    }
+  ],
+  "rules": {
+    "migration_cooldown_years": 3,
+    "minimum_cash_buffer": 100
+  }
+}
