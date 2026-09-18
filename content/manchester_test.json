@@ -20,7 +20,15 @@
     "essentials_per_person": 300,
     "initial_savings": 800,
     "credit_limit": 1800,
-    "debt_interest_basis_points": 200
+    "debt_interest_basis_points": 200,
+    "essentials_note": "Abstracts routine clothing, fuel, soap, basic household goods and other recurring necessities. These are not player-facing purchases.",
+    "essentials_breakdown": [
+      "routine_clothing",
+      "fuel_and_light",
+      "soap_and_washing",
+      "basic_household_goods",
+      "misc_daily_necessities"
+    ]
   },
   "limits": {
     "max_years": 120,
@@ -98,7 +106,18 @@
     "conception_chance_permille": 300,
     "min_birth_interval_years": 2,
     "max_children": 6,
-    "maternal_health_cost": 8
+    "maternal_health_cost": 8,
+    "adult_child_leave_min_age": 18,
+    "adult_child_leave_base_permille": 180,
+    "adult_child_leave_employed_bonus_permille": 350,
+    "divorce_conflict_threshold": 78,
+    "divorce_chance_permille": 300,
+    "remarriage_min_gap_years": 2,
+    "descendant_marriage_min_age": 20,
+    "descendant_marriage_base_permille": 140,
+    "descendant_marriage_age_bonus_permille": 15,
+    "descendant_birth_chance_permille": 180,
+    "descendant_max_children": 4
   },
   "world_rules": {
     "disease_min": 100,
@@ -106,93 +125,6 @@
     "employment_min": 100,
     "employment_max": 800
   },
-  "health_rules": {
-    "death_worked_permille": 500,
-    "mortality_bands": [
-      {
-        "minimum_age": 0,
-        "risk_bp": 1200
-      },
-      {
-        "minimum_age": 1,
-        "risk_bp": 180
-      },
-      {
-        "minimum_age": 5,
-        "risk_bp": 35
-      },
-      {
-        "minimum_age": 15,
-        "risk_bp": 60
-      },
-      {
-        "minimum_age": 40,
-        "risk_bp": 100
-      },
-      {
-        "minimum_age": 60,
-        "risk_bp": 350
-      },
-      {
-        "minimum_age": 70,
-        "risk_bp": 800
-      },
-      {
-        "minimum_age": 80,
-        "risk_bp": 2200
-      },
-      {
-        "minimum_age": 90,
-        "risk_bp": 4800
-      },
-      {
-        "minimum_age": 100,
-        "risk_bp": 8000
-      }
-    ]
-  },
-  "conditions": [
-    {
-      "id": "malnutrition",
-      "exposure": "nutrition",
-      "food_threshold": 750,
-      "incidence_bp": 10000,
-      "duration_years": 0,
-      "mortality_bp": 250,
-      "health_penalty": 25,
-      "work_penalty": 200
-    },
-    {
-      "id": "epidemic_disease",
-      "exposure": "ambient",
-      "food_threshold": 0,
-      "incidence_bp": 500,
-      "duration_years": 1,
-      "mortality_bp": 900,
-      "health_penalty": 40,
-      "work_penalty": 500
-    },
-    {
-      "id": "chronic_disease",
-      "exposure": "ambient",
-      "food_threshold": 0,
-      "incidence_bp": 120,
-      "duration_years": 0,
-      "mortality_bp": 250,
-      "health_penalty": 20,
-      "work_penalty": 200
-    },
-    {
-      "id": "workplace_injury",
-      "exposure": "work",
-      "food_threshold": 0,
-      "incidence_bp": 450,
-      "duration_years": 2,
-      "mortality_bp": 100,
-      "health_penalty": 25,
-      "work_penalty": 350
-    }
-  ],
   "education_rules": {
     "start_age": 6,
     "completion_age": 14,
@@ -222,7 +154,10 @@
         "min_age": 9,
         "max_age": 14,
         "player_alive": true,
-        "education_states": ["basic_schooling", "none"],
+        "education_states": [
+          "basic_schooling",
+          "none"
+        ],
         "occupation_id": "dependent",
         "max_savings": 2000,
         "cooldown_years": 4
@@ -230,9 +165,18 @@
       "utility": {
         "base": 40,
         "modifiers": [
-          {"condition": "budget_deficit_gt_zero", "add": 30},
-          {"condition": "food_security_lt_800", "add": 30},
-          {"condition": "guardian_education_first", "add": -30}
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": 30
+          },
+          {
+            "condition": "food_security_lt_800",
+            "add": 30
+          },
+          {
+            "condition": "guardian_education_first",
+            "add": -30
+          }
         ]
       },
       "choices": [
@@ -285,8 +229,14 @@
       "utility": {
         "base": 30,
         "modifiers": [
-          {"condition": "player_education_first", "add": 25},
-          {"condition": "education_completed", "add": 15}
+          {
+            "condition": "player_education_first",
+            "add": 25
+          },
+          {
+            "condition": "education_completed",
+            "add": 15
+          }
         ]
       },
       "choices": [
@@ -325,8 +275,14 @@
       "utility": {
         "base": 35,
         "modifiers": [
-          {"condition": "budget_deficit_gt_zero", "add": 25},
-          {"condition": "high_employment_pressure", "add": 15}
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": 25
+          },
+          {
+            "condition": "high_employment_pressure",
+            "add": 15
+          }
         ]
       },
       "choices": [
@@ -365,8 +321,14 @@
       "utility": {
         "base": 10,
         "modifiers": [
-          {"condition": "budget_deficit_gt_zero", "add": 40},
-          {"condition": "food_security_lt_800", "add": 30}
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": 40
+          },
+          {
+            "condition": "food_security_lt_800",
+            "add": 30
+          }
         ]
       },
       "choices": [
@@ -377,7 +339,8 @@
           "effects": {
             "cash_grant": 750,
             "willpower_delta": -10,
-            "set_flag": "heirloom_pawned"
+            "set_flag": "heirloom_pawned",
+            "remove_asset": "heirloom_watch"
           }
         },
         {
@@ -398,14 +361,24 @@
       "requirements": {
         "min_age": 6,
         "player_alive": true,
-        "has_any_condition": ["malnutrition", "epidemic_disease", "workplace_injury"],
+        "has_any_condition": [
+          "malnutrition",
+          "epidemic_disease",
+          "workplace_injury"
+        ],
         "cooldown_years": 2
       },
       "utility": {
         "base": 50,
         "modifiers": [
-          {"condition": "player_has_epidemic", "add": 25},
-          {"condition": "player_has_malnutrition", "add": 20}
+          {
+            "condition": "player_has_epidemic",
+            "add": 25
+          },
+          {
+            "condition": "player_has_malnutrition",
+            "add": 20
+          }
         ]
       },
       "choices": [
@@ -445,8 +418,14 @@
       "utility": {
         "base": 25,
         "modifiers": [
-          {"condition": "high_savings", "add": 25},
-          {"condition": "player_pragmatic", "add": 20}
+          {
+            "condition": "high_savings",
+            "add": 25
+          },
+          {
+            "condition": "player_pragmatic",
+            "add": 20
+          }
         ]
       },
       "choices": [
@@ -481,14 +460,24 @@
         "player_alive": true,
         "not_occupation": "dependent",
         "min_savings": 800,
-        "not_flag": "married",
-        "cooldown_years": 2
+        "cooldown_years": 2,
+        "marital_status_in": [
+          "unmarried",
+          "widowed",
+          "divorced"
+        ]
       },
       "utility": {
         "base": 45,
         "modifiers": [
-          {"condition": "high_savings", "add": 25},
-          {"condition": "budget_deficit_gt_zero", "add": -25}
+          {
+            "condition": "high_savings",
+            "add": 25
+          },
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": -25
+          }
         ]
       },
       "choices": [
@@ -498,7 +487,6 @@
           "description": "Your spouse enters the household. Two incomes strengthen the home, but family obligations begin.",
           "effects": {
             "willpower_delta": 10,
-            "set_flag": "married",
             "cash_cost": 200
           }
         },
@@ -512,5 +500,23 @@
         }
       ]
     }
-  ]
+  ],
+  "content_paths": {
+    "spending_catalog": "res://content/manchester_spending.json",
+    "life_actions": "res://content/manchester_actions.json",
+    "education": "res://content/manchester_education.json",
+    "careers": "res://content/manchester_careers.json",
+    "relationships": "res://content/manchester_relationships.json",
+    "health": "res://content/manchester_health.json",
+    "housing": "res://content/manchester_housing.json",
+    "skills": "res://content/manchester_skills.json",
+    "hobbies": "res://content/manchester_hobbies.json",
+    "personality": "res://content/generic_personality.json",
+    "assets": "res://content/manchester_assets.json",
+    "status": "res://content/manchester_status.json",
+    "migration": "res://content/manchester_migration.json"
+  },
+  "pack_id": "manchester_1850",
+  "era_id": "industrial_revolution",
+  "initial_dwelling_id": "family_room"
 }

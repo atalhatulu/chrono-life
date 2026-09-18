@@ -1,0 +1,184 @@
+{
+  "version": "manchester_health_0.1.0",
+  "medical_context": {
+    "care_model": "mixed_charity_private",
+    "technology_level": 18,
+    "public_access": 25,
+    "notes": "Gameplay calibration only; historical values are not exact measurements."
+  },
+  "rules": {
+    "death_worked_permille": 500,
+    "mortality_bands": [
+      {
+        "minimum_age": 0,
+        "risk_bp": 1200
+      },
+      {
+        "minimum_age": 1,
+        "risk_bp": 180
+      },
+      {
+        "minimum_age": 5,
+        "risk_bp": 35
+      },
+      {
+        "minimum_age": 15,
+        "risk_bp": 60
+      },
+      {
+        "minimum_age": 40,
+        "risk_bp": 100
+      },
+      {
+        "minimum_age": 60,
+        "risk_bp": 350
+      },
+      {
+        "minimum_age": 70,
+        "risk_bp": 800
+      },
+      {
+        "minimum_age": 80,
+        "risk_bp": 2200
+      },
+      {
+        "minimum_age": 90,
+        "risk_bp": 4800
+      },
+      {
+        "minimum_age": 100,
+        "risk_bp": 8000
+      }
+    ]
+  },
+  "conditions": [
+    {
+      "id": "malnutrition",
+      "label": "Yetersiz beslenme",
+      "kind": "nutrition",
+      "exposure": "nutrition",
+      "food_threshold": 750,
+      "incidence_bp": 10000,
+      "duration_years": 0,
+      "mortality_bp": 250,
+      "health_penalty": 25,
+      "work_penalty": 200,
+      "severity_range": [
+        35,
+        70
+      ],
+      "natural_recovery_bp": 2500,
+      "treatable": true,
+      "treatment_tags": [
+        "nutrition_support"
+      ]
+    },
+    {
+      "id": "epidemic_disease",
+      "label": "Salgın hastalık",
+      "kind": "infectious",
+      "exposure": "ambient",
+      "food_threshold": 0,
+      "incidence_bp": 500,
+      "duration_years": 1,
+      "mortality_bp": 900,
+      "health_penalty": 40,
+      "work_penalty": 500,
+      "severity_range": [
+        45,
+        90
+      ],
+      "natural_recovery_bp": 5500,
+      "treatable": true,
+      "treatment_tags": [
+        "physician",
+        "dispensary"
+      ]
+    },
+    {
+      "id": "chronic_disease",
+      "label": "Kronik hastalık",
+      "kind": "chronic",
+      "exposure": "ambient",
+      "food_threshold": 0,
+      "incidence_bp": 120,
+      "duration_years": 0,
+      "mortality_bp": 250,
+      "health_penalty": 20,
+      "work_penalty": 200,
+      "severity_range": [
+        25,
+        65
+      ],
+      "natural_recovery_bp": 150,
+      "treatable": true,
+      "treatment_tags": [
+        "physician"
+      ]
+    },
+    {
+      "id": "workplace_injury",
+      "label": "İş kazası",
+      "kind": "injury",
+      "exposure": "work",
+      "food_threshold": 0,
+      "incidence_bp": 450,
+      "duration_years": 2,
+      "mortality_bp": 100,
+      "health_penalty": 25,
+      "work_penalty": 350,
+      "severity_range": [
+        30,
+        85
+      ],
+      "natural_recovery_bp": 4000,
+      "treatable": true,
+      "treatment_tags": [
+        "physician",
+        "dispensary"
+      ],
+      "disability_chance_bp": 900
+    }
+  ],
+  "treatments": [
+    {
+      "id": "charitable_dispensary",
+      "label": "Yardım dispanseri",
+      "tags": [
+        "dispensary"
+      ],
+      "min_age": 0,
+      "cost": 10,
+      "success_bp": 4300,
+      "severity_reduction": 25,
+      "health_restore": 8,
+      "access_requirement": 15
+    },
+    {
+      "id": "physician_visit",
+      "label": "Doktor muayenesi",
+      "tags": [
+        "physician"
+      ],
+      "min_age": 0,
+      "cost": 35,
+      "success_bp": 5200,
+      "severity_reduction": 35,
+      "health_restore": 10,
+      "access_requirement": 35
+    },
+    {
+      "id": "nutrition_support",
+      "label": "Beslenme desteği",
+      "tags": [
+        "nutrition_support"
+      ],
+      "min_age": 0,
+      "cost": 18,
+      "success_bp": 6500,
+      "severity_reduction": 30,
+      "health_restore": 6,
+      "access_requirement": 10
+    }
+  ]
+}

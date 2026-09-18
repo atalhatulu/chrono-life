@@ -1,0 +1,53 @@
+{
+  "version": "manchester_migration_0.1.0",
+  "destinations": [
+    {
+      "id": "manchester",
+      "label": "Manchester",
+      "region_id": "northwest_england",
+      "min_age": 0,
+      "move_cost": 0,
+      "kind": "current",
+      "world_modifiers": {
+        "employment_pressure": 0
+      }
+    },
+    {
+      "id": "salford",
+      "label": "Salford",
+      "region_id": "northwest_england",
+      "min_age": 16,
+      "move_cost": 450,
+      "kind": "nearby_city",
+      "world_modifiers": {
+        "employment_pressure": 20
+      }
+    },
+    {
+      "id": "ancoats",
+      "label": "Ancoats",
+      "region_id": "manchester",
+      "min_age": 16,
+      "move_cost": 300,
+      "kind": "district",
+      "world_modifiers": {
+        "employment_pressure": 30
+      }
+    },
+    {
+      "id": "rural_lancashire",
+      "label": "Kırsal Lancashire",
+      "region_id": "northwest_england",
+      "min_age": 16,
+      "move_cost": 500,
+      "kind": "rural",
+      "world_modifiers": {
+        "employment_pressure": -80
+      }
+    }
+  ],
+  "rules": {
+    "migration_cooldown_years": 3,
+    "minimum_cash_buffer": 100
+  }
+}

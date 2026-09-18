@@ -1,7 +1,7 @@
 extends RefCounted
 
 const Rng = preload("res://simulation/deterministic_rng.gd")
-const Career = preload("res://simulation/career_education_system.gd")
+const Career = preload("res://simulation/career_system.gd")
 
 
 static func update_care(delta: RefCounted, pack: Dictionary, cause: String) -> int:
@@ -38,7 +38,7 @@ static func choose(delta: RefCounted, pack: Dictionary, jobs: Dictionary,
 	var options: Array = [{"id": "wait", "type": "wait"}]
 	var guardian_id: String = state.household.guardian_id
 	var education_first: bool = guardian_id != "" and "education_first" in state.actors[guardian_id].traits
-	var ids: Array = state.actors.keys()
+	var ids: Array = state.household.member_ids.duplicate()
 	ids.sort()
 	for id: String in ids:
 		var actor: Dictionary = state.actors[id]

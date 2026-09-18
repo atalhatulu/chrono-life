@@ -1,0 +1,94 @@
+{
+  "version": "manchester_hobbies_0.1.0",
+  "design_note": "Minimal hobby content for generic leisure mastery.",
+  "hobbies": [
+    {
+      "id": "reading",
+      "label": "Okuma",
+      "min_age": 8,
+      "tags": [
+        "quiet",
+        "learning"
+      ],
+      "skill_xp": {
+        "reading_comprehension": 5
+      },
+      "need_effects": {
+        "happiness": 4,
+        "stress": -3
+      }
+    },
+    {
+      "id": "walking",
+      "label": "Yürüyüş",
+      "min_age": 6,
+      "tags": [
+        "physical",
+        "outdoor"
+      ],
+      "skill_xp": {
+        "physical_conditioning": 4
+      },
+      "need_effects": {
+        "happiness": 3,
+        "stress": -4
+      }
+    },
+    {
+      "id": "cricket",
+      "label": "Kriket",
+      "min_age": 10,
+      "tags": [
+        "physical",
+        "social"
+      ],
+      "skill_xp": {
+        "physical_conditioning": 6,
+        "social_confidence": 4
+      },
+      "need_effects": {
+        "happiness": 6,
+        "social": 5,
+        "energy": -4
+      }
+    },
+    {
+      "id": "singing",
+      "label": "Şarkı söyleme",
+      "min_age": 10,
+      "tags": [
+        "creative",
+        "social"
+      ],
+      "skill_xp": {
+        "social_confidence": 4
+      },
+      "need_effects": {
+        "happiness": 6,
+        "stress": -3
+      }
+    },
+    {
+      "id": "practical_tinkering",
+      "label": "Pratik uğraşlar",
+      "min_age": 12,
+      "tags": [
+        "craft",
+        "learning"
+      ],
+      "skill_xp": {
+        "craftsmanship": 7
+      },
+      "need_effects": {
+        "happiness": 4,
+        "energy": -3
+      }
+    }
+  ],
+  "action_hobby_links": {
+    "buy_book": "reading",
+    "self_education": "reading",
+    "cheap_leisure": "singing",
+    "play": "walking"
+  }
+}

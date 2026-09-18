@@ -1,0 +1,193 @@
+{
+  "version": "manchester_actions_0.1.0",
+  "design_note": "Era/location-specific life actions consumed by the generic LifeActionSystem.",
+  "actions": [
+    {
+      "id": "play",
+      "label": "Oyna",
+      "min_age": 4,
+      "max_age": 15,
+      "effects": {
+        "health": 2,
+        "literacy": 0,
+        "willpower": 0,
+        "happiness": 12,
+        "stress": -8,
+        "social": 5,
+        "energy": -6
+      },
+      "ai_tags": [
+        "leisure",
+        "childhood",
+        "recovery"
+      ]
+    },
+    {
+      "id": "study",
+      "label": "Ders çalış",
+      "min_age": 6,
+      "max_age": 30,
+      "effects": {
+        "health": -2,
+        "literacy": 6,
+        "willpower": 2,
+        "happiness": -2,
+        "stress": 5,
+        "social": -2,
+        "energy": -8
+      },
+      "ai_tags": [
+        "education",
+        "effort"
+      ]
+    },
+    {
+      "id": "rest",
+      "label": "Dinlen",
+      "min_age": 0,
+      "max_age": 200,
+      "effects": {
+        "health": 5,
+        "literacy": 0,
+        "willpower": 0,
+        "happiness": 3,
+        "stress": -10,
+        "social": -2,
+        "energy": 15
+      },
+      "ai_tags": [
+        "recovery",
+        "health"
+      ]
+    },
+    {
+      "id": "family_time",
+      "label": "Aileyle vakit geçir",
+      "min_age": 3,
+      "max_age": 200,
+      "effects": {
+        "health": 0,
+        "literacy": 0,
+        "willpower": 2,
+        "happiness": 8,
+        "stress": -5,
+        "social": 10,
+        "energy": -3
+      },
+      "hooks": [
+        "family_time"
+      ],
+      "ai_tags": [
+        "family",
+        "social"
+      ]
+    },
+    {
+      "id": "socialize",
+      "label": "Sosyalleş",
+      "min_age": 10,
+      "max_age": 200,
+      "effects": {
+        "health": 0,
+        "literacy": 0,
+        "willpower": 1,
+        "happiness": 10,
+        "stress": -6,
+        "social": 15,
+        "energy": -6
+      },
+      "hooks": [
+        "socialize"
+      ],
+      "ai_tags": [
+        "social",
+        "leisure"
+      ]
+    },
+    {
+      "id": "self_education",
+      "label": "Kendi kendine öğren",
+      "min_age": 14,
+      "max_age": 200,
+      "effects": {
+        "health": -2,
+        "literacy": 4,
+        "willpower": 3,
+        "happiness": 1,
+        "stress": 3,
+        "social": -3,
+        "energy": -7
+      },
+      "ai_tags": [
+        "education",
+        "effort"
+      ]
+    },
+    {
+      "id": "work_hard",
+      "label": "Daha yoğun çalış",
+      "min_age": 16,
+      "max_age": 70,
+      "requirements": {
+        "employed": true
+      },
+      "effects": {
+        "health": -5,
+        "literacy": 0,
+        "willpower": 4,
+        "happiness": -3,
+        "stress": 10,
+        "social": -5,
+        "energy": -12
+      },
+      "ai_tags": [
+        "work",
+        "income",
+        "effort",
+        "risk"
+      ]
+    },
+    {
+      "id": "cheap_leisure",
+      "label": "Ucuz bir eğlenceye çık",
+      "min_age": 10,
+      "max_age": 200,
+      "cash_cost": 10,
+      "effects": {
+        "health": 0,
+        "literacy": 0,
+        "willpower": 0,
+        "happiness": 14,
+        "stress": -10,
+        "social": 8,
+        "energy": -5
+      },
+      "ai_tags": [
+        "leisure",
+        "social",
+        "spending"
+      ]
+    },
+    {
+      "id": "buy_book",
+      "label": "Kitap al ve oku",
+      "min_age": 10,
+      "max_age": 200,
+      "cash_cost": 20,
+      "effects": {
+        "health": 0,
+        "literacy": 8,
+        "willpower": 2,
+        "happiness": 4,
+        "stress": 1,
+        "social": -1,
+        "energy": -4
+      },
+      "ai_tags": [
+        "education",
+        "spending",
+        "media"
+      ]
+    }
+  ]
+}

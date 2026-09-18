@@ -13,8 +13,46 @@ static func load_pack(path: String = DEFAULT_PATH) -> Dictionary:
 			[parser.get_error_line(), parser.get_error_message()]]}
 	if not parser.data is Dictionary:
 		return {"ok": false, "errors": ["Content root must be an object"]}
-	var errors: Array[String] = validate(parser.data)
-	return {"ok": errors.is_empty(), "errors": errors, "pack": parser.data}
+	var pack: Dictionary = parser.data
+	var hydration: Dictionary = _hydrate_external_catalogs(pack)
+	if not hydration.ok:
+		return {"ok": false, "errors": hydration.errors}
+	var errors: Array[String] = validate(pack)
+	return {"ok": errors.is_empty(), "errors": errors, "pack": pack}
+
+
+static func _load_json_dictionary(path: String) -> Dictionary:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {"ok": false, "errors": ["Cannot read external content: " + path]}
+	var parser := JSON.new()
+	if parser.parse(file.get_as_text()) != OK or not parser.data is Dictionary:
+		return {"ok": false, "errors": ["Invalid external content: " + path]}
+	return {"ok": true, "data": parser.data}
+
+
+static func _hydrate_external_catalogs(pack: Dictionary) -> Dictionary:
+	var paths: Dictionary = pack.get("content_paths", {})
+	if not paths is Dictionary:
+		return {"ok": true}
+	if paths.has("careers"):
+		var loaded := _load_json_dictionary(str(paths.careers))
+		if not loaded.ok:
+			return loaded
+		if not loaded.data.get("jobs") is Array or loaded.data.jobs.is_empty():
+			return {"ok": false, "errors": ["Career catalog requires nonempty jobs array"]}
+		pack.occupations = loaded.data.jobs.duplicate(true)
+	if paths.has("health"):
+		var health_loaded := _load_json_dictionary(str(paths.health))
+		if not health_loaded.ok:
+			return health_loaded
+		if not health_loaded.data.get("conditions") is Array or not health_loaded.data.get("rules") is Dictionary:
+			return {"ok": false, "errors": ["Health catalog requires conditions and rules"]}
+		pack.conditions = health_loaded.data.conditions.duplicate(true)
+		pack.health_rules = health_loaded.data.rules.duplicate(true)
+		pack.health_treatments = health_loaded.data.get("treatments", []).duplicate(true)
+		pack.medical_context = health_loaded.data.get("medical_context", {}).duplicate(true)
+	return {"ok": true}
 
 
 static func is_integer(value: Variant) -> bool:
@@ -26,6 +64,15 @@ static func validate(pack: Dictionary) -> Array[String]:
 	for key: String in ["version", "location_id", "currency_unit", "player_id"]:
 		if not pack.get(key) is String or str(pack.get(key, "")).is_empty():
 			errors.append("Missing/nonempty string required: " + key)
+	for key: String in ["pack_id", "era_id"]:
+		if pack.has(key) and (not pack.get(key) is String or str(pack.get(key, "")).is_empty()):
+			errors.append("Optional string must be nonempty when present: " + key)
+	if pack.has("content_paths") and not pack.content_paths is Dictionary:
+		errors.append("content_paths must be an object")
+	elif pack.has("content_paths"):
+		for path_key: String in pack.content_paths:
+			if not pack.content_paths[path_key] is String or str(pack.content_paths[path_key]).is_empty():
+				errors.append("content_paths entries must be nonempty strings")
 	if not is_integer(pack.get("start_year")):
 		errors.append("start_year must be an integer")
 	if not pack.get("historically_calibrated") is bool:

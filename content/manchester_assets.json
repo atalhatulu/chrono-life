@@ -1,0 +1,42 @@
+{
+  "version": "manchester_assets_0.1.0",
+  "assets": [
+    {
+      "id": "savings_share",
+      "label": "Tasarruf payı",
+      "category": "financial",
+      "min_age": 16,
+      "acquire_cost": 500,
+      "base_value": 500,
+      "depreciation_permille": 0,
+      "status_value": 2,
+      "liquidate_permille": 950
+    },
+    {
+      "id": "work_tools",
+      "label": "Kişisel iş aletleri",
+      "category": "productive",
+      "min_age": 14,
+      "acquire_cost": 300,
+      "base_value": 260,
+      "depreciation_permille": 30,
+      "status_value": 3,
+      "skill_bonus": {
+        "craftsmanship": 1
+      },
+      "liquidate_permille": 650
+    },
+    {
+      "id": "heirloom_watch",
+      "label": "Aile yadigârı saat",
+      "category": "heirloom",
+      "min_age": 0,
+      "acquire_cost": 0,
+      "base_value": 700,
+      "depreciation_permille": 0,
+      "status_value": 5,
+      "initial": true,
+      "liquidate_permille": 700
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "version": "manchester_relationships_0.1.0",
+  "encounter_pools": [
+    {
+      "id": "neighborhood",
+      "min_age": 5,
+      "max_age": 200,
+      "weight": 35,
+      "roles": [
+        "friend",
+        "acquaintance"
+      ]
+    },
+    {
+      "id": "school",
+      "min_age": 6,
+      "max_age": 18,
+      "weight": 30,
+      "roles": [
+        "friend",
+        "rival"
+      ]
+    },
+    {
+      "id": "workplace",
+      "min_age": 9,
+      "max_age": 75,
+      "weight": 25,
+      "requires_employed": true,
+      "roles": [
+        "coworker",
+        "friend",
+        "rival"
+      ]
+    },
+    {
+      "id": "social_venue",
+      "min_age": 14,
+      "max_age": 200,
+      "weight": 25,
+      "roles": [
+        "friend",
+        "romantic_interest",
+        "acquaintance"
+      ]
+    },
+    {
+      "id": "community",
+      "min_age": 10,
+      "max_age": 200,
+      "weight": 20,
+      "roles": [
+        "friend",
+        "acquaintance"
+      ]
+    }
+  ],
+  "first_names": [
+    "Arthur",
+    "George",
+    "Eleanor",
+    "Clara",
+    "Henry",
+    "Alice",
+    "Samuel",
+    "Florence",
+    "James",
+    "Sarah",
+    "Elizabeth",
+    "Hannah",
+    "John",
+    "Joseph",
+    "Martha",
+    "Ellen"
+  ],
+  "surnames": [
+    "Brown",
+    "Taylor",
+    "Wilson",
+    "Davies",
+    "Evans",
+    "Roberts",
+    "Johnson",
+    "Walker",
+    "Wright",
+    "Green"
+  ],
+  "rules": {
+    "max_active_nonfamily": 8,
+    "friendship_threshold": 50,
+    "close_friend_threshold": 72,
+    "romance_min_age": 16,
+    "romance_attraction_threshold": 55,
+    "romance_closeness_threshold": 58,
+    "dating_threshold": 68,
+    "breakup_conflict_threshold": 72,
+    "estranged_closeness_threshold": 15,
+    "annual_closeness_decay": 2,
+    "annual_contact_decay": 1
+  }
+}
