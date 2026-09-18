@@ -2,6 +2,7 @@ extends RefCounted
 
 const Needs = preload("res://simulation/needs_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
+const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 
 const ACTIONS := {
 	"play": {"min_age": 4, "max_age": 15, "health": 2, "literacy": 0, "willpower": 0, "happiness": 12, "stress": -8, "social": 5, "energy": -6},
@@ -10,11 +11,14 @@ const ACTIONS := {
 	"family_time": {"min_age": 3, "max_age": 200, "health": 0, "literacy": 0, "willpower": 2, "happiness": 8, "stress": -5, "social": 10, "energy": -3},
 	"socialize": {"min_age": 10, "max_age": 200, "health": 0, "literacy": 0, "willpower": 1, "happiness": 10, "stress": -6, "social": 15, "energy": -6},
 	"self_education": {"min_age": 14, "max_age": 200, "health": -2, "literacy": 4, "willpower": 3, "happiness": 1, "stress": 3, "social": -3, "energy": -7},
-	"work_hard": {"min_age": 16, "max_age": 70, "health": -5, "literacy": 0, "willpower": 4, "happiness": -3, "stress": 10, "social": -5, "energy": -12}
+	"work_hard": {"min_age": 16, "max_age": 70, "health": -5, "literacy": 0, "willpower": 4, "happiness": -3, "stress": 10, "social": -5, "energy": -12, "cash_cost": 0},
+	"cheap_leisure": {"min_age": 10, "max_age": 200, "health": 0, "literacy": 0, "willpower": 0, "happiness": 14, "stress": -10, "social": 8, "energy": -5, "cash_cost": 10},
+	"buy_book": {"min_age": 10, "max_age": 200, "health": 0, "literacy": 8, "willpower": 2, "happiness": 4, "stress": 1, "social": -1, "energy": -4, "cash_cost": 20}
 }
 
 static func available_actions(state: Dictionary) -> Array[String]:
 	var player: Dictionary = state.actors[state.meta.player_id]
+	PersonalEconomy.normalize(state)
 	var result: Array[String] = []
 	if not player.alive:
 		return result
@@ -22,6 +26,8 @@ static func available_actions(state: Dictionary) -> Array[String]:
 		var a: Dictionary = ACTIONS[id]
 		if int(player.age) >= int(a.min_age) and int(player.age) <= int(a.max_age):
 			if id == "work_hard" and player.occupation_id == "dependent":
+				continue
+			if int(a.get("cash_cost", 0)) > int(state.personal_economy.cash):
 				continue
 			result.append(id)
 	result.sort()
@@ -33,6 +39,12 @@ static func apply(state: Dictionary, action_id: String) -> Dictionary:
 	var player: Dictionary = state.actors[state.meta.player_id]
 	Needs.normalize_actor(player)
 	var a: Dictionary = ACTIONS[action_id]
+	var cash_cost := int(a.get("cash_cost", 0))
+	if cash_cost > 0:
+		var purchase_id := "book" if action_id == "buy_book" else "leisure"
+		var spend_result: Dictionary = PersonalEconomy.spend(state, cash_cost, action_id, purchase_id)
+		if not spend_result.ok:
+			return spend_result
 	player.health = clampi(int(player.health) + int(a.health), 0, 100)
 	player.literacy = clampi(int(player.literacy) + int(a.literacy), 0, 100)
 	player.willpower = clampi(int(player.willpower) + int(a.willpower), 0, 100)
