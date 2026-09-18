@@ -107,6 +107,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"details": {"location_id": pack.location_id, "member_ids": ids.duplicate()}}]
 	}
 	Family.ensure_state(result_state)
+	FamilyDynamics.initialize(result_state)
 	Relationships.initialize(result_state)
 	PersonalEconomy.initialize(result_state)
 	Housing.initialize(result_state, str(pack.get("initial_dwelling_id", "")))
