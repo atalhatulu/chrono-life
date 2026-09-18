@@ -128,3 +128,23 @@ static func liquidate(state: Dictionary, asset_id: String) -> Dictionary:
 		"year":int(state.world.year),"kind":"asset_liquidated","cause_id":"",
 		"details":{"asset_id":asset_id,"proceeds":proceeds}})
 	return {"ok": true, "proceeds": proceeds}
+
+
+static func remove_asset(state: Dictionary, asset_id: String, reason: String = "removed") -> bool:
+	initialize(state)
+	if not state.assets.owned.has(asset_id):
+		return false
+	var entry: Dictionary = state.assets.owned[asset_id]
+	var quantity := int(entry.get("quantity", 1))
+	if quantity <= 1:
+		state.assets.owned.erase(asset_id)
+	else:
+		var unit_value := int(entry.get("value", 0)) / maxi(quantity, 1)
+		entry.quantity = quantity - 1
+		entry.value = maxi(0, int(entry.value) - unit_value)
+		state.assets.owned[asset_id] = entry
+	state.assets.history.append({"year": int(state.world.year), "kind": reason, "asset_id": asset_id})
+	state.history.append({"id":"%d:asset_removed:%s:%d" % [int(state.world.year), asset_id, state.history.size()],
+		"year":int(state.world.year),"kind":"asset_removed","cause_id":"",
+		"details":{"asset_id":asset_id,"reason":reason}})
+	return true
