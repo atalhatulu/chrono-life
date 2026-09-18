@@ -9,6 +9,7 @@ const Relationships = preload("res://simulation/relationship_system.gd")
 const SocialEvents = preload("res://simulation/social_event_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
 const Housing = preload("res://simulation/housing_system.gd")
+const Family = preload("res://simulation/family_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -69,6 +70,11 @@ func _initialize() -> void:
 	var society_buy: Dictionary = Purchases.purchase(state, "friendly_society_dues")
 	check(society_buy.ok, "Meaningful membership can be purchased")
 	check(not Purchases.available_items(state).any(func(i): return i.id == "friendly_society_dues"), "Active membership cannot be renewed early")
+
+	var family_state: Dictionary = runner.initial_state(77)
+	Family.ensure_state(family_state)
+	check(family_state.family.kinship.has("player"), "Player has kinship record")
+	check(family_state.family.kinship.player.parents.size() >= 2, "Initial parents are linked in kinship graph")
 	var first: Dictionary = runner.simulate_auto_life(42, "balanced")
 	var again: Dictionary = runner.simulate_auto_life(42, "balanced")
 	check(first.ok and again.ok, "AutoLife completes without simulation errors")
@@ -81,6 +87,8 @@ func _initialize() -> void:
 	check(first.has("social_actions"), "AutoLife exposes social decisions")
 	check(first.has("treatments"), "AutoLife exposes treatment history")
 	check(first.state.has("housing"), "AutoLife preserves housing state")
+	check(first.life_result.has("family_history"), "Life summary includes Family 2.0 history")
+	check(first.state.family.has("kinship"), "Family 2.0 maintains kinship graph")
 	check(first.has("purchases"), "AutoLife exposes purchase history")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
 	var varied := {}
