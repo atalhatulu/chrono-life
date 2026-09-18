@@ -5,7 +5,7 @@ const Rng = preload("res://simulation/deterministic_rng.gd")
 const Delta = preload("res://simulation/year_delta.gd")
 const Household = preload("res://simulation/household_system.gd")
 const Health = preload("res://simulation/health_system.gd")
-const Career = preload("res://simulation/career_education_system.gd")
+const Career = preload("res://simulation/career_system.gd")
 const Responses = preload("res://simulation/household_response_system.gd")
 const Consequences = preload("res://simulation/consequence_engine.gd")
 const Storylets = preload("res://simulation/storylet_engine.gd")
@@ -51,6 +51,7 @@ func initial_state(seed_value: int) -> Dictionary:
 		actor.education_state = "none"
 		actor.literacy = 0
 		Education.initialize_actor(actor)
+		Career.initialize_actor(actor)
 		Needs.initialize_actor(actor)
 		actor.household_id = "household_1"
 		actor.income = _annual_income(actor.occupation_id, int(pack.economy.initial_index))
@@ -153,6 +154,10 @@ func validate_state(state: Dictionary) -> Array[String]:
 				errors.append("Invalid actor field: " + field)
 		if actor.work_capacity < 0 or actor.work_capacity > 1000:
 			errors.append("Invalid work capacity")
+		if not actor.has("career") or not actor.career is Dictionary:
+			errors.append("Invalid career state")
+		elif int(actor.career.get("experience_years", -1)) < 0 or int(actor.career.get("job_changes", -1)) < 0:
+			errors.append("Invalid career counters")
 		if actor.education_state not in ["none", "basic_schooling", "interrupted", "completed"]:
 			errors.append("Unknown education state")
 		if actor.alive and actor.education_state == "basic_schooling" and actor.occupation_id != "dependent":
