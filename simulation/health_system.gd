@@ -31,7 +31,7 @@ static func mortality_components(actor: Dictionary, definitions: Dictionary,
 		if not definitions.has(id):
 			continue
 		var definition: Dictionary = definitions[id]
-		var severity := int(actor.conditions[id].get("severity", 50))
+		var severity: int = int(actor.conditions[id].get("severity", 50))
 		components[id] = int(int(definition.mortality_bp) * maxi(25, severity) / 50.0)
 	return components
 
@@ -44,8 +44,8 @@ static func mortality_risk(actor: Dictionary, definitions: Dictionary, rules: Di
 static func _new_condition(seed_value: int, year: int, actor_id: String,
 		definition: Dictionary) -> Dictionary:
 	var range: Array = definition.get("severity_range", [50, 50])
-	var low := int(range[0]) if range.size() > 0 else 50
-	var high := int(range[1]) if range.size() > 1 else low
+	var low: int = int(range[0]) if range.size() > 0 else 50
+	var high: int = int(range[1]) if range.size() > 1 else low
 	return {
 		"acquired_year": year,
 		"remaining_years": -1 if int(definition.get("duration_years", 0)) == 0 else int(definition.duration_years),
@@ -54,14 +54,14 @@ static func _new_condition(seed_value: int, year: int, actor_id: String,
 	}
 
 static func _household_context(state: Dictionary, actor: Dictionary) -> Dictionary:
-	var household_id := str(actor.get("household_id", ""))
+	var household_id: String = str(actor.get("household_id", ""))
 	if household_id == str(state.household.id):
 		return state.household
 	return state.get("households", {}).get(household_id, {"food_security": 1000, "debt": 0, "savings": 0})
 
 static func _incidence_chance(state: Dictionary, actor: Dictionary,
 		definition: Dictionary, occupations: Dictionary) -> int:
-	var chance := int(definition.get("incidence_bp", 0))
+	var chance: int = int(definition.get("incidence_bp", 0))
 	match str(definition.get("exposure", "ambient")):
 		"nutrition":
 			if int(_household_context(state, actor).get("food_security", 1000)) >= int(definition.get("food_threshold", 0)):
@@ -78,12 +78,12 @@ static func _incidence_chance(state: Dictionary, actor: Dictionary,
 static func _maybe_disability(delta: RefCounted, actor: Dictionary, actor_id: String,
 		definition: Dictionary, condition: Dictionary, seed_value: int, cause: String) -> void:
 	initialize_actor(actor)
-	var chance := int(definition.get("disability_chance_bp", 0))
+	var chance: int = int(definition.get("disability_chance_bp", 0))
 	if chance <= 0 or int(condition.get("severity", 0)) < 60:
 		return
 	if Rng.integer(seed_value, "health", delta.year, actor_id, "disability:" + str(definition.id), 0, 9999) >= chance:
 		return
-	var disability_id := str(definition.id) + "_sequela"
+	var disability_id: String = str(definition.id) + "_sequela"
 	if disability_id in actor.health_profile.disabilities:
 		return
 	actor.health_profile.disabilities.append(disability_id)
@@ -97,7 +97,7 @@ static func advance(delta: RefCounted, pack: Dictionary, occupations: Dictionary
 	if not pack.systems.health:
 		return deaths
 	var state: Dictionary = delta.candidate
-	var definitions := definitions_by_id(pack)
+	var definitions: Dictionary = definitions_by_id(pack)
 	var ids: Array = state.actors.keys()
 	ids.sort()
 	var condition_ids: Array = definitions.keys()
@@ -119,11 +119,11 @@ static func advance(delta: RefCounted, pack: Dictionary, occupations: Dictionary
 				if not condition.has("severity"):
 					condition.severity = 50
 				condition.treated_this_year = false
-				var nutrition_recovered := str(definition.get("exposure", "")) == "nutrition" and \
+				var nutrition_recovered: bool = str(definition.get("exposure", "")) == "nutrition" and \
 					int(_household_context(state, actor).get("food_security", 1000)) >= int(definition.get("food_threshold", 0))
-				var duration_recovered := int(condition.get("remaining_years", -1)) == 1
-				var natural_recovery := false
-				var recovery_bp := int(definition.get("natural_recovery_bp", 0))
+				var duration_recovered: bool = int(condition.get("remaining_years", -1)) == 1
+				var natural_recovery: bool = false
+				var recovery_bp: int = int(definition.get("natural_recovery_bp", 0))
 				if recovery_bp > 0:
 					natural_recovery = Rng.integer(seed_value, "health", delta.year, id,
 						"recover:" + condition_id, 0, 9999) < recovery_bp
@@ -139,7 +139,7 @@ static func advance(delta: RefCounted, pack: Dictionary, occupations: Dictionary
 
 			if conditions.has(condition_id) or recovered.has(condition_id):
 				continue
-			var chance := _incidence_chance(state, actor, definition, occupations)
+			var chance: int = _incidence_chance(state, actor, definition, occupations)
 			if Rng.integer(seed_value, "health", delta.year, id, "acquire:" + condition_id, 0, 9999) < chance:
 				conditions[condition_id] = _new_condition(seed_value, delta.year, id, definition)
 				if condition_id not in actor.health_profile.lifetime_conditions:
@@ -155,7 +155,7 @@ static func advance(delta: RefCounted, pack: Dictionary, occupations: Dictionary
 		for condition_id: String in conditions:
 			var definition: Dictionary = definitions[condition_id]
 			var severity := int(conditions[condition_id].get("severity", 50))
-			var scale := clampf(severity / 50.0, 0.5, 1.75)
+			var scale: float = clampf(severity / 50.0, 0.5, 1.75)
 			health -= int(int(definition.get("health_penalty", 0)) * scale)
 			capacity -= int(int(definition.get("work_penalty", 0)) * scale)
 		for _disability: Variant in actor.health_profile.disabilities:
