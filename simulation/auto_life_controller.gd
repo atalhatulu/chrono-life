@@ -6,6 +6,7 @@ const BotPolicy = preload("res://simulation/bot_policy.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
+const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
 
 static func choose_action(state: Dictionary, policy: String = "balanced") -> String:
 	var ids: Array[String] = Actions.available_actions(state)
@@ -173,3 +174,41 @@ static func choose_treatment(state: Dictionary, policy: String = "balanced") -> 
 			best_score = score
 			best_id = str(t.id)
 	return best_id
+
+
+static func choose_parenting_action(state: Dictionary, policy: String = "balanced") -> Dictionary:
+	if not state.has("family"):
+		return {}
+	var children: Array[String] = []
+	for child_id: String in state.family.get("children_ids", []):
+		if state.actors.has(child_id) and state.actors[child_id].alive:
+			children.append(child_id)
+	if children.is_empty():
+		return {}
+	children.sort()
+	var best_id := ""
+	var best_score := -999999
+	for child_id: String in children:
+		var child: Dictionary = state.actors[child_id]
+		var parenting: Dictionary = state.family.get("parenting", {}).get(child_id, {})
+		var score := 0
+		score += 100 - int(parenting.get("support", 55))
+		score += int(child.get("needs", {}).get("stress", 20))
+		if str(child.household_id) == str(state.household.id):
+			score += 10
+		if score > best_score:
+			best_score = score
+			best_id = child_id
+	if best_id == "":
+		return {}
+	var p: Dictionary = state.family.get("parenting", {}).get(best_id, {})
+	var child: Dictionary = state.actors[best_id]
+	if int(p.get("conflict", 10)) >= 55:
+		return {"child_id": best_id, "action": "spend_time"}
+	if int(child.get("education", {}).get("progress", 0)) > 0 and int(p.get("support", 55)) < 70:
+		return {"child_id": best_id, "action": "education_support"}
+	if int(p.get("involvement", 55)) < 60:
+		return {"child_id": best_id, "action": "spend_time"}
+	if policy == "pragmatic" and int(child.willpower) < 45:
+		return {"child_id": best_id, "action": "discipline"}
+	return {"child_id": best_id, "action": "support"}
