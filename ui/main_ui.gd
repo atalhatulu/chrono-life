@@ -9,6 +9,7 @@ const Words = preload("res://ui/chronicle_text.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
+const Housing = preload("res://simulation/housing_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -276,7 +277,7 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["health", "Sağlık", "plus"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["health", "Sağlık", "plus"], ["housing", "Barınma", "home"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
@@ -433,7 +434,7 @@ func start_game(seed_value: int) -> void:
 
 
 func switch_view(view: String) -> void:
-	if view not in ["life", "family", "budget", "education", "career", "health", "spending"]:
+	if view not in ["life", "family", "budget", "education", "career", "health", "housing", "spending"]:
 		return
 	current_view = view
 	_refresh_ui()
@@ -520,7 +521,7 @@ func _refresh_ui() -> void:
 		fields[key].text = str(player[key])
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
-	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "health": "Sağlığın ve tedavilerin", "spending": "Cebindeki para ve harcamalar"}[current_view]
+	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "health": "Sağlığın ve tedavilerin", "housing": "Nerede ve nasıl yaşadığın", "spending": "Cebindeki para ve harcamalar"}[current_view]
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
@@ -590,6 +591,9 @@ func _render_feed() -> void:
 		return
 	if current_view == "health":
 		_render_health(feed)
+		return
+	if current_view == "housing":
+		_render_housing(feed)
 		return
 	if not state.actors[state.meta.player_id].alive:
 		var memorial := _card(feed)
@@ -742,6 +746,56 @@ func _render_budget(parent: Node) -> void:
 		row.add_child(_label(str(item[1]), 17, Palette.INK, true))
 	column.add_child(_label("Son tamamlanan yılın hesabı. Tutarlar test birimidir." if has_ledger else "İlk yılın hesabı henüz kapanmadı. Tutarlar test birimidir.", 11, Palette.MUTED, false, true))
 	column.add_child(_label("Gıda ihtiyacının %%%d kadarı karşılanıyor." % int(state.household.food_security / 10), 13, Palette.MUTED, false, true))
+
+
+func _render_housing(parent: Node) -> void:
+	var current: Dictionary = Housing.current_dwelling(state)
+	var housing: Dictionary = state.get("housing", {})
+	var card := _card(parent)
+	card.add_child(_label("BARINMA DURUMU", 10, Palette.MUTED))
+	card.add_child(_label(str(current.get("label", "Bilinmeyen konut")), 24, Palette.INK, true))
+	card.add_child(_label("Kullanım biçimi: %s · Yıllık maliyet: %d" % [
+		str(housing.get("tenure", "")).replace("_", " "),
+		int(current.get("annual_cost", 0))
+	], 12, Palette.MUTED))
+	card.add_child(_label("Kalite %d · Hijyen %d · Güvenlik %d · Mahremiyet %d" % [
+		int(current.get("quality", 0)), int(current.get("sanitation", 0)),
+		int(current.get("security", 0)), int(current.get("privacy", 0))
+	], 12, Palette.MUTED, false, true))
+	card.add_child(_label("Kapasite %d · Hanede %d kişi · Fazladan %d kişi" % [
+		int(current.get("capacity", 0)), Housing.living_count(state), Housing.overcrowding(state)
+	], 12, Palette.MUTED))
+	card.add_child(_label("Bu konutta %d'den beri · %d taşınma · %d ödeme sorunu yılı" % [
+		int(housing.get("since_year", state.world.year)),
+		int(housing.get("move_count", 0)),
+		int(housing.get("unpaid_years", 0))
+	], 11, Palette.MUTED))
+	var options := _card(parent)
+	options.add_child(_label("KONUT SEÇENEKLERİ", 10, Palette.MUTED))
+	for dwelling: Dictionary in Housing.available_dwellings(state):
+		if str(dwelling.id) == str(housing.get("dwelling_id", "")):
+			continue
+		var row := _row(8)
+		options.add_child(row)
+		var copy := _column(2)
+		row.add_child(copy)
+		copy.add_child(_label(str(dwelling.label), 14, Palette.INK, true))
+		copy.add_child(_label("%d/yıl · kalite %d · kapasite %d" % [
+			int(dwelling.annual_cost), int(dwelling.quality), int(dwelling.capacity)
+		], 11, Palette.MUTED))
+		_spacer(row)
+		var dwelling_id := str(dwelling.id)
+		row.add_child(_button("Taşın", func(): _move_housing(dwelling_id), "Primary"))
+
+
+func _move_housing(dwelling_id: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result := Housing.move_to(state, dwelling_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "Taşınma başarısız.")))
+		return
+	_refresh_ui()
 
 
 func _render_health(parent: Node) -> void:
