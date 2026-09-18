@@ -30,7 +30,7 @@ static func _education_component(state: Dictionary) -> int:
 	return clampi(int(p.literacy) / 2 + completed.size() * 15, 0, 100)
 
 static func _housing_component(state: Dictionary) -> int:
-	var path := str(state.get("meta", {}).get("housing_path", ""))
+	var path = str(state.get("meta", {}).get("housing_path", ""))
 	if path.is_empty() or not FileAccess.file_exists(path):
 		return 50
 	var parsed: Variant = JSON.parse_string(FileAccess.open(path, FileAccess.READ).get_as_text())
