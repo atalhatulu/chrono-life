@@ -454,8 +454,12 @@
         "player_alive": true,
         "not_occupation": "dependent",
         "min_savings": 800,
-        "not_flag": "married",
-        "cooldown_years": 2
+        "cooldown_years": 2,
+        "marital_status_in": [
+          "unmarried",
+          "widowed",
+          "divorced"
+        ]
       },
       "utility": {
         "base": 45,
@@ -477,7 +481,6 @@
           "description": "Your spouse enters the household. Two incomes strengthen the home, but family obligations begin.",
           "effects": {
             "willpower_delta": 10,
-            "set_flag": "married",
             "cash_cost": 200
           }
         },
