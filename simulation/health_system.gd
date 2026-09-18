@@ -154,7 +154,7 @@ static func advance(delta: RefCounted, pack: Dictionary, occupations: Dictionary
 		var capacity: int = 1000
 		for condition_id: String in conditions:
 			var definition: Dictionary = definitions[condition_id]
-			var severity := int(conditions[condition_id].get("severity", 50))
+			var severity = int(conditions[condition_id].get("severity", 50))
 			var scale: float = clampf(severity / 50.0, 0.5, 1.75)
 			health -= int(int(definition.get("health_penalty", 0)) * scale)
 			capacity -= int(int(definition.get("work_penalty", 0)) * scale)
