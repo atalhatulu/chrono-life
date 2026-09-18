@@ -14,6 +14,7 @@ const Delta = preload("res://simulation/year_delta.gd")
 const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
 const FamilyEvents = preload("res://simulation/family_event_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
+const Hobbies = preload("res://simulation/hobby_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -38,6 +39,12 @@ func _initialize() -> void:
 	check(str(state.meta.get("relationships_path", "")) != "", "Relationship content path is carried into state")
 	check(str(state.meta.get("health_path", "")) != "", "Health content path is carried into state")
 	check(str(state.meta.get("housing_path", "")) != "", "Housing content path is carried into state")
+	check(str(state.meta.get("skills_path", "")) != "", "Skills content path is carried into state")
+	check(str(state.meta.get("hobbies_path", "")) != "", "Hobbies content path is carried into state")
+	check(str(state.meta.get("personality_path", "")) != "", "Personality content path is carried into state")
+	check(state.actors.player.has("skills"), "Initial player has skills state")
+	check(state.actors.player.has("hobbies"), "Initial player has hobbies state")
+	check(state.actors.player.has("personality"), "Initial player has personality state")
 	check(str(state.housing.get("dwelling_id", "")) != "", "Initial housing state is created")
 	check(Housing.annual_cost(state) > 0, "Current dwelling contributes an annual housing cost")
 	state.actors.player.age = 16
@@ -78,6 +85,24 @@ func _initialize() -> void:
 	var society_buy: Dictionary = Purchases.purchase(state, "friendly_society_dues")
 	check(society_buy.ok, "Meaningful membership can be purchased")
 	check(not Purchases.available_items(state).any(func(i): return i.id == "friendly_society_dues"), "Active membership cannot be renewed early")
+
+	var development_state: Dictionary = runner.initial_state(55)
+	development_state.actors.player.age = 16
+	development_state.world.year = development_state.actors.player.birth_year + 16
+	var curiosity_before := int(development_state.actors.player.personality.axes.curiosity)
+	var dev_one := Actions.apply(development_state, "self_education")
+	var dev_two := Actions.apply(development_state, "self_education")
+	check(dev_one.ok and dev_two.ok, "Repeated life actions can drive long-term development")
+	check(int(development_state.actors.player.personality.axes.curiosity) > curiosity_before,
+		"Life actions shift personality axes")
+	check(int(development_state.actors.player.skills["values"].literacy) > 0,
+		"Life actions convert repeated skill XP into skill levels")
+	check(development_state.actors.player.hobbies.active.has("reading"),
+		"Linked life actions establish hobby progress")
+	var hobby_before := int(development_state.actors.player.hobbies.active.reading.mastery)
+	var hobby_result := Hobbies.practice(development_state, "player", "reading", "test")
+	check(hobby_result.ok and int(development_state.actors.player.hobbies.active.reading.mastery) > hobby_before,
+		"Manual hobby practice increases mastery")
 
 	var family_state: Dictionary = runner.initial_state(77)
 	Family.ensure_state(family_state)
@@ -151,6 +176,9 @@ func _initialize() -> void:
 	check(first.life_result.has("personal_spending"), "Death summary includes personal spending")
 	check(first.state.actors.player.education.has("history"), "AutoLife preserves education history")
 	check(first.life_result.has("career"), "Life summary includes career history")
+	check(first.life_result.has("skills"), "Life summary includes skill progression")
+	check(first.life_result.has("personality"), "Life summary includes personality progression")
+	check(first.life_result.has("hobbies"), "Life summary includes hobbies")
 	check(first.life_result.has("relationships"), "Life summary includes relationship history")
 	check(first.has("social_actions"), "AutoLife exposes social decisions")
 	check(first.has("treatments"), "AutoLife exposes treatment history")
@@ -165,6 +193,7 @@ func _initialize() -> void:
 	check(first.has("elder_care_actions"), "AutoLife exposes elder-care decisions")
 	check(first.state.family.has("kinship"), "Family 2.0 maintains kinship graph")
 	check(first.has("purchases"), "AutoLife exposes purchase history")
+	check(first.has("hobbies"), "AutoLife exposes hobby choices")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
 	var varied := {}
 	for seed_value: int in range(20):
