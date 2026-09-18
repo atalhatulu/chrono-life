@@ -16,6 +16,7 @@ const LifeActions = preload("res://simulation/life_action_system.gd")
 const AutoLife = preload("res://simulation/auto_life_controller.gd")
 const LifeSummary = preload("res://simulation/life_summary.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
+const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -78,6 +79,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"details": {"location_id": pack.location_id, "member_ids": ids.duplicate()}}]
 	}
 	Relationships.initialize(result_state)
+	PersonalEconomy.initialize(result_state)
 	return result_state
 
 
@@ -451,6 +453,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	if state.meta.status != "running":
 		return {"ok": false, "errors": ["The player's life has already ended"]}
 	var working: Dictionary = state.duplicate(true)
+	PersonalEconomy.begin_year(working)
 	Relationships.annual_drift(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
 	Needs.annual_drift(player)
@@ -461,6 +464,8 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 			return {"ok": false, "errors": [action_result.error]}
 	var result: Dictionary = step(working, [], {}, policy_name)
 	if result.ok:
+		PersonalEconomy.settle_year(result.state)
+		PersonalEconomy.maybe_allowance(result.state)
 		result.action_id = action_id
 	return result
 
