@@ -2,6 +2,18 @@ extends RefCounted
 
 static func build(state: Dictionary) -> Dictionary:
 	var p: Dictionary = state.actors[state.meta.player_id]
+	var relationship_summary := {"friends": 0, "close_friends": 0, "romantic": 0, "ex_partners": 0, "estranged": 0, "social_events": 0}
+	for id: String in state.get("relationships", {}).get("people", {}):
+		var rel: Dictionary = state.relationships.people[id]
+		match str(rel.get("stage", "")):
+			"friend": relationship_summary.friends += 1
+			"close_friend": relationship_summary.close_friends += 1
+			"romantic_interest", "dating", "spouse": relationship_summary.romantic += 1
+			"ex_partner": relationship_summary.ex_partners += 1
+			"estranged": relationship_summary.estranged += 1
+	for event: Dictionary in state.get("relationships", {}).get("history", []):
+		if event.get("kind") == "social_event":
+			relationship_summary.social_events += 1
 	var actions: Dictionary = {}
 	var important: Array = []
 	for event: Dictionary in state.history:
@@ -27,6 +39,7 @@ static func build(state: Dictionary) -> Dictionary:
 		"children": int(state.family.children_count),
 		"career": p.get("career", {}).duplicate(true),
 		"relationships": state.get("relationships", {}).duplicate(true),
+		"relationship_summary": relationship_summary,
 		"actions": actions,
 		"important_events": important
 	}
