@@ -7,6 +7,7 @@ const Purchases = preload("res://simulation/purchase_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
 const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
+const Hobbies = preload("res://simulation/hobby_system.gd")
 
 static func choose_action(state: Dictionary, policy: String = "balanced") -> String:
 	var ids: Array[String] = Actions.available_actions(state)
@@ -54,6 +55,15 @@ static func _utility(action: Dictionary, p: Dictionary, state: Dictionary, polic
 		score += 15
 	if "education_first" in p.get("traits", []) and "education" in tags:
 		score += 30
+	var axes: Dictionary = p.get("personality", {}).get("axes", {})
+	if "education" in tags:
+		score += int(axes.get("curiosity", 50)) / 5
+	if "social" in tags or "family" in tags:
+		score += int(axes.get("sociability", 50)) / 6 + int(axes.get("empathy", 50)) / 8
+	if "effort" in tags or "work" in tags:
+		score += int(axes.get("discipline", 50)) / 6
+	if "risk" in tags:
+		score += (int(axes.get("risk_tolerance", 50)) - 50) / 3
 	if "pragmatic" in p.get("traits", []) and ("work" in tags or "recovery" in tags):
 		score += 15
 	if policy == "education_first" and "education" in tags:
@@ -240,3 +250,38 @@ static func choose_elder_care_action(state: Dictionary, policy: String = "balanc
 	if policy == "pragmatic":
 		return {"parent_id": target, "action": "visit"}
 	return {"parent_id": target, "action": "care"}
+
+
+static func choose_hobby(state: Dictionary, policy: String = "balanced") -> String:
+	var options: Array[Dictionary] = Hobbies.available_hobbies(state)
+	if options.is_empty():
+		return ""
+	var p: Dictionary = state.actors[state.meta.player_id]
+	var axes: Dictionary = p.get("personality", {}).get("axes", {})
+	var needs: Dictionary = p.get("needs", {})
+	var best_id := ""
+	var best_score := -999999
+	for hobby: Dictionary in options:
+		var score := 10
+		var tags: Array = hobby.get("tags", [])
+		if "learning" in tags:
+			score += int(axes.get("curiosity", 50)) / 2
+		if "social" in tags:
+			score += int(axes.get("sociability", 50)) / 2 + maxi(0, 60 - int(needs.get("social", 50)))
+		if "physical" in tags:
+			score += int(axes.get("resilience", 50)) / 3 + maxi(0, 65 - int(p.health))
+		if "creative" in tags:
+			score += int(axes.get("curiosity", 50)) / 3
+		if "quiet" in tags:
+			score += int(needs.get("stress", 20)) / 2
+		var existing: Dictionary = p.get("hobbies", {}).get("active", {}).get(hobby.id, {})
+		score += int(existing.get("mastery", 0)) / 4
+		if policy == "education_first" and "learning" in tags:
+			score += 15
+		var noise := Rng.integer(str(state.meta.master_seed).to_int(), "hobby_ai",
+			int(state.world.year), str(p.id), str(hobby.id), -4, 4)
+		score += noise
+		if score > best_score:
+			best_score = score
+			best_id = str(hobby.id)
+	return best_id
