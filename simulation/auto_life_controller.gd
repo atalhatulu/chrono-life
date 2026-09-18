@@ -32,6 +32,8 @@ static func _utility(id: String, p: Dictionary, state: Dictionary, policy: Strin
 		"study": score = (100 - int(p.literacy)) + int(p.willpower) / 2
 		"self_education": score = (100 - int(p.literacy)) / 2 + int(p.willpower) / 2
 		"work_hard": score = 30 + (20 if int(state.household.savings) < 1000 else 0)
+		"cheap_leisure": score = (100 - int(n.get("happiness", 55))) + int(n.get("stress", 20))
+		"buy_book": score = (100 - int(p.literacy)) + (15 if "education_first" in p.get("traits", []) else 0)
 	if "education_first" in p.get("traits", []) and id in ["study", "self_education"]:
 		score += 30
 	if "pragmatic" in p.get("traits", []) and id in ["rest", "work_hard"]:
