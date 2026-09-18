@@ -14,6 +14,9 @@ static func build(state: Dictionary) -> Dictionary:
 	for event: Dictionary in state.get("relationships", {}).get("history", []):
 		if event.get("kind") == "social_event":
 			relationship_summary.social_events += 1
+	var asset_value := 0
+	for asset_id: String in state.get("assets", {}).get("owned", {}):
+		asset_value += int(state.assets.owned[asset_id].get("value", 0))
 	var actions: Dictionary = {}
 	var important: Array = []
 	for event: Dictionary in state.history:
@@ -51,6 +54,10 @@ static func build(state: Dictionary) -> Dictionary:
 		"skills": p.get("skills", {}).duplicate(true),
 		"personality": p.get("personality", {}).duplicate(true),
 		"hobbies": p.get("hobbies", {}).duplicate(true),
+		"assets": state.get("assets", {}).duplicate(true),
+		"asset_value": asset_value,
+		"social_status": state.get("social_status", {}).duplicate(true),
+		"migration": state.get("migration", {}).duplicate(true),
 		"relationships": state.get("relationships", {}).duplicate(true),
 		"relationship_summary": relationship_summary,
 		"actions": actions,
