@@ -15,7 +15,7 @@ const SANS = preload("res://assets/fonts/NotoSans-Regular.ttf")
 
 static func box(color: Color, radius: int = 12, border: Color = Color.TRANSPARENT,
 		padding: int = 18) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
+	var style = StyleBoxFlat.new()
 	style.bg_color = color
 	style.set_corner_radius_all(radius)
 	style.set_border_width_all(1 if border.a > 0 else 0)
@@ -28,7 +28,7 @@ static func box(color: Color, radius: int = 12, border: Color = Color.TRANSPAREN
 
 
 static func create() -> Theme:
-	var theme := Theme.new()
+	var theme = Theme.new()
 	theme.default_font = SANS
 	theme.default_font_size = 14
 	theme.set_color("font_color", "Label", INK)
@@ -40,10 +40,10 @@ static func create() -> Theme:
 	for type_name: String in ["Button", "Primary", "Navigation", "SelectedNav", "Ghost", "Choice"]:
 		if type_name != "Button":
 			theme.set_type_variation(type_name, "Button")
-		var bg := PAPER
-		var hover := Color("eaece1")
-		var foreground := INK
-		var border := LINE
+		var bg = PAPER
+		var hover = Color("eaece1")
+		var foreground = INK
+		var border = LINE
 		if type_name == "Primary":
 			bg = RUST
 			hover = Color("934930")
@@ -64,11 +64,11 @@ static func create() -> Theme:
 			var fill: Color = hover if state in ["hover", "pressed"] else bg
 			if state == "disabled":
 				fill = Color("e7e5dc")
-			var style := box(fill, 9, border, 12)
+			var style = box(fill, 9, border, 12)
 			style.content_margin_left = 16
 			style.content_margin_right = 16
 			theme.set_stylebox(state, type_name, style)
-		var focus := box(Color.TRANSPARENT, 9, GREEN, 0)
+		var focus = box(Color.TRANSPARENT, 9, GREEN, 0)
 		focus.set_border_width_all(2)
 		theme.set_stylebox("focus", type_name, focus)
 		for property: String in ["font_color", "font_hover_color", "font_pressed_color", "icon_normal_color", "icon_hover_color", "icon_pressed_color"]:
