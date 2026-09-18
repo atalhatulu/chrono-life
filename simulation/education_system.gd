@@ -41,6 +41,12 @@ static func _stage_by_id(state: Dictionary, stage_id: String) -> Dictionary:
 static func _eligible_for_stage(actor: Dictionary, stage: Dictionary) -> bool:
 	return actor.alive and int(actor.age) >= int(stage.get("min_age", 0)) and int(actor.age) <= int(stage.get("max_age", 200))
 
+static func _household_context(state: Dictionary, actor: Dictionary) -> Dictionary:
+	var household_id := str(actor.get("household_id", ""))
+	if household_id == str(state.household.id):
+		return state.household
+	return state.get("households", {}).get(household_id, {"food_security": 1000, "debt": 0, "savings": 0})
+
 static func _sync_legacy(actor: Dictionary) -> void:
 	var current := str(actor.education.get("current_stage", ""))
 	if current == "":
@@ -100,9 +106,10 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 			_sync_legacy(actor)
 			continue
 		var attendance := int(stage.get("attendance_base", 60))
-		if int(state.household.food_security) < 800:
+		var household_context := _household_context(state, actor)
+		if int(household_context.get("food_security", 1000)) < 800:
 			attendance -= 12
-		if int(state.household.debt) > 0:
+		if int(household_context.get("debt", 0)) > 0:
 			attendance -= 6
 		attendance += Rng.integer(seed, "education", delta.year, id, current_id + ":attendance", -10, 10)
 		attendance = clampi(attendance, 0, 100)
