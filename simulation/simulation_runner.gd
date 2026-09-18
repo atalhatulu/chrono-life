@@ -324,6 +324,7 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 		var actor: Dictionary = state.actors[id]
 		if actor.alive:
 			delta.set_field("actors", "age", year - int(actor.birth_year), year_event, id)
+			Personality.annual_drift(delta.candidate, delta.candidate.actors[id])
 		participation[id] = 1000 if actor.alive else 0
 	var support: int = Career.prepare(delta, pack, occupations, year_event)
 	var deaths: Array = Health.advance(delta, pack, occupations, world_event)
@@ -549,7 +550,6 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	var social_event: Dictionary = SocialEvents.resolve_one(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
 	Needs.annual_drift(player)
-	Personality.annual_drift(working, player)
 	var parenting_decision: Dictionary = AutoLife.choose_parenting_action(working, policy_name)
 	if not parenting_decision.is_empty():
 		FamilyDynamics.interact_with_child(working, str(parenting_decision.child_id), str(parenting_decision.action))
