@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="230" viewBox="0 0 1100 230">
+<rect width="1100" height="230" fill="#e7e6d7"/>
+<circle cx="916" cy="64" r="40" fill="#efe8d4"/>
+<g fill="none" stroke="#c8cebc" stroke-width="13" opacity=".5"><path d="M690 85c-20-24 34-24 10-50S747 13 756-6"/><path d="M859 104c-28-34 25-28 4-56s41-25 45-48"/></g>
+<path d="M392 230V178h45v-26l35-19 36 19v27h26v-43h25v-29h19v29h31v37h37v-15h38v-40h38v40h30v-9h74v-33h62v46h24V98l24-17 24 17v65h47v-27h65v42h50v52Z" fill="#c4cebe"/>
+<g fill="#9bab98"><path d="M525 222v-60l38-27 37 27v60zM600 222v-45h40v-64h58v109zM644 113l5-65h17l5 65zM699 222v-78h100v78zM757 144l5-59h14l5 59zM828 222v-95h83v95zM842 127l5-60h18l5 60zM925 222v-50l30-21 29 21v50zM984 222v-90h75v90z"/></g>
+<g fill="#e7e6d7" opacity=".82"><rect x="542" y="167" width="7" height="12"/><rect x="542" y="190" width="7" height="12"/><rect x="559" y="167" width="7" height="12"/><rect x="559" y="190" width="7" height="12"/><rect x="576" y="167" width="7" height="12"/><rect x="576" y="190" width="7" height="12"/><rect x="654" y="167" width="7" height="12"/><rect x="654" y="190" width="7" height="12"/><rect x="678" y="167" width="7" height="12"/><rect x="678" y="190" width="7" height="12"/><rect x="713" y="167" width="7" height="12"/><rect x="713" y="190" width="7" height="12"/><rect x="732" y="167" width="7" height="12"/><rect x="732" y="190" width="7" height="12"/><rect x="751" y="167" width="7" height="12"/><rect x="751" y="190" width="7" height="12"/><rect x="770" y="167" width="7" height="12"/><rect x="770" y="190" width="7" height="12"/><rect x="848" y="167" width="7" height="12"/><rect x="848" y="190" width="7" height="12"/><rect x="867" y="167" width="7" height="12"/><rect x="867" y="190" width="7" height="12"/><rect x="886" y="167" width="7" height="12"/><rect x="886" y="190" width="7" height="12"/><rect x="1000" y="167" width="7" height="12"/><rect x="1000" y="190" width="7" height="12"/><rect x="1020" y="167" width="7" height="12"/><rect x="1020" y="190" width="7" height="12"/><rect x="1040" y="167" width="7" height="12"/><rect x="1040" y="190" width="7" height="12"/></g>
+<path d="M417 213c115-11 186 15 323 3s230-10 360 2v12H417Z" fill="#748f7b"/>
+<path d="M405 229c131-18 266 5 415-6s206 2 280 0" fill="none" stroke="#d6deca" stroke-width="4"/>
+<path d="M374 214h94m-85-6h62m398 5h44" stroke="#758b77" stroke-width="2"/>
+<g fill="none" stroke="#839580" stroke-width="1.5"><path d="m967 44 6 3 6-3m-20 5 4 2 4-2"/></g>
+</svg>

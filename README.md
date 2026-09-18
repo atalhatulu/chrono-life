@@ -2,18 +2,23 @@
 
 Tarihsel koşullar içinde tek bir insanın hayatını simüle eden oyun projesi.
 
-**Mevcut teslim: Phase 0C — Storylet, karar katmanı ve minimal Godot Control arayüzü.**
-Bu teslim; veri tabanlı storylet motoru, sakin yıllar mekanizması, çocukluk iradesi, deterministik bot karar politikaları (`heuristic_v1`, `pragmatic`, `education_first`) ve iş mantığından tamamen bağımsız oynanabilir minimal Godot Control UI prototipini içerir.
+**Mevcut teslim: Phase 0C simülasyonu ve yenilenmiş “Hayat Defteri” arayüzü.**
+Veri tabanlı storylet motoru, sakin yıllar, çocukluk iradesi ve deterministik bot politikaları; Türkçe karar kartları, aile ve geçim ekranlarıyla oynanabilir. Arayüz Godot Control ile hazırlanmıştır; simülasyon kuralları sunum katmanından bağımsızdır.
 
 ## Çalıştırma
 
 Godot **4.7.2 Standard** gerekir. Paket bağımlılığı veya eklenti gerekmez.
 
-### 1. Minimal Grafik Arayüzü Başlatma
+### 1. Grafik Arayüzü Başlatma
 ```bash
 godot scenes/main.tscn
 # veya doğrudan editörden / proje kökünden F5 ile
 ```
+
+**Bir yıl ilerle** ile oyna; karar geldiğinde karttaki seçeneklerden birini seç.
+**Ailem** ve **Geçim** sekmeleri ayrıntıları gösterir. **Yeni hayat** başlangıç sayısını
+değiştirerek yeniden başlatır. Otomatik karar seçimi, geliştirici araçlarında bulunur.
+Pencere 1440×900 açılır; 960×640 boyutuna kadar yeniden düzenlenir.
 
 ### 2. Headless Komut Satırı ve Testler
 ```bash
@@ -31,6 +36,7 @@ Make olmadan doğrudan komut satırından çalıştırma:
 godot --headless --path . --script tests/run_tests.gd
 godot --headless --path . --script tests/run_life_tests.gd
 godot --headless --path . --script tests/run_storylet_tests.gd
+godot --headless --path . --script tests/run_ui_tests.gd
 
 # Tek bir tam hayat simülasyonu (doğumdan ölüme)
 godot --headless --path . --script cli/simulate.gd -- --seed 42 --life
@@ -71,7 +77,7 @@ godot --headless --path . --script cli/simulate.gd -- --seed 42 --life --output 
 - **Sakin Yıllar ("Quiet Years")**: Sabit ağırlıklandırmayla kriz olmayan yılların sakin geçmesi, her yıl yapay olay zorlanmaması.
 - **Çocukluk İradesi (`Childhood Agency`)**: Koruyucunun trait'i (`education_first`) veya çocuğun irade eşiği (`willpower >= 50`) ile ebeveyn baskısına itiraz edebilme.
 - **Deterministik Bot Politikaları**: Headless koşturmalar için 3 politika (`heuristic_v1`, `pragmatic`, `education_first`).
-- **Minimal Godot Control Arayüzü**: Aktör profili, bütçe, dünya endeksleri, karar kartı ve zaman çizelgesi içeren, iş mantığından arındırılmış UI.
+- **Hayat Defteri Arayüzü**: Türkçe hayat akışı, karar kartları, aile ve bütçe görünümleri; teknik dünya endeksleri ayrı geliştirici penceresindedir.
 - **Sağlık ve Hastalık Modeli**: Veriyle tanımlı 4 sağlık koşulu (`malnutrition`, `epidemic_disease`, `chronic_disease`, `workplace_injury`), çalışma kapasitesi cezaları, iyileşme ve kronik devamlılık.
 - **Mortalite ve Ölüm Nedenleri**: Yaş bantlarına göre temel ölüm riski, bünye (`constitution`) etkisi ve nedensel ölüm tanısı seçimi.
 - **Ölüm Yılı Hak Ediş ve Tüketimi**: Ölüm anına kadar kazanılmış ücretin korunması; gıda ve kişisel zorunlu tüketimin yıl içi paya göre orantılanması; kira gibi sabit masrafların tam tahakkuku.
@@ -94,14 +100,16 @@ godot --headless --path . --script cli/simulate.gd -- --seed 42 --life --output 
 ```text
 cli/          Komut satırı giriş noktası (simulate.gd)
 content/      Doğrulanan test içeriği (manchester_test.json)
-scenes/       Minimal oynanabilir sahne (main.tscn)
+assets/       Yerel yazı tipleri, lisans ve SVG çizimler
+scenes/       Oynanabilir sahne (main.tscn)
 simulation/   Sağlık, kariyer/eğitim, hane, storylet motoru, bot politikası, sonuç motoru ve RNG
 tests/        Headless ekonomik regresyon, yaşam ve storylet testleri
-ui/           Salt sunum katmanı Godot Control scripti (main_ui.gd)
+ui/           Godot Control arayüzü, ortak tema ve Türkçe sunum metinleri
 docs/         Ana tasarım planı ve aşama karar belgeleri
 ```
 
 - Ana tasarım belgesi: [Master Plan v0.2](docs/ChronoLife_Master_Plan_v0.2.md)
+- Arayüz tasarımı ve doğrulama: [UI Redesign Report](docs/UI_REDESIGN_REPORT.md)
 - Phase 0C mimari kararları: [Phase 0C Kararları](docs/PHASE_0C_DECISIONS.md)
 - Phase 0B mimari kararları: [Phase 0B Kararları](docs/PHASE_0B_DECISIONS.md)
 - Phase 0A tarihsel kararları: [Phase 0A Kararları](docs/PHASE_0A_DECISIONS.md)
