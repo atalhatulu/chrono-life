@@ -6,6 +6,9 @@ const Needs = preload("res://simulation/needs_system.gd")
 const Education = preload("res://simulation/education_system.gd")
 const Career = preload("res://simulation/career_system.gd")
 const Health = preload("res://simulation/health_system.gd")
+const Skills = preload("res://simulation/skill_system.gd")
+const Hobbies = preload("res://simulation/hobby_system.gd")
+const Personality = preload("res://simulation/personality_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 
 const FEMALE_NAMES: Array[String] = ["Sarah", "Elizabeth", "Mary", "Hannah", "Alice", "Ellen", "Martha"]
@@ -127,6 +130,9 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 	spouse.education.completed_stages.append("elementary")
 	Career.initialize_actor(spouse)
 	Health.initialize_actor(spouse)
+	Skills.initialize_actor(state, spouse)
+	Hobbies.initialize_actor(spouse)
+	Personality.initialize_actor(state, spouse)
 	state.actors[spouse_id] = spouse
 	_append_unique(state.household.member_ids, spouse_id)
 
@@ -263,6 +269,9 @@ static func _create_child(delta: RefCounted, pack: Dictionary, cause: String, se
 	Education.initialize_actor(child)
 	Career.initialize_actor(child)
 	Health.initialize_actor(child)
+	Skills.initialize_actor(state, child)
+	Hobbies.initialize_actor(child)
+	Personality.initialize_actor(state, child)
 	state.actors[child_id] = child
 	_append_unique(state.household.member_ids, child_id)
 	_append_unique(state.family.children_ids, child_id)
