@@ -130,6 +130,13 @@ func _initialize() -> void:
 		"involvement": 40, "support": 35, "discipline": 50, "conflict": 80,
 		"last_active_year": int(family_delta.candidate.world.year)
 	}
+	family_delta.candidate.actors.parent_1.age = 70
+	family_delta.candidate.actors.parent_1.health = 40
+	FamilyDynamics.initialize(family_delta.candidate)
+	var care_result := FamilyDynamics.care_for_parent(family_delta.candidate, "parent_1", "care")
+	check(care_result.ok, "Player can provide elder care to an aging parent")
+	check(int(family_delta.candidate.family.elder_care.parent_1.care) > 0,
+		"Elder care is tracked in family state")
 	var generated_family_event := FamilyEvents.resolve_one(family_delta.candidate)
 	check(not generated_family_event.is_empty(), "Family state can generate a family event")
 	var first: Dictionary = runner.simulate_auto_life(42, "balanced")
@@ -148,8 +155,10 @@ func _initialize() -> void:
 	check(first.life_result.has("parenting"), "Life summary includes parenting state")
 	check(first.life_result.has("sibling_bonds"), "Life summary includes sibling bonds")
 	check(first.life_result.has("descendant_lives"), "Life summary includes descendant lives")
+	check(first.life_result.has("elder_care"), "Life summary includes elder care")
 	check(first.has("parenting_actions"), "AutoLife exposes parenting decisions")
 	check(first.has("family_events"), "AutoLife exposes family events")
+	check(first.has("elder_care_actions"), "AutoLife exposes elder-care decisions")
 	check(first.state.family.has("kinship"), "Family 2.0 maintains kinship graph")
 	check(first.has("purchases"), "AutoLife exposes purchase history")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
