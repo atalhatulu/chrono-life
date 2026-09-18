@@ -5,6 +5,7 @@ const Relationships = preload("res://simulation/relationship_system.gd")
 const Needs = preload("res://simulation/needs_system.gd")
 const Education = preload("res://simulation/education_system.gd")
 const Career = preload("res://simulation/career_system.gd")
+const Health = preload("res://simulation/health_system.gd")
 
 const FEMALE_NAMES: Array[String] = ["Sarah", "Elizabeth", "Mary", "Hannah", "Alice", "Ellen", "Martha"]
 const MALE_NAMES: Array[String] = ["James", "John", "Thomas", "George", "William", "Joseph", "Robert"]
@@ -63,6 +64,7 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 	Needs.initialize_actor(spouse)
 	Education.initialize_actor(spouse)
 	Career.initialize_actor(spouse)
+	Health.initialize_actor(spouse)
 
 	delta.candidate.actors[spouse_id] = spouse
 	if not delta.candidate.household.member_ids.has(spouse_id):
@@ -180,6 +182,7 @@ static func advance(delta: RefCounted, pack: Dictionary, year_event: String, see
 	Needs.initialize_actor(child)
 	Education.initialize_actor(child)
 	Career.initialize_actor(child)
+	Health.initialize_actor(child)
 
 	delta.candidate.actors[child_id] = child
 	if not delta.candidate.household.member_ids.has(child_id):
