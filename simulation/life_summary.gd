@@ -26,6 +26,7 @@ static func build(state: Dictionary) -> Dictionary:
 		"marital_status": str(state.family.marital_status),
 		"children": int(state.family.children_count),
 		"career": p.get("career", {}).duplicate(true),
+		"relationships": state.get("relationships", {}).duplicate(true),
 		"actions": actions,
 		"important_events": important
 	}
