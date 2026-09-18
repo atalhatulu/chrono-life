@@ -319,16 +319,17 @@ static func choose_migration(state: Dictionary, policy: String = "balanced") -> 
 	var best_id := ""
 	var best_score := -999999
 	for destination: Dictionary in options:
-		var score := int(destination.get("employment_modifier", 0)) / 5
+		var employment_modifier := int(destination.get("world_modifiers", {}).get("employment_pressure", 0))
+		var score := employment_modifier / 5
 		score -= int(destination.get("move_cost", 0)) / 100
 		if int(state.household.debt) > 1000:
-			score += int(destination.get("employment_modifier", 0)) / 3
+			score += employment_modifier / 3
 		if "bold" in p.get("traits", []):
 			score += 10
 		if "cautious" in p.get("traits", []):
 			score -= 15
 		if policy == "pragmatic":
-			score += int(destination.get("employment_modifier", 0)) / 4
+			score += employment_modifier / 4
 		if score > best_score:
 			best_score = score
 			best_id = str(destination.id)
