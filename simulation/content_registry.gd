@@ -22,10 +22,10 @@ static func load_pack(path: String = DEFAULT_PATH) -> Dictionary:
 
 
 static func _load_json_dictionary(path: String) -> Dictionary:
-	var file := FileAccess.open(path, FileAccess.READ)
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if file == null:
 		return {"ok": false, "errors": ["Cannot read external content: " + path]}
-	var parser := JSON.new()
+	var parser: JSON = JSON.new()
 	if parser.parse(file.get_as_text()) != OK or not parser.data is Dictionary:
 		return {"ok": false, "errors": ["Invalid external content: " + path]}
 	return {"ok": true, "data": parser.data}
@@ -36,14 +36,14 @@ static func _hydrate_external_catalogs(pack: Dictionary) -> Dictionary:
 	if not paths is Dictionary:
 		return {"ok": true}
 	if paths.has("careers"):
-		var loaded := _load_json_dictionary(str(paths.careers))
+		var loaded: Dictionary = _load_json_dictionary(str(paths.careers))
 		if not loaded.ok:
 			return loaded
 		if not loaded.data.get("jobs") is Array or loaded.data.jobs.is_empty():
 			return {"ok": false, "errors": ["Career catalog requires nonempty jobs array"]}
 		pack.occupations = loaded.data.jobs.duplicate(true)
 	if paths.has("health"):
-		var health_loaded := _load_json_dictionary(str(paths.health))
+		var health_loaded: Dictionary = _load_json_dictionary(str(paths.health))
 		if not health_loaded.ok:
 			return health_loaded
 		if not health_loaded.data.get("conditions") is Array or not health_loaded.data.get("rules") is Dictionary:
