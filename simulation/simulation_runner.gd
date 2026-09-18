@@ -206,7 +206,7 @@ func validate_state(state: Dictionary) -> Array[String]:
 			errors.append("Invalid personality state")
 		else:
 			for axis: String in actor.personality.get("axes", {}):
-				var axis_value := int(actor.personality.axes[axis])
+				var axis_value: int = int(actor.personality.axes[axis])
 				if axis_value < 0 or axis_value > 100:
 					errors.append("Invalid personality axis: " + axis)
 		if not actor.has("hobbies") or not actor.hobbies is Dictionary:
@@ -261,7 +261,7 @@ func validate_state(state: Dictionary) -> Array[String]:
 		elif effect.type == "start_job" and (not state.actors.has(effect.actor_id) or not occupations.has(effect.occupation_id)):
 			errors.append("Unknown deferred effect actor/occupation")
 	if not state.ledgers.is_empty():
-		errors.append_array(Household.validate_ledger(state.ledgers.back()))
+		errors.append_array(Household.validate_ledger(state.ledgers[state.ledgers.size() - 1]))
 	if state.has("storylets"):
 		if not state.storylets is Dictionary or not state.storylets.get("last_seen") is Dictionary or \
 				not state.storylets.get("flags") is Dictionary:
@@ -298,7 +298,7 @@ func validate_state(state: Dictionary) -> Array[String]:
 	if not state.has("housing") or not state.housing is Dictionary:
 		errors.append("Invalid housing state structure")
 	else:
-		var housing_defs := Housing.dwellings_by_id(state)
+		var housing_defs: Dictionary = Housing.dwellings_by_id(state)
 		if not housing_defs.has(str(state.housing.get("dwelling_id", ""))):
 			errors.append("Unknown current dwelling")
 		if int(state.housing.get("unpaid_years", -1)) < 0 or int(state.housing.get("move_count", -1)) < 0:
@@ -335,7 +335,7 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 	delta.set_field("world", "economy_index", economy_index, world_event)
 	delta.set_field("world", "food_price_index", food_index, world_event)
 	for entry: Array in [["disease_pressure", "disease"], ["employment_pressure", "employment"]]:
-		var rolled_pressure := Rng.integer(seed_value, "world", year, str(state.world.location_id),
+		var rolled_pressure: int = Rng.integer(seed_value, "world", year, str(state.world.location_id),
 			entry[0], int(pack.world_rules[entry[1] + "_min"]), int(pack.world_rules[entry[1] + "_max"]))
 		rolled_pressure = clampi(rolled_pressure + int(location_modifiers.get(entry[0], 0)), 0, 1000)
 		delta.set_field("world", entry[0], rolled_pressure, world_event)
