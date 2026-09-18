@@ -151,7 +151,7 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 		state.relationships.history.append({"year": delta.year, "kind": "relationship_became_marriage",
 			"person_id": spouse_id, "former_person_id": partner_id})
 
-	var event := delta.record("marriage_formed", cause_event, {
+	var event: String = delta.record("marriage_formed", cause_event, {
 		"spouse_id": spouse_id, "name": spouse_name, "age": spouse_age,
 		"occupation_id": occ_id, "income": spouse_wage
 	})
