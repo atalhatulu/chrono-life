@@ -43,6 +43,7 @@ static func build(state: Dictionary) -> Dictionary:
 		"parenting": state.family.get("parenting", {}).duplicate(true),
 		"sibling_bonds": state.family.get("sibling_bonds", {}).duplicate(true),
 		"descendant_lives": state.family.get("descendant_lives", {}).duplicate(true),
+		"elder_care": state.family.get("elder_care", {}).duplicate(true),
 		"household_members": state.household.member_ids.duplicate(),
 		"career": p.get("career", {}).duplicate(true),
 		"relationships": state.get("relationships", {}).duplicate(true),
