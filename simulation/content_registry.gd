@@ -26,6 +26,19 @@ static func validate(pack: Dictionary) -> Array[String]:
 	for key: String in ["version", "location_id", "currency_unit", "player_id"]:
 		if not pack.get(key) is String or str(pack.get(key, "")).is_empty():
 			errors.append("Missing/nonempty string required: " + key)
+	for key: String in ["pack_id", "era_id"]:
+		if pack.has(key) and (not pack.get(key) is String or str(pack.get(key, "")).is_empty()):
+			errors.append("Optional string must be nonempty when present: " + key)
+	if pack.has("content_paths") and not pack.content_paths is Dictionary:
+		errors.append("content_paths must be an object")
+	elif pack.has("content_paths"):
+		for path_key: String in pack.content_paths:
+			if not pack.content_paths[path_key] is String or str(pack.content_paths[path_key]).is_empty():
+				errors.append("content_paths entries must be nonempty strings")
+	# legacy required strings
+	for key: String in []:
+		if not pack.get(key) is String or str(pack.get(key, "")).is_empty():
+			errors.append("Missing/nonempty string required: " + key)
 	if not is_integer(pack.get("start_year")):
 		errors.append("start_year must be an integer")
 	if not pack.get("historically_calibrated") is bool:
