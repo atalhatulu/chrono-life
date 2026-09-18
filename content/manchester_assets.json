@@ -9,7 +9,8 @@
       "acquire_cost": 500,
       "base_value": 500,
       "depreciation_permille": 0,
-      "status_value": 2
+      "status_value": 2,
+      "liquidate_permille": 950
     },
     {
       "id": "work_tools",
@@ -22,7 +23,8 @@
       "status_value": 3,
       "skill_bonus": {
         "craftsmanship": 1
-      }
+      },
+      "liquidate_permille": 650
     },
     {
       "id": "heirloom_watch",
@@ -33,7 +35,8 @@
       "base_value": 700,
       "depreciation_permille": 0,
       "status_value": 5,
-      "initial": true
+      "initial": true,
+      "liquidate_permille": 700
     }
   ]
 }
