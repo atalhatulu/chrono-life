@@ -1,5 +1,9 @@
 # Birikim artışı incelemesi — 18 Eylül 2026
 
+> Bu rapor eski aile prototipinin ölçümüdür. Sonraki geliştirmelerde bağımsız
+> haneler, kişisel para ve meslek yaş sınırları eklendi. Güncel bulgular ve para
+> aktarımı düzeltmeleri için [entegrasyon raporuna](INTEGRATION_REVIEW.md) bakın.
+
 Kullanıcı arayüzde altı haneli birikimler gördü. İnceleme, çalışma klasöründeki
 aile sistemi açık Manchester test paketiyle yapıldı. Tutarlar `test_credit`;
 tarihsel sterlin veya bugünkü satın alma gücü olarak yorumlanmamalıdır.

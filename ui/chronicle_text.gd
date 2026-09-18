@@ -4,6 +4,19 @@ extends RefCounted
 const NAMES: Dictionary = {
 	"dependent": "Henüz bir işi yok", "textile_worker": "Dokuma işçisi",
 	"sewing_worker": "Dikiş işçisi", "child_factory_worker": "Fabrika çırağı",
+	"skilled_textile_worker": "Nitelikli dokuma işçisi", "mill_overlooker": "Fabrika gözetmeni",
+	"clerk": "Kâtip", "bookkeeper": "Muhasebe kâtibi",
+	"elementary": "Temel eğitim", "evening_school": "Akşam eğitimi",
+	"precarious": "Kırılgan", "working": "Emekçi", "stable": "Yerleşik",
+	"comfortable": "Rahat", "affluent": "Varlıklı", "unknown": "Henüz belirlenmedi",
+	"income": "Gelir", "wealth": "Birikim ve varlıklar", "occupation": "Meslek",
+	"education": "Eğitim", "housing": "Barınma",
+	"household_use": "Aileyle ortak kullanım", "rented": "Kiralık", "owned": "Mülk",
+	"discipline": "Disiplin", "sociability": "Sosyallik", "curiosity": "Merak",
+	"resilience": "Dayanıklılık", "risk_tolerance": "Risk eğilimi", "empathy": "Empati",
+	"drink": "İçecek", "food": "Yiyecek", "health": "Sağlık", "media": "Yayınlar",
+	"finance": "Mali işler", "leisure": "Boş zaman", "vice": "Alışkanlıklar",
+	"unmarried": "Bekâr", "married": "Evli", "widowed": "Dul", "divorced": "Boşanmış",
 	"none": "Henüz başlamadı", "basic_schooling": "Temel eğitim görüyor",
 	"interrupted": "Eğitimi yarıda kaldı", "completed": "Temel eğitimi tamamladı",
 	"malnutrition": "Yetersiz beslenme", "epidemic_disease": "Salgın hastalık",
@@ -82,15 +95,15 @@ static func page(events: Array, state: Dictionary) -> Dictionary:
 				text = "Hayatın sona erdi." if id == state.meta.player_id else "%s hayatını kaybetti." % who
 				heading = "Bir hayatın son sayfası" if id == state.meta.player_id else "Ailende bir kayıp"
 				level = 10
-			"school_started":
+			"school_started", "education_started":
 				text = "Okula başladın." if id == state.meta.player_id else "%s okula başladı." % who
 				heading = "Yeni bir defter, yeni bir başlangıç"
 				level = 5
-			"school_completed":
+			"school_completed", "education_completed":
 				text = "Temel eğitimini tamamladın." if id == state.meta.player_id else "%s temel eğitimini tamamladı." % who
 				heading = "Öğrendiklerin seninle kalacak"
 				level = 5
-			"school_interrupted":
+			"school_interrupted", "education_interrupted":
 				text = "Çalışmaya başlamak için eğitimine ara verdin." if id == state.meta.player_id else "%s eğitimine ara verdi." % who
 				heading = "Okuldan ayrılırken"
 				level = 6

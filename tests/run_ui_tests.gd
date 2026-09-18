@@ -31,6 +31,13 @@ func run() -> void:
 	check(ui.current_view == "budget" and ui.feed.get_child_count() > 0, "Budget navigation works before first ledger")
 	ui.navigation.life.pressed.emit()
 	check(ui.current_view == "life", "Return to timeline")
+	for view: String in ["education", "career", "health", "housing", "development", "status", "spending"]:
+		ui._open_sections()
+		var section: Button = ui.modal_body.find_child("Section_" + view, true, false)
+		check(section != null, "Additional menu exposes " + view)
+		section.pressed.emit()
+		check(ui.current_view == view and not ui.overlay.visible and ui.feed.get_child_count() > 0, "Additional menu opens " + view)
+	ui.switch_view("life")
 	for index: int in range(25):
 		if not ui.pending_prep.is_empty() or not ui.state.actors[ui.state.meta.player_id].alive:
 			break
@@ -41,6 +48,9 @@ func run() -> void:
 		var year: int = int(ui.state.world.year)
 		check(ui.btn_advance.disabled and ui.decision_panel.visible, "Pending choice blocks next year")
 		check(ui.choice_buttons.size() == ui.pending_prep.storylet.choices.size(), "All real choices are rendered")
+		ui.call_deferred("_run_auto_life")
+		await process_frame
+		check(ui.state.world.year == year and not ui.pending_prep.is_empty(), "AutoLife cannot discard a pending manual decision")
 		var before_navigation: String = JSON.stringify(ui.state)
 		ui.navigation.family.pressed.emit()
 		check(ui.return_to_decision.visible and not ui.decision_panel.visible, "Pending decision has a return action on family view")
@@ -100,7 +110,11 @@ func run() -> void:
 	ui._on_advance_pressed()
 	check(JSON.stringify(ui.state) == death_state, "Ended life cannot advance")
 	ui.switch_view("family")
-	check(ui.feed.get_child_count() == ui.state.actors.size() - 1, "Family view includes later family members and deceased relatives")
+	var represented: Array[String] = []
+	for node: Node in ui.feed.find_children("*", "VBoxContainer", true, false):
+		if node.has_meta("actor_id"):
+			represented.append(str(node.get_meta("actor_id")))
+	check(represented.size() == ui.state.actors.size() - 1, "Family view includes later family members and deceased relatives alongside the new family summaries")
 	ui.switch_view("budget")
 	check(not ui.feed.get_children().is_empty(), "Final budget remains inspectable")
 	root.size = Vector2i(1000, 720)
@@ -114,6 +128,25 @@ func run() -> void:
 	ui._responsive()
 	check(ui.right_panel.visible, "Wide layout restores aside")
 	check(absf(ui.btn_advance.get_global_rect().get_center().x - ui.size.x / 2.0) < 2.0, "Year advance stays centered in the action bar")
+	var memorial_state: String = JSON.stringify(ui.state)
+	ui._meet_new_person()
+	ui._buy_item("doctor_visit")
+	check(JSON.stringify(ui.state) == memorial_state, "Manual actions cannot alter a completed life")
+	ui.start_game(42)
+	ui._on_advance_pressed()
+	ui._on_advance_pressed()
+	var resume_year: int = int(ui.state.world.year)
+	var old_pages: Array = ui.pages.duplicate(true)
+	ui.call_deferred("_run_auto_life")
+	for frame: int in range(4):
+		await process_frame
+	ui.stop_auto_button.pressed.emit()
+	await process_frame
+	await process_frame
+	check(not ui._busy and not ui.stop_auto_button.visible, "Automatic continuation can be stopped between years")
+	check(ui.state.world.year > resume_year and ui.state.meta.status == "running", "Automatic continuation advances the current life without finishing it after stop")
+	check(ui.pages.slice(0, old_pages.size()) == old_pages, "Automatic continuation preserves the existing diary")
+	check(ui.pages.size() == int(ui.state.world.year) - 1850 + 1, "Every automatic year adds a diary page")
 	ui.queue_free()
 	await process_frame
 	print("UI interactions: %d checks, %d failures" % [checks, failures.size()])

@@ -10,8 +10,10 @@ static func calculate(household: Dictionary, actors: Dictionary, economy: Dictio
 	var food: int = 0
 	var living_members: int = 0
 	var essentials: int = 0
+	var resident_earnings: Dictionary = {}
 	for id: String in household.member_ids:
-		income += int(earned_by_actor.get(id, 0))
+		resident_earnings[id] = int(earned_by_actor.get(id, 0))
+		income += resident_earnings[id]
 		var fraction: int = int(participation.get(id, 1000 if actors[id].alive else 0))
 		if fraction > 0:
 			living_members += 1
@@ -41,7 +43,7 @@ static func calculate(household: Dictionary, actors: Dictionary, economy: Dictio
 	var paid: int = rent_paid + food_paid + essentials_paid
 	var food_security: int = 1000 if food == 0 else int(food_paid * 1000.0 / food)
 	return {
-		"earned_by_actor": earned_by_actor.duplicate(true), "earned_income": income,
+		"earned_by_actor": resident_earnings, "earned_income": income,
 		"external_income": external_income, "available_income": available_income,
 		"planned_expenses": planned, "rent_due": rent, "food_due": food,
 		"essentials_due": essentials, "rent_paid": rent_paid, "food_paid": food_paid,

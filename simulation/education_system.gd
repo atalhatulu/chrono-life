@@ -74,6 +74,8 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 		var current_id: String = str(actor.education.current_stage)
 		if current_id == "":
 			for stage: Dictionary in _catalog(state).get("stages", []):
+				if str(stage.id) in actor.education.completed_stages:
+					continue
 				if str(stage.get("enrollment", "")) != "automatic_if_dependent":
 					continue
 				if not _eligible_for_stage(actor, stage):
@@ -93,6 +95,11 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 		var stage: Dictionary = _stage_by_id(state, current_id)
 		if stage.is_empty():
 			_sync_legacy(actor)
+			continue
+		# Enrollment ends at max_age, but graduation can be the next birthday.
+		var completion_age: int = int(stage.get("completion_age", int(stage.get("max_age", 200)) + 1))
+		if int(actor.age) >= completion_age and actor.occupation_id == "dependent":
+			_complete(delta, actor, id, current_id, cause)
 			continue
 		if not _eligible_for_stage(actor, stage) or actor.occupation_id != "dependent":
 			var ev: String = delta.record("education_interrupted", cause, {"actor_id": id, "stage_id": current_id})
@@ -121,13 +128,16 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 		var literacy_gain: int = int(stage.get("literacy_per_year", 0))
 		if literacy_gain > 0:
 			delta.set_field("actors", "literacy", mini(100, int(actor.literacy) + literacy_gain), cause, id)
-		var completion_age: int = int(stage.get("completion_age", int(stage.get("max_age", 200)) + 1))
 		if int(actor.education.progress) >= 100 or int(actor.age) >= completion_age:
-			var ev: String = delta.record("education_completed", cause, {"actor_id": id, "stage_id": current_id})
-			if not actor.education.completed_stages.has(current_id):
-				actor.education.completed_stages.append(current_id)
-			actor.education.current_stage = ""
-			actor.education.progress = 100
-			actor.education.history.append({"year": delta.year, "kind": "completed", "stage_id": current_id})
-			delta.set_field("actors", "education_state", "completed" if current_id == "elementary" else actor.education_state, ev, id)
+			_complete(delta, actor, id, current_id, cause)
 		_sync_legacy(actor)
+
+
+static func _complete(delta: RefCounted, actor: Dictionary, id: String, stage_id: String, cause: String) -> void:
+	var ev: String = delta.record("education_completed", cause, {"actor_id": id, "stage_id": stage_id})
+	if stage_id not in actor.education.completed_stages:
+		actor.education.completed_stages.append(stage_id)
+	actor.education.current_stage = ""
+	actor.education.progress = 100
+	actor.education.history.append({"year": delta.year, "kind": "completed", "stage_id": stage_id})
+	delta.set_field("actors", "education_state", "completed" if stage_id == "elementary" else actor.education_state, ev, id)

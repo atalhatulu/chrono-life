@@ -31,7 +31,7 @@ const Personality = preload("res://simulation/personality_system.gd")
 const Assets = preload("res://simulation/asset_system.gd")
 const SocialStatus = preload("res://simulation/social_status_system.gd")
 const Migration = preload("res://simulation/migration_system.gd")
-const VERSION: String = "0.5.0-phase-1a"
+const VERSION: String = "0.5.1-integration"
 
 var pack: Dictionary
 var occupations: Dictionary
@@ -183,7 +183,7 @@ func validate_state(state: Dictionary) -> Array[String]:
 			errors.append("Invalid age: " + id)
 		if not occupations.has(actor.occupation_id):
 			errors.append("Unknown occupation: " + id)
-		elif actor.alive and (not Career.eligible(actor, occupations[actor.occupation_id], int(actor.age)) or
+		elif actor.alive and (not Career.eligible(actor, occupations[actor.occupation_id], int(actor.age), false) or
 				actor.income != _annual_income(actor.occupation_id, int(state.world.economy_index), int(actor.work_capacity))):
 			errors.append("Invalid occupation/income: " + id)
 		if not actor.alive and (actor.income != 0 or actor.occupation_id != "dependent" or actor.health != 0 or \
@@ -321,6 +321,9 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 	var delta = Delta.new(state, year)
 	var year_event: String = delta.record("year_started", "", {"from_year": state.world.year})
 	delta.set_field("world", "year", year, year_event)
+	PersonalEconomy.begin_year(delta.candidate)
+	Relationships.annual_drift(delta.candidate)
+	Needs.annual_drift(delta.candidate.actors[delta.candidate.meta.player_id])
 	var seed_value: int = str(state.meta.master_seed).to_int()
 	var economy: Dictionary = pack.economy
 	var location_modifiers: Dictionary = state.get("migration", {}).get("world_modifiers", {})
@@ -459,6 +462,9 @@ func step_resolve(prep: Dictionary, choice_id: String = "") -> Dictionary:
 	elif pack.systems.get("storylets", false) and delta.candidate.actors[delta.candidate.meta.player_id].alive:
 		delta.record("quiet_year", budget_event, {"year": year})
 
+	PersonalEconomy.settle_year(delta.candidate)
+	PersonalEconomy.maybe_allowance(delta.candidate)
+	SocialStatus.recompute(delta.candidate)
 	var errors: Array[String] = validate_state(delta.candidate)
 	if not errors.is_empty():
 		return {"ok": false, "errors": errors, "diagnostic_events": delta.events}
@@ -571,11 +577,8 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	if state.meta.status != "running":
 		return {"ok": false, "errors": ["The player's life has already ended"]}
 	var working: Dictionary = state.duplicate(true)
-	PersonalEconomy.begin_year(working)
-	Relationships.annual_drift(working)
 	var social_event: Dictionary = SocialEvents.resolve_one(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
-	Needs.annual_drift(player)
 	var parenting_decision: Dictionary = AutoLife.choose_parenting_action(working, policy_name)
 	if not parenting_decision.is_empty():
 		FamilyDynamics.interact_with_child(working, str(parenting_decision.child_id), str(parenting_decision.action))
@@ -620,8 +623,6 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 			return {"ok": false, "errors": [action_result.error]}
 	var result: Dictionary = step(working, [], {}, policy_name)
 	if result.ok:
-		PersonalEconomy.settle_year(result.state)
-		PersonalEconomy.maybe_allowance(result.state)
 		result.action_id = action_id
 		result.hobby_id = hobby_id
 		result.asset_id = asset_id

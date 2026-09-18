@@ -56,6 +56,13 @@ func run() -> void:
 	await capture("ui_narrow_1000.png")
 	root.size = Vector2i(960, 640)
 	await capture("ui_minimum_960.png")
+	ui._open_sections()
+	await capture("ui_sections_960.png")
+	ui.overlay.hide()
+	for view: String in ["education", "career", "health", "housing", "development", "status", "spending"]:
+		ui.switch_view(view)
+		await capture("ui_" + view + "_960.png")
+	ui.switch_view("life")
 	ui._open_new_game()
 	await capture("ui_restart_960.png")
 	ui.overlay.hide()

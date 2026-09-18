@@ -14,7 +14,8 @@ static func initialize(state: Dictionary) -> void:
 			"owned_items": {},
 			"memberships": {},
 			"last_purchase_year": {},
-			"last_allowance_year": -1
+			"last_allowance_year": -1,
+			"last_settlement_year": -1
 		}
 
 static func normalize(state: Dictionary) -> void:
@@ -68,7 +69,7 @@ static func spend(state: Dictionary, amount: int, category: String, item_id: Str
 static func annual_income_share(state: Dictionary) -> int:
 	normalize(state)
 	var p: Dictionary = state.actors[state.meta.player_id]
-	if not p.alive or int(p.income) <= 0:
+	if not p.alive:
 		return 0
 	var age: int = int(p.age)
 	var permille: int = 0
@@ -78,18 +79,26 @@ static func annual_income_share(state: Dictionary) -> int:
 		permille = 250
 	else:
 		permille = 350
-	return int(int(p.income) * permille / 1000.0)
+	var earned: int = 0
+	if not state.ledgers.is_empty():
+		var ledger: Dictionary = state.ledgers.back()
+		if int(ledger.get("year", -1)) == int(state.world.year):
+			earned = int(ledger.earned_by_actor.get(str(p.id), 0))
+	return int(earned * permille / 1000.0)
 
 static func settle_year(state: Dictionary) -> void:
-	var share: int = annual_income_share(state)
-	if share > 0:
-		grant_income(state, share, "wage_share")
+	normalize(state)
+	var year: int = int(state.world.year)
+	if int(state.personal_economy.get("last_settlement_year", -1)) == year:
+		return
+	state.personal_economy.last_settlement_year = year
+	_transfer_from_household(state, annual_income_share(state), "wage_share")
 
 static func maybe_allowance(state: Dictionary) -> void:
 	normalize(state)
 	var p: Dictionary = state.actors[state.meta.player_id]
 	var year: int = int(state.world.year)
-	if int(p.age) < 7 or int(p.age) > 15:
+	if not p.alive or int(p.age) < 7 or int(p.age) > 15:
 		return
 	if int(state.personal_economy.last_allowance_year) == year:
 		return
@@ -97,5 +106,20 @@ static func maybe_allowance(state: Dictionary) -> void:
 		return
 	var seed: int = str(state.meta.master_seed).to_int()
 	var amount: int = Rng.integer(seed, "personal_economy", year, str(p.id), "allowance", 5, 25)
-	grant_income(state, amount, "allowance")
+	_transfer_from_household(state, amount, "allowance")
 	state.personal_economy.last_allowance_year = year
+
+
+static func _transfer_from_household(state: Dictionary, requested: int, source: String) -> void:
+	# The household pays necessities first; personal allocations cannot create
+	# cash or borrow against an empty family reserve.
+	var amount: int = mini(maxi(0, requested), int(state.household.savings))
+	if amount <= 0:
+		return
+	state.household.savings -= amount
+	grant_income(state, amount, source)
+	state.history.append({
+		"id": "%d:household_transfer:%s:%d" % [int(state.world.year), source, state.history.size()],
+		"year": int(state.world.year), "kind": "household_transfer", "cause_id": "",
+		"details": {"amount": amount, "source": source, "recipient_id": state.meta.player_id}
+	})

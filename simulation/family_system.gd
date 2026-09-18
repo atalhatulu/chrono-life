@@ -72,19 +72,6 @@ static func _next_spouse_id(state: Dictionary) -> String:
 		n += 1
 	return ""
 
-static func _choose_spouse_occupation(pack: Dictionary, spouse_age: int) -> String:
-	var candidates: Array[String] = []
-	for occ: Dictionary in pack.get("occupations", []):
-		if int(occ.get("annual_income", 0)) <= 0:
-			continue
-		if spouse_age < int(occ.get("minimum_age", 0)) or spouse_age > int(occ.get("maximum_age", 200)):
-			continue
-		if int(occ.get("minimum_literacy", 0)) > 45:
-			continue
-		candidates.append(str(occ.id))
-	candidates.sort()
-	return candidates[0] if not candidates.is_empty() else "dependent"
-
 static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: String, seed_value: int) -> String:
 	var state: Dictionary = delta.candidate
 	ensure_state(state)
@@ -106,14 +93,8 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 	var spouse_birth_year: int = clampi(int(player.birth_year) + birth_offset,
 		int(pack.start_year) - 60, delta.year - min_m_age)
 	var spouse_age: int = delta.year - spouse_birth_year
-	var occ_id: String = _choose_spouse_occupation(pack, spouse_age)
-	var economy_index: int = int(state.world.economy_index)
-	var base_wage: int = 0
-	for occ: Dictionary in pack.get("occupations", []):
-		if str(occ.id) == occ_id:
-			base_wage = int(occ.annual_income)
-			break
-	var spouse_wage = int(base_wage * economy_index / 1000.0)
+	var occ_id: String = "dependent"
+	var spouse_wage: int = 0
 
 	var spouse_id: String = _next_spouse_id(state)
 	var spouse: Dictionary = {
@@ -133,8 +114,22 @@ static func create_spouse(delta: RefCounted, pack: Dictionary, cause_event: Stri
 	Skills.initialize_actor(state, spouse)
 	Hobbies.initialize_actor(spouse)
 	Personality.initialize_actor(state, spouse)
+	var jobs: Dictionary = {}
+	for job: Dictionary in pack.occupations:
+		jobs[str(job.id)] = job
+	var eligible_jobs: Array = Career.available_jobs(spouse, jobs, spouse_age)
+	if not eligible_jobs.is_empty():
+		occ_id = str(eligible_jobs[0])
+		spouse_wage = int(int(jobs[occ_id].annual_income) * int(state.world.economy_index) / 1000.0)
+	spouse.occupation_id = occ_id
+	spouse.income = spouse_wage
+	spouse.career.current_job = occ_id
 	state.actors[spouse_id] = spouse
 	_append_unique(state.household.member_ids, spouse_id)
+	# Marriage resolves after this year's ledger; update the active income
+	# and registry without retroactively adding the spouse's annual wages.
+	delta.set_field("household", "income", int(state.household.income) + spouse_wage, cause_event)
+	HouseholdNetwork.sync_primary(state)
 
 	state.family.marital_status = "married"
 	state.family.marriage_year = delta.year

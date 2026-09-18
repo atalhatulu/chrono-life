@@ -18,7 +18,7 @@ static func _completed_education(actor: Dictionary) -> Array:
 		return actor.education.get("completed_stages", [])
 	return []
 
-static func eligible(actor: Dictionary, job: Dictionary, target_age: int) -> bool:
+static func eligible(actor: Dictionary, job: Dictionary, target_age: int, require_work_capacity: bool = true) -> bool:
 	if not actor.alive:
 		return false
 	if target_age < int(job.get("minimum_age", 0)) or target_age > int(job.get("maximum_age", 200)):
@@ -27,7 +27,7 @@ static func eligible(actor: Dictionary, job: Dictionary, target_age: int) -> boo
 		return false
 	if int(job.get("annual_income", 0)) == 0:
 		return true
-	if int(actor.work_capacity) <= 0:
+	if require_work_capacity and int(actor.work_capacity) <= 0:
 		return false
 	var required_skills: Dictionary = job.get("required_skills", {})
 	for skill_id: String in required_skills:
@@ -139,9 +139,6 @@ static func prepare(delta: RefCounted, pack: Dictionary, jobs: Dictionary, cause
 				delta.record("deferred_effect_cancelled", effect.cause_id, {"actor_id": effect.actor_id, "reason": "no_longer_eligible"})
 	delta.set_field("household", "pending_effects", later, cause)
 
-	if not pack.systems.adaptation:
-		return aid
-
 	var ids: Array = state.actors.keys()
 	ids.sort()
 	for id: String in ids:
@@ -152,6 +149,9 @@ static func prepare(delta: RefCounted, pack: Dictionary, jobs: Dictionary, cause
 
 		if not jobs.has(actor.occupation_id) or not eligible(actor, jobs[actor.occupation_id], int(actor.age)):
 			_record_job_end(delta, id, "age_or_qualification", cause)
+
+		if not pack.systems.adaptation:
+			continue
 
 		actor = state.actors[id]
 		if actor.occupation_id != "dependent":

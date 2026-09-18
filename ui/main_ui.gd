@@ -42,6 +42,9 @@ var return_to_decision: Button
 var page_margin: MarginContainer
 var action_dock: HBoxContainer
 var hero_banner: Control
+var more_button: Button
+var stop_auto_button: Button
+var _auto_stop: bool = false
 var error_label: Label
 var overlay: ColorRect
 var modal_body: VBoxContainer
@@ -206,6 +209,9 @@ func _build() -> void:
 	_field(footer_copy, "hint", "Büyük kararları şimdilik ailen veriyor.", 11, Palette.MUTED, false, true)
 	return_to_decision = _button("Karara dön", func(): switch_view("life"), "Ghost", "arrow")
 	footer.add_child(return_to_decision)
+	stop_auto_button = _button("Otomatiği durdur", func(): _auto_stop = true, "Ghost")
+	footer.add_child(stop_auto_button)
+	stop_auto_button.hide()
 	_build_dock(main_column)
 	_build_stats(main_column)
 	_build_modal()
@@ -284,15 +290,13 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["health", "Sağlık", "plus"], ["housing", "Barınma", "home"], ["development", "Gelişim", "book"], ["status", "Statü", "family"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["budget", "Geçim", "wallet"], ["more", "Diğer", "settings"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
 			action = _on_advance_pressed
-		elif key == "auto":
-			action = _run_auto_life
-		elif key == "new":
-			action = _open_new_game
+		elif key == "more":
+			action = _open_sections
 		var button = _button(item[1], action, "Primary" if key == "advance" else "Navigation", item[2])
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -303,11 +307,52 @@ func _build_dock(parent: Node) -> void:
 			button.name = "AdvanceYear"
 			button.custom_minimum_size = Vector2(196, 68)
 			button.add_theme_font_size_override("font_size", 22)
-		elif key == "new":
-			button.name = "NewLife"
+		elif key == "more":
+			more_button = button
 		else:
 			button.name = "Nav_" + key
 			navigation[key] = button
+
+
+func _open_sections() -> void:
+	if _busy:
+		return
+	modal_title.text = "Hayatının diğer sayfaları"
+	_clear(modal_body)
+	seed_input.hide()
+	auto_policy.hide()
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	modal_body.add_child(grid)
+	for item: Array in [["education", "Eğitim"], ["career", "Kariyer"], ["health", "Sağlık"], ["housing", "Barınma"], ["development", "Gelişim"], ["status", "Varlıklar ve statü"], ["spending", "Harcamalar"]]:
+		var key: String = item[0]
+		var button := _button(item[1], func():
+			overlay.hide()
+			switch_view(key))
+		button.name = "Section_" + key
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(button)
+	var auto_button := _button("Oto hayat", _open_auto_life)
+	auto_button.disabled = not pending_prep.is_empty() or state.meta.status != "running"
+	grid.add_child(auto_button)
+	var new_button := _button("Yeni hayat", _open_new_game, "Ghost", "plus")
+	new_button.name = "NewLife"
+	modal_body.add_child(new_button)
+	overlay.show()
+
+
+func _open_auto_life() -> void:
+	if _busy or not pending_prep.is_empty() or state.meta.status != "running":
+		return
+	modal_title.text = "Hayatın devam etsin"
+	_clear(modal_body)
+	seed_input.hide()
+	auto_policy.hide()
+	modal_body.add_child(_label("Şu anki hayatın kaldığı yıldan ilerleyecek. Kararlar ve aktiviteler otomatik seçilecek. İstediğin yıl durdurabilirsin.", 14, Palette.INK, false, true))
+	modal_body.add_child(_button("Otomatik devam et", _run_auto_life, "Primary"))
+	overlay.show()
 
 
 func _build_stats(parent: Node) -> void:
@@ -359,6 +404,8 @@ func _build_modal() -> void:
 
 
 func _open_new_game() -> void:
+	if _busy:
+		return
 	modal_title.text = "Yeni bir hayat"
 	_clear(modal_body)
 	modal_body.add_child(_label("Mevcut hayat kapanacak. Henüz kayıt sistemi yok;\nbaşlangıç sayısıyla aynı hayatı yeniden deneyebilirsin.", 13, Palette.MUTED))
@@ -388,33 +435,31 @@ func _confirm_new_game() -> void:
 
 
 func _run_auto_life() -> void:
-	if runner == null or _busy:
+	if runner == null or _busy or not pending_prep.is_empty() or state.meta.status != "running":
 		return
+	overlay.hide()
 	_busy = true
-	var seed_value: int = str(state.meta.master_seed).to_int()
-	var result: Dictionary = runner.simulate_auto_life(seed_value, "balanced")
+	_auto_stop = false
+	stop_auto_button.show()
+	error_label.hide()
+	current_view = "life"
+	while not _auto_stop and state.meta.status == "running":
+		var result: Dictionary = runner.auto_step(state, "balanced")
+		if not result.ok:
+			_show_error("Otomatik hayat durdu: " + str(result.get("errors", [])))
+			break
+		_accept_result(result)
+		_refresh_ui()
+		# Commit one year per frame so the stop button remains responsive.
+		await get_tree().process_frame
 	_busy = false
-	if not result.ok:
-		_show_error("Otomatik hayat tamamlanamadı: " + str(result.get("errors", [])))
-		return
-	state = result.state
-	pending_prep = {}
-	var summary: Dictionary = result.life_result
-	modal_title.text = "Hayat tamamlandı"
-	_clear(modal_body)
-	seed_input.hide()
-	auto_policy.hide()
-	modal_body.add_child(_label("%s · %d yaş" % [summary.name, summary.age_at_death], 20, Palette.INK, true))
-	modal_body.add_child(_label("Ölüm: %s\nOkuryazarlık: %d\nSon birikim: %d\nBorç: %d\nEvlilik: %s\nÇocuk: %d\nToplam aktivite: %d" % [
-		summary.death_cause if summary.death_cause != "" else "Hayat sınırı",
-		summary.literacy, summary.final_savings, summary.final_debt,
-		summary.marital_status, summary.children, result.actions.size()], 14, Palette.INK, false, true))
-	modal_body.add_child(_label("Aktiviteler: " + str(summary.actions), 12, Palette.MUTED, false, true))
-	overlay.show()
+	stop_auto_button.hide()
 	_refresh_ui()
 
 
 func _open_tools() -> void:
+	if _busy:
+		return
 	modal_title.text = "Geliştirici araçları"
 	_clear(modal_body)
 	seed_input.hide()
@@ -513,7 +558,7 @@ func _refresh_ui() -> void:
 		return
 	var player: Dictionary = state.actors[state.meta.player_id]
 	fields.name.text = player.name
-	fields.age.text = "%d yaş · %s" % [player.age, Words.stage(int(player.age))]
+	fields.age.text = "%d yaş · %s · %d" % [player.age, Words.stage(int(player.age)), state.world.year]
 	fields.location.text = str(state.world.location_id).replace("_", " ").to_upper()
 	fields.year.text = str(state.world.year)
 	fields.initials.text = ""
@@ -528,6 +573,7 @@ func _refresh_ui() -> void:
 		fields[key].text = str(player[key])
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
+	more_button.theme_type_variation = "SelectedNav" if current_view not in navigation else "Navigation"
 	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "health": "Sağlığın ve tedavilerin", "housing": "Nerede ve nasıl yaşadığın", "development": "Becerilerin, kişiliğin ve uğraşların", "status": "Varlıkların, toplumsal konumun ve hareketliliğin", "spending": "Cebindeki para ve harcamalar"}[current_view]
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
@@ -648,6 +694,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		var actor: Dictionary = state.actors[id]
 		var relation_data: Dictionary = state.relationships.people.get(id, {})
 		var column: VBoxContainer = _column(3) if compact else _card(parent)
+		column.set_meta("actor_id", id)
 		if compact:
 			parent.add_child(column)
 		var relation: String = str(relation_data.get("stage", "Aile üyesi"))
@@ -726,7 +773,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 	var family_overview = _card(parent)
 	family_overview.add_child(_label("AİLE GEÇMİŞİ", 10, Palette.MUTED))
 	family_overview.add_child(_label("Durum: %s · Çocuk: %d · Evlilik: %d" % [
-		str(fam.get("marital_status", "unmarried")).replace("_", " ").capitalize(),
+		Words.word(str(fam.get("marital_status", "unmarried"))),
 		int(fam.get("children_count", 0)),
 		fam.get("marriages", []).size()
 	], 13, Palette.INK))
@@ -817,7 +864,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 
 
 func _elder_care_interaction(parent_id: String, interaction: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = FamilyDynamics.care_for_parent(state, parent_id, interaction)
 	if not result.ok:
@@ -827,7 +874,7 @@ func _elder_care_interaction(parent_id: String, interaction: String) -> void:
 
 
 func _parenting_interaction(child_id: String, interaction: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = FamilyDynamics.interact_with_child(state, child_id, interaction)
 	if not result.ok:
@@ -837,7 +884,7 @@ func _parenting_interaction(child_id: String, interaction: String) -> void:
 
 
 func _relationship_interaction(person_id: String, interaction: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = Relationships.interact(state, person_id, interaction)
 	if not result.ok:
@@ -847,7 +894,7 @@ func _relationship_interaction(person_id: String, interaction: String) -> void:
 
 
 func _meet_new_person() -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var id: String = Relationships.meet_person(state)
 	if id == "":
@@ -879,7 +926,7 @@ func _render_housing(parent: Node) -> void:
 	card.add_child(_label("BARINMA DURUMU", 10, Palette.MUTED))
 	card.add_child(_label(str(current.get("label", "Bilinmeyen konut")), 24, Palette.INK, true))
 	card.add_child(_label("Kullanım biçimi: %s · Yıllık maliyet: %d" % [
-		str(housing.get("tenure", "")).replace("_", " "),
+		Words.word(str(housing.get("tenure", ""))),
 		int(current.get("annual_cost", 0))
 	], 12, Palette.MUTED))
 	card.add_child(_label("Kalite %d · Hijyen %d · Güvenlik %d · Mahremiyet %d" % [
@@ -913,7 +960,7 @@ func _render_housing(parent: Node) -> void:
 
 
 func _move_housing(dwelling_id: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = Housing.move_to(state, dwelling_id)
 	if not result.ok:
@@ -936,7 +983,7 @@ func _render_health(parent: Node) -> void:
 		for condition_id: String in player.conditions:
 			var condition: Dictionary = player.conditions[condition_id]
 			card.add_child(_label("%s · Şiddet %d" % [
-				condition_id.replace("_", " ").capitalize(),
+				Words.word(condition_id),
 				int(condition.get("severity", 50))
 			], 14, Palette.INK, true))
 	var disabilities: Array = profile.get("disabilities", [])
@@ -975,7 +1022,7 @@ func _render_health(parent: Node) -> void:
 
 
 func _take_treatment(treatment_id: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = Treatments.apply(state, treatment_id)
 	if not result.ok:
@@ -990,7 +1037,7 @@ func _render_career(parent: Node) -> void:
 	var card = _card(parent)
 	card.add_child(_label("KARİYER DURUMU", 10, Palette.MUTED))
 	var occupation: String = str(player.occupation_id)
-	var title: String = "Çalışmıyor" if occupation == "dependent" else occupation.replace("_", " ").capitalize()
+	var title: String = "Çalışmıyor" if occupation == "dependent" else Words.word(occupation)
 	card.add_child(_label(title, 24, Palette.INK, true))
 	card.add_child(_label("Yıllık gelir: %d" % int(player.income), 13, Palette.MUTED))
 	for item: Array in [
@@ -1035,7 +1082,7 @@ func _render_education(parent: Node) -> void:
 	var current_stage: String = str(education.get("current_stage", ""))
 	var title = "Şu anda eğitim almıyor"
 	if current_stage != "":
-		title = current_stage.replace("_", " ").capitalize()
+		title = Words.word(current_stage)
 	card.add_child(_label(title, 24, Palette.INK, true))
 	var attendance: int = int(education.get("attendance", 0))
 	var performance: int = int(education.get("performance", 0))
@@ -1051,7 +1098,7 @@ func _render_education(parent: Node) -> void:
 		var completed_card = _card(parent)
 		completed_card.add_child(_label("TAMAMLANAN EĞİTİMLER", 10, Palette.MUTED))
 		for stage_id: Variant in completed:
-			completed_card.add_child(_label(str(stage_id).replace("_", " ").capitalize(), 14, Palette.INK))
+			completed_card.add_child(_label(Words.word(str(stage_id)), 14, Palette.INK))
 	var history: Array = education.get("history", [])
 	if not history.is_empty():
 		var history_card = _card(parent)
@@ -1090,7 +1137,7 @@ func _render_development(parent: Node) -> void:
 	for axis_id: String in axis_ids:
 		var row = _row()
 		personality_card.add_child(row)
-		row.add_child(_label(axis_id.replace("_", " ").capitalize(), 13, Palette.INK))
+		row.add_child(_label(Words.word(axis_id), 13, Palette.INK))
 		_spacer(row)
 		row.add_child(_label("%d" % int(axes[axis_id]), 15, Palette.INK, true))
 	if not player.get("traits", []).is_empty():
@@ -1115,7 +1162,7 @@ func _render_development(parent: Node) -> void:
 
 
 func _practice_hobby(hobby_id: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = Hobbies.practice(state, str(state.meta.player_id), hobby_id, "manual")
 	if not result.ok:
@@ -1128,7 +1175,7 @@ func _render_status(parent: Node) -> void:
 	var status: Dictionary = state.get("social_status", {})
 	var status_card = _card(parent)
 	status_card.add_child(_label("TOPLUMSAL KONUM", 10, Palette.MUTED))
-	status_card.add_child(_label(str(status.get("band_id", "unknown")).replace("_", " ").capitalize(), 25, Palette.INK, true))
+	status_card.add_child(_label(Words.word(str(status.get("band_id", "unknown"))), 25, Palette.INK, true))
 	status_card.add_child(_label("Skor: %d / 100" % int(status.get("score", 0)), 13, Palette.MUTED))
 	var components: Dictionary = status.get("components", {})
 	var component_keys: Array = components.keys()
@@ -1136,7 +1183,7 @@ func _render_status(parent: Node) -> void:
 	for key: String in component_keys:
 		var row = _row()
 		status_card.add_child(row)
-		row.add_child(_label(key.replace("_", " ").capitalize(), 12, Palette.MUTED))
+		row.add_child(_label(Words.word(key), 12, Palette.MUTED))
 		_spacer(row)
 		row.add_child(_label(str(components[key]), 13, Palette.INK, true))
 
@@ -1200,7 +1247,7 @@ func _render_status(parent: Node) -> void:
 
 
 func _acquire_asset(asset_id: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = Assets.acquire(state, asset_id)
 	if not result.ok:
@@ -1211,7 +1258,7 @@ func _acquire_asset(asset_id: String) -> void:
 
 
 func _liquidate_asset(asset_id: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = Assets.liquidate(state, asset_id)
 	if not result.ok:
@@ -1222,7 +1269,7 @@ func _liquidate_asset(asset_id: String) -> void:
 
 
 func _migrate_to(destination_id: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = Migration.move_to(state, destination_id)
 	if not result.ok:
@@ -1264,7 +1311,7 @@ func _render_spending(parent: Node) -> void:
 		return
 	for category: String in categories:
 		var card = _card(parent)
-		card.add_child(_label(category.to_upper(), 10, Palette.RUST))
+		card.add_child(_label(Words.word(category).to_upper(), 10, Palette.RUST))
 		for item: Dictionary in grouped[category]:
 			var row = _row(10)
 			card.add_child(row)
@@ -1278,7 +1325,7 @@ func _render_spending(parent: Node) -> void:
 
 
 func _buy_item(item_id: String) -> void:
-	if _busy or not pending_prep.is_empty():
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	var result: Dictionary = Purchases.purchase(state, item_id)
 	if not result.ok:
@@ -1294,11 +1341,12 @@ func _render_sidebar() -> void:
 	side_info.add_child(_label(Words.word(str(state.household.living_standard)), 20, Palette.INK, true, true))
 	var summary = _row(16)
 	side_info.add_child(summary)
-	for item: Array in [["BİRİKİM", state.household.savings], ["BORÇ", state.household.debt], ["CEBİN", state.get("personal_economy", {}).get("cash", 0)]]:
+	for item: Array in [["BİRİKİM", state.household.savings], ["BORÇ", state.household.debt]]:
 		var value = _column(2)
 		summary.add_child(value)
 		value.add_child(_label(item[0], 9, Palette.MUTED))
 		value.add_child(_label(str(item[1]), 24, Palette.INK, true))
+	side_info.add_child(_label("Cebindeki para: %d" % int(state.get("personal_economy", {}).get("cash", 0)), 13, Palette.MUTED))
 	side_info.add_child(_button("Bütçeyi incele", func(): switch_view("budget"), "Ghost"))
 	side_info.add_child(HSeparator.new())
 	side_info.add_child(_label("YANINDAKİ İNSANLAR", 10, Palette.MUTED))

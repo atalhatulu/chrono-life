@@ -232,6 +232,10 @@ func _initialize() -> void:
 	var first: Dictionary = runner.simulate_auto_life(42, "balanced")
 	var again: Dictionary = runner.simulate_auto_life(42, "balanced")
 	check(first.ok and again.ok, "AutoLife completes without simulation errors")
+	if not first.ok or not again.ok:
+		printerr(first.get("errors", []), again.get("errors", []))
+		quit(1)
+		return
 	check(first.fingerprint == again.fingerprint, "AutoLife is deterministic for same seed and policy")
 	check(first.life_result.has("actions"), "Death summary contains action history")
 	check(first.life_result.has("personal_spending"), "Death summary includes personal spending")
