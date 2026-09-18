@@ -5,6 +5,8 @@ const Runner = preload("res://simulation/simulation_runner.gd")
 const Actions = preload("res://simulation/life_action_system.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
 const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
+const Relationships = preload("res://simulation/relationship_system.gd")
+const SocialEvents = preload("res://simulation/social_event_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -27,6 +29,17 @@ func _initialize() -> void:
 	check(state.actors.player.has("education"), "Initial player has generic education state")
 	check(state.actors.player.has("career"), "Initial player has generic career state")
 	check(str(state.meta.get("relationships_path", "")) != "", "Relationship content path is carried into state")
+	state.actors.player.age = 16
+	state.world.year = state.actors.player.birth_year + 16
+	var social_id := Relationships.meet_person(state, "social_venue")
+	check(social_id != "", "Relationship system can create era-specific encounters")
+	if social_id != "":
+		state.relationships.people[social_id].closeness = 75
+		state.relationships.people[social_id].trust = 70
+		state.relationships.people[social_id].conflict = 65
+		var social_event := SocialEvents.resolve_one(state)
+		check(not social_event.is_empty(), "Relationship state can produce a social event")
+		check(state.history.any(func(e): return e.kind == "social_event"), "Social events are written to life history")
 	check(str(state.meta.get("education_path", "")) != "", "Education content path is carried into state")
 	check(Actions.available_actions(state).has("rest"), "Rest is available from birth")
 	check(not Actions.available_actions(state).has("work_hard"), "Infant cannot work hard")
