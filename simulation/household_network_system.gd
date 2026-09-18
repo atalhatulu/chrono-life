@@ -4,14 +4,15 @@ static func initialize(state: Dictionary) -> void:
 	if not state.has("households") or not state.households is Dictionary:
 		state.households = {}
 	var primary_id := str(state.household.id)
-	state.households[primary_id] = {
-		"id": primary_id,
-		"member_ids": state.household.member_ids.duplicate(),
-		"location_id": str(state.household.location_id),
-		"kind": "primary",
-		"formed_year": int(state.world.year),
-		"active": true
-	}
+	if not state.households.has(primary_id):
+		state.households[primary_id] = {
+			"id": primary_id,
+			"member_ids": state.household.member_ids.duplicate(),
+			"location_id": str(state.household.location_id),
+			"kind": "primary",
+			"formed_year": int(state.world.year),
+			"active": true
+		}
 
 static func sync_primary(state: Dictionary) -> void:
 	initialize(state)
