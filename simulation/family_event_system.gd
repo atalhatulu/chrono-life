@@ -89,9 +89,4 @@ static func _apply(state: Dictionary, event: Dictionary) -> Dictionary:
 			title = "Kardeş dayanışması"
 			text = "Çocukların zor bir anda birbirine destek oldu."
 	state.family.history.append({"year":int(state.world.year),"kind":kind,"subject_id":subject})
-	state.history.append({
-		"id":"%d:family_event:%s:%d" % [int(state.world.year), kind, state.history.size()],
-		"year":int(state.world.year),"kind":"family_event","cause_id":"",
-		"details":{"event_type":kind,"subject_id":subject,"title":title,"text":text}
-	})
 	return {"type":kind,"subject_id":subject,"title":title,"text":text}
