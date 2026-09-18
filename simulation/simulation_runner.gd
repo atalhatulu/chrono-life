@@ -323,19 +323,22 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 	delta.set_field("world", "year", year, year_event)
 	var seed_value: int = str(state.meta.master_seed).to_int()
 	var economy: Dictionary = pack.economy
+	var location_modifiers: Dictionary = state.get("migration", {}).get("world_modifiers", {})
 	var economy_index: int = clampi(int(state.world.economy_index) + Rng.integer(seed_value,
 		"world", year, str(state.world.location_id), "economy", -int(economy.annual_drift),
-		int(economy.annual_drift)), int(economy.minimum_index), int(economy.maximum_index))
+		int(economy.annual_drift)) + int(location_modifiers.get("economy_index", 0)), int(economy.minimum_index), int(economy.maximum_index))
 	var food_index: int = clampi(int(state.world.food_price_index) + Rng.integer(seed_value,
 		"world", year, str(state.world.location_id), "food", -int(economy.food_annual_drift),
-		int(economy.food_annual_drift)), int(economy.food_minimum_index), int(economy.food_maximum_index))
+		int(economy.food_annual_drift)) + int(location_modifiers.get("food_price_index", 0)), int(economy.food_minimum_index), int(economy.food_maximum_index))
 	var world_event: String = delta.record("world_changed", year_event,
 		{"economy_index": economy_index, "food_price_index": food_index})
 	delta.set_field("world", "economy_index", economy_index, world_event)
 	delta.set_field("world", "food_price_index", food_index, world_event)
 	for entry: Array in [["disease_pressure", "disease"], ["employment_pressure", "employment"]]:
-		delta.set_field("world", entry[0], Rng.integer(seed_value, "world", year, str(state.world.location_id),
-			entry[0], int(pack.world_rules[entry[1] + "_min"]), int(pack.world_rules[entry[1] + "_max"])), world_event)
+		var rolled_pressure := Rng.integer(seed_value, "world", year, str(state.world.location_id),
+			entry[0], int(pack.world_rules[entry[1] + "_min"]), int(pack.world_rules[entry[1] + "_max"]))
+		rolled_pressure = clampi(rolled_pressure + int(location_modifiers.get(entry[0], 0)), 0, 1000)
+		delta.set_field("world", entry[0], rolled_pressure, world_event)
 	var earned: Dictionary = {}
 	var participation: Dictionary = {}
 	var actor_ids: Array = state.actors.keys()
