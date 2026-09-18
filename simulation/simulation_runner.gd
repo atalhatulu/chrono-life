@@ -17,6 +17,7 @@ const AutoLife = preload("res://simulation/auto_life_controller.gd")
 const LifeSummary = preload("res://simulation/life_summary.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
+const Purchases = preload("res://simulation/purchase_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -457,6 +458,11 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	Relationships.annual_drift(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
 	Needs.annual_drift(player)
+	var purchase_id: String = AutoLife.choose_purchase(working, policy_name)
+	if purchase_id != "":
+		var purchase_result: Dictionary = Purchases.purchase(working, purchase_id)
+		if not purchase_result.ok:
+			return {"ok": false, "errors": [purchase_result.error]}
 	var action_id: String = AutoLife.choose_action(working, policy_name)
 	if action_id != "":
 		var action_result: Dictionary = LifeActions.apply(working, action_id)
@@ -467,22 +473,26 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		PersonalEconomy.settle_year(result.state)
 		PersonalEconomy.maybe_allowance(result.state)
 		result.action_id = action_id
+		result.purchase_id = purchase_id
 	return result
 
 
 func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Dictionary:
 	var state: Dictionary = initial_state(seed_value)
 	var actions: Array = []
+	var purchases: Array = []
 	while state.meta.status == "running":
 		if int(state.world.year) - int(pack.start_year) >= int(pack.limits.max_years):
 			break
 		var result: Dictionary = auto_step(state, policy_name)
 		if not result.ok:
 			return result
+		if str(result.get("purchase_id", "")) != "":
+			purchases.append({"year": int(result.state.world.year), "item_id": result.purchase_id})
 		if str(result.get("action_id", "")) != "":
 			actions.append({"year": int(result.state.world.year), "action_id": result.action_id})
 		state = result.state
 	var player: Dictionary = state.actors[state.meta.player_id]
 	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
-		"state": state, "actions": actions, "life_result": LifeSummary.build(state),
+		"state": state, "actions": actions, "purchases": purchases, "life_result": LifeSummary.build(state),
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
