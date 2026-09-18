@@ -17,11 +17,11 @@ static func choose_action(state: Dictionary, policy: String = "balanced") -> Str
 		return ""
 	var p: Dictionary = state.actors[state.meta.player_id]
 	var defs: Dictionary = Actions.actions_by_id(state)
-	var best := ids[0]
-	var best_score := -999999
+	var best: String = ids[0]
+	var best_score: int = -999999
 	for id: String in ids:
-		var score := _utility(defs.get(id, {}), p, state, policy)
-		var noise := Rng.integer(str(state.meta.master_seed).to_int(), "autolife",
+		var score: int = _utility(defs.get(id, {}), p, state, policy)
+		var noise: int = Rng.integer(str(state.meta.master_seed).to_int(), "autolife",
 			int(state.world.year), str(p.id), id, -5, 5)
 		score += noise
 		if score > best_score:
@@ -32,7 +32,7 @@ static func choose_action(state: Dictionary, policy: String = "balanced") -> Str
 static func _utility(action: Dictionary, p: Dictionary, state: Dictionary, policy: String) -> int:
 	var n: Dictionary = p.get("needs", {})
 	var tags: Array = action.get("ai_tags", [])
-	var score := 10
+	var score: int = 10
 	if "recovery" in tags:
 		score += (100 - int(n.get("energy", 70))) + int(n.get("stress", 20))
 	if "health" in tags:
@@ -86,12 +86,12 @@ static func choose_purchase(state: Dictionary, policy: String = "balanced") -> S
 		return ""
 	var p: Dictionary = state.actors[state.meta.player_id]
 	var n: Dictionary = p.get("needs", {})
-	var cash := int(state.personal_economy.cash)
-	var best_id := ""
-	var best_score := 0
+	var cash: int = int(state.personal_economy.cash)
+	var best_id: String = ""
+	var best_score: int = 0
 	for item: Dictionary in options:
 		var effects: Dictionary = item.get("effects", {})
-		var score := 0
+		var score: int = 0
 		score += int(effects.get("health", 0)) * (3 if int(p.health) < 60 else 1)
 		score += int(effects.get("literacy", 0)) * (3 if "education_first" in p.get("traits", []) else 2)
 		score += int(effects.get("happiness", 0)) * (2 if int(n.get("happiness", 55)) < 50 else 1)
@@ -99,7 +99,7 @@ static func choose_purchase(state: Dictionary, policy: String = "balanced") -> S
 		score += int(effects.get("social", 0)) * (2 if int(n.get("social", 50)) < 45 else 1)
 		score += int(effects.get("energy", 0))
 		score += int(effects.get("willpower", 0))
-		var cost := int(item.cost)
+		var cost: int = int(item.cost)
 		score -= int(cost * 18.0 / maxi(cash, 1))
 		if str(item.category) == "finance" and policy == "pragmatic":
 			score += 12
@@ -107,7 +107,7 @@ static func choose_purchase(state: Dictionary, policy: String = "balanced") -> S
 			score += 15
 		if str(item.category) == "vice" and "education_first" in p.get("traits", []):
 			score -= 12
-		var noise := Rng.integer(str(state.meta.master_seed).to_int(), "purchase_ai",
+		var noise: int = Rng.integer(str(state.meta.master_seed).to_int(), "purchase_ai",
 			int(state.world.year), str(p.id), str(item.id), -3, 3)
 		score += noise
 		if score > best_score:
@@ -119,7 +119,7 @@ static func choose_purchase(state: Dictionary, policy: String = "balanced") -> S
 static func choose_relationship_action(state: Dictionary, policy: String = "balanced") -> Dictionary:
 	Relationships.normalize(state)
 	var p: Dictionary = state.actors[state.meta.player_id]
-	var social_need := int(p.get("needs", {}).get("social", 50))
+	var social_need: int = int(p.get("needs", {}).get("social", 50))
 	var candidates: Array[String] = []
 	for id: String in state.relationships.people:
 		var rel: Dictionary = state.relationships.people[id]
@@ -130,11 +130,11 @@ static func choose_relationship_action(state: Dictionary, policy: String = "bala
 			return {"action": "meet", "person_id": ""}
 		return {}
 	candidates.sort()
-	var best_id := ""
-	var best_score := -999999
+	var best_id: String = ""
+	var best_score: int = -999999
 	for id: String in candidates:
 		var rel: Dictionary = state.relationships.people[id]
-		var score := int(rel.closeness) + int(rel.trust) + int(rel.compatibility) - int(rel.conflict)
+		var score: int = int(rel.closeness) + int(rel.trust) + int(rel.compatibility) - int(rel.conflict)
 		if rel.stage in ["romantic_interest", "dating"]:
 			score += int(rel.attraction)
 		if score > best_score:
@@ -151,7 +151,7 @@ static func choose_relationship_action(state: Dictionary, policy: String = "bala
 		return {"action": "spend_time", "person_id": best_id}
 	if policy == "pragmatic" and int(rel.trust) < 45:
 		return {"action": "talk", "person_id": best_id}
-	var roll := Rng.integer(str(state.meta.master_seed).to_int(), "social_ai",
+	var roll: int = Rng.integer(str(state.meta.master_seed).to_int(), "social_ai",
 		int(state.world.year), str(p.id), best_id, 0, 99)
 	if roll < 45:
 		return {"action": "talk", "person_id": best_id}
@@ -165,21 +165,21 @@ static func choose_treatment(state: Dictionary, policy: String = "balanced") -> 
 	if options.is_empty():
 		return ""
 	var p: Dictionary = state.actors[state.meta.player_id]
-	var severity_total := 0
+	var severity_total: int = 0
 	for id: String in p.conditions:
 		severity_total += int(p.conditions[id].get("severity", 50))
 	if severity_total < 35 and int(p.health) >= 70:
 		return ""
-	var best_id := ""
-	var best_score := -999999
+	var best_id: String = ""
+	var best_score: int = -999999
 	for t: Dictionary in options:
-		var score := int(t.get("success_bp", 0)) / 100
+		var score: int = int(t.get("success_bp", 0)) / 100
 		score += int(t.get("severity_reduction", 0)) * 2
 		score += int(t.get("health_restore", 0))
 		score -= int(t.get("cost", 0))
 		if policy == "pragmatic":
 			score -= int(t.get("cost", 0)) / 2
-		var noise := Rng.integer(str(state.meta.master_seed).to_int(), "treatment_ai",
+		var noise: int = Rng.integer(str(state.meta.master_seed).to_int(), "treatment_ai",
 			int(state.world.year), str(p.id), str(t.id), -3, 3)
 		score += noise
 		if score > best_score:
@@ -198,12 +198,12 @@ static func choose_parenting_action(state: Dictionary, policy: String = "balance
 	if children.is_empty():
 		return {}
 	children.sort()
-	var best_id := ""
-	var best_score := -999999
+	var best_id: String = ""
+	var best_score: int = -999999
 	for child_id: String in children:
 		var child: Dictionary = state.actors[child_id]
 		var parenting: Dictionary = state.family.get("parenting", {}).get(child_id, {})
-		var score := 0
+		var score: int = 0
 		score += 100 - int(parenting.get("support", 55))
 		score += int(child.get("needs", {}).get("stress", 20))
 		if str(child.household_id) == str(state.household.id):
@@ -229,10 +229,10 @@ static func choose_parenting_action(state: Dictionary, policy: String = "balance
 static func choose_elder_care_action(state: Dictionary, policy: String = "balanced") -> Dictionary:
 	if not state.has("family"):
 		return {}
-	var player_id := str(state.meta.player_id)
+	var player_id: String = str(state.meta.player_id)
 	var parents: Array = state.family.get("kinship", {}).get(player_id, {}).get("parents", [])
-	var target := ""
-	var best_need := -1
+	var target: String = ""
+	var best_need: int = -1
 	for parent_id: String in parents:
 		if not state.actors.has(parent_id):
 			continue
@@ -240,7 +240,7 @@ static func choose_elder_care_action(state: Dictionary, policy: String = "balanc
 		if not parent.alive or (int(parent.age) < 60 and int(parent.health) >= 55):
 			continue
 		var care: Dictionary = state.family.get("elder_care", {}).get(parent_id, {})
-		var need := (100 - int(parent.health)) + maxi(0, 60 - int(care.get("care", 0)))
+		var need: int = (100 - int(parent.health)) + maxi(0, 60 - int(care.get("care", 0)))
 		if need > best_need:
 			best_need = need
 			target = parent_id
@@ -261,10 +261,10 @@ static func choose_hobby(state: Dictionary, policy: String = "balanced") -> Stri
 	var p: Dictionary = state.actors[state.meta.player_id]
 	var axes: Dictionary = p.get("personality", {}).get("axes", {})
 	var needs: Dictionary = p.get("needs", {})
-	var best_id := ""
-	var best_score := -999999
+	var best_id: String = ""
+	var best_score: int = -999999
 	for hobby: Dictionary in options:
-		var score := 10
+		var score: int = 10
 		var tags: Array = hobby.get("tags", [])
 		if "learning" in tags:
 			score += int(axes.get("curiosity", 50)) / 2
@@ -280,7 +280,7 @@ static func choose_hobby(state: Dictionary, policy: String = "balanced") -> Stri
 		score += int(existing.get("mastery", 0)) / 4
 		if policy == "education_first" and "learning" in tags:
 			score += 15
-		var noise := Rng.integer(str(state.meta.master_seed).to_int(), "hobby_ai",
+		var noise: int = Rng.integer(str(state.meta.master_seed).to_int(), "hobby_ai",
 			int(state.world.year), str(p.id), str(hobby.id), -4, 4)
 		score += noise
 		if score > best_score:
@@ -293,13 +293,13 @@ static func choose_asset(state: Dictionary, policy: String = "balanced") -> Stri
 	var options: Array[Dictionary] = Assets.available_assets(state)
 	if options.is_empty():
 		return ""
-	var cash := int(state.personal_economy.cash)
-	var best_id := ""
-	var best_score := -999999
+	var cash: int = int(state.personal_economy.cash)
+	var best_id: String = ""
+	var best_score: int = -999999
 	for asset: Dictionary in options:
 		var cost := int(asset.get("acquire_cost", 0))
-		var value := int(asset.get("base_value", cost))
-		var score := int(asset.get("status_value", 0)) * 3 + maxi(0, value - cost) / 50
+		var value: int = int(asset.get("base_value", cost))
+		var score: int = int(asset.get("status_value", 0)) * 3 + maxi(0, value - cost) / 50
 		if str(asset.get("category", "")) == "productive":
 			score += 20
 		if policy == "pragmatic" and str(asset.get("category", "")) in ["productive", "financial"]:
@@ -316,11 +316,11 @@ static func choose_migration(state: Dictionary, policy: String = "balanced") -> 
 	if options.is_empty():
 		return ""
 	var p: Dictionary = state.actors[state.meta.player_id]
-	var best_id := ""
-	var best_score := -999999
+	var best_id: String = ""
+	var best_score: int = -999999
 	for destination: Dictionary in options:
-		var employment_modifier := int(destination.get("world_modifiers", {}).get("employment_pressure", 0))
-		var score := employment_modifier / 5
+		var employment_modifier: int = int(destination.get("world_modifiers", {}).get("employment_pressure", 0))
+		var score: int = employment_modifier / 5
 		score -= int(destination.get("move_cost", 0)) / 100
 		if int(state.household.debt) > 1000:
 			score += employment_modifier / 3
