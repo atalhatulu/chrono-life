@@ -687,7 +687,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 							"apologize": "Özür dile"
 						}[action], func(): _relationship_interaction(person_id, interaction), "Ghost"))
 					if id in state.family.get("children_ids", []):
-						var parenting := state.family.get("parenting", {}).get(id, {})
+						var parenting: Dictionary = state.family.get("parenting", {}).get(id, {})
 						column.add_child(_label("Ebeveynlik · İlgi %d · Destek %d · Disiplin %d · Çatışma %d" % [
 							int(parenting.get("involvement", 55)), int(parenting.get("support", 55)),
 							int(parenting.get("discipline", 50)), int(parenting.get("conflict", 10))
