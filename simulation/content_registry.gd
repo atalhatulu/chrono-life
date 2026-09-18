@@ -13,8 +13,36 @@ static func load_pack(path: String = DEFAULT_PATH) -> Dictionary:
 			[parser.get_error_line(), parser.get_error_message()]]}
 	if not parser.data is Dictionary:
 		return {"ok": false, "errors": ["Content root must be an object"]}
-	var errors: Array[String] = validate(parser.data)
-	return {"ok": errors.is_empty(), "errors": errors, "pack": parser.data}
+	var pack: Dictionary = parser.data
+	var hydration: Dictionary = _hydrate_external_catalogs(pack)
+	if not hydration.ok:
+		return {"ok": false, "errors": hydration.errors}
+	var errors: Array[String] = validate(pack)
+	return {"ok": errors.is_empty(), "errors": errors, "pack": pack}
+
+
+static func _load_json_dictionary(path: String) -> Dictionary:
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return {"ok": false, "errors": ["Cannot read external content: " + path]}
+	var parser := JSON.new()
+	if parser.parse(file.get_as_text()) != OK or not parser.data is Dictionary:
+		return {"ok": false, "errors": ["Invalid external content: " + path]}
+	return {"ok": true, "data": parser.data}
+
+
+static func _hydrate_external_catalogs(pack: Dictionary) -> Dictionary:
+	var paths: Dictionary = pack.get("content_paths", {})
+	if not paths is Dictionary:
+		return {"ok": true}
+	if paths.has("careers"):
+		var loaded := _load_json_dictionary(str(paths.careers))
+		if not loaded.ok:
+			return loaded
+		if not loaded.data.get("jobs") is Array or loaded.data.jobs.is_empty():
+			return {"ok": false, "errors": ["Career catalog requires nonempty jobs array"]}
+		pack.occupations = loaded.data.jobs.duplicate(true)
+	return {"ok": true}
 
 
 static func is_integer(value: Variant) -> bool:
