@@ -1,0 +1,75 @@
+{
+  "version": "manchester_skills_0.1.0",
+  "design_note": "Minimal period test content for generic skill progression.",
+  "skills": [
+    {
+      "id": "literacy",
+      "label": "Okuryazarlık",
+      "category": "cognitive",
+      "max_level": 100
+    },
+    {
+      "id": "numeracy",
+      "label": "Hesap",
+      "category": "cognitive",
+      "max_level": 100
+    },
+    {
+      "id": "craftsmanship",
+      "label": "El becerisi",
+      "category": "practical",
+      "max_level": 100
+    },
+    {
+      "id": "social_confidence",
+      "label": "Sosyal güven",
+      "category": "social",
+      "max_level": 100
+    },
+    {
+      "id": "work_discipline",
+      "label": "Çalışma disiplini",
+      "category": "work",
+      "max_level": 100
+    },
+    {
+      "id": "physical_conditioning",
+      "label": "Fiziksel dayanıklılık",
+      "category": "physical",
+      "max_level": 100
+    }
+  ],
+  "action_skill_xp": {
+    "play": {
+      "physical_conditioning": 6,
+      "social_confidence": 4
+    },
+    "study": {
+      "literacy": 10,
+      "numeracy": 7,
+      "work_discipline": 4
+    },
+    "family_time": {
+      "social_confidence": 5
+    },
+    "socialize": {
+      "social_confidence": 9
+    },
+    "self_education": {
+      "literacy": 8,
+      "numeracy": 5,
+      "work_discipline": 4
+    },
+    "work_hard": {
+      "work_discipline": 10,
+      "craftsmanship": 5,
+      "physical_conditioning": 3
+    },
+    "cheap_leisure": {
+      "social_confidence": 5
+    },
+    "buy_book": {
+      "literacy": 9
+    }
+  }
+}
