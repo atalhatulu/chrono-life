@@ -648,6 +648,10 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 			relation = "Eski eşin"
 		elif id.begins_with("child"):
 			relation = "Çocuğun"
+		elif id.begins_with("grandchild"):
+			relation = "Torunun"
+		elif id.begins_with("partner_child") or id.begins_with("partner_"):
+			relation = "Çocuğunun eşi"
 		column.add_child(_label(relation.to_upper(), 9, Palette.MUTED))
 		column.add_child(_label(str(actor.name), 15 if compact else 21, Palette.INK, true, true))
 		var residence := "Aynı hanede" if str(actor.get("household_id", "")) == str(state.household.id) else "Ayrı hanede"
