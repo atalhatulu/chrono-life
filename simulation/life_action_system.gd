@@ -3,6 +3,9 @@ extends RefCounted
 const Needs = preload("res://simulation/needs_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
+const Skills = preload("res://simulation/skill_system.gd")
+const Hobbies = preload("res://simulation/hobby_system.gd")
+const Personality = preload("res://simulation/personality_system.gd")
 
 static var _catalog_cache: Dictionary = {}
 
@@ -69,12 +72,15 @@ static func apply(state: Dictionary, action_id: String) -> Dictionary:
 	for key: String in ["happiness", "stress", "social", "energy"]:
 		if effects.has(key):
 			player.needs[key] = clampi(int(player.needs[key]) + int(effects[key]), 0, 100)
+	Skills.apply_action(state, str(player.id), action_id)
+	Hobbies.apply_action_link(state, str(player.id), action_id)
+	Personality.apply_action(state, str(player.id), action_id)
 	for hook: String in action.get("hooks", []):
 		if hook == "family_time":
 			Relationships.spend_time_with_family(state)
 		elif hook == "socialize":
 			Relationships.socialize(state)
-	state.history.append({"id": "%d:life_action:%s" % [int(state.world.year), action_id],
+	state.history.append({"id": "%d:life_action:%s:%d" % [int(state.world.year), action_id, state.history.size()],
 		"year": int(state.world.year), "kind": "life_action", "cause_id": "",
 		"details": {"actor_id": player.id, "action_id": action_id}})
 	return {"ok": true, "action_id": action_id}
