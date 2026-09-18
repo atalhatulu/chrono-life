@@ -166,8 +166,8 @@ static func _create_descendant_partner(state: Dictionary, child_id: String, seed
 		"literacy": int(child.literacy),
 		"conditions": {},
 		"education_state": str(child.education_state),
-		"occupation_id": str(child.occupation_id),
-		"income": int(child.income),
+		"occupation_id": "dependent",
+		"income": 0,
 		"work_capacity": 1000,
 		"household_id": str(child.household_id),
 		"traits": []
