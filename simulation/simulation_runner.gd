@@ -103,6 +103,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"year": int(pack.start_year), "kind": "household_created", "cause_id": "",
 			"details": {"location_id": pack.location_id, "member_ids": ids.duplicate()}}]
 	}
+	Family.ensure_state(result_state)
 	Relationships.initialize(result_state)
 	PersonalEconomy.initialize(result_state)
 	Housing.initialize(result_state, str(pack.get("initial_dwelling_id", "")))
@@ -148,8 +149,10 @@ func validate_state(state: Dictionary) -> Array[String]:
 		errors.append("Player must belong to the household")
 	for id: String in state.actors:
 		var actor: Dictionary = state.actors[id]
-		if actor.id != id or not members.has(id):
-			errors.append("Actor identity/membership mismatch: " + id)
+		if actor.id != id:
+			errors.append("Actor identity mismatch: " + id)
+		if actor.household_id == state.household.id and not members.has(id):
+			errors.append("Resident actor missing from household membership: " + id)
 		var age_year: int = year if actor.alive else int(actor.death_year)
 		if actor.age < 0 or actor.age != age_year - actor.birth_year:
 			errors.append("Invalid age: " + id)
@@ -229,7 +232,7 @@ func validate_state(state: Dictionary) -> Array[String]:
 			errors.append("Invalid storylet state structure")
 	if state.has("family"):
 		if not state.family is Dictionary or not state.family.has("marital_status") or \
-				state.family.marital_status not in ["unmarried", "married", "widowed"]:
+				state.family.marital_status not in ["unmarried", "married", "widowed", "divorced"]:
 			errors.append("Invalid family state structure")
 	if not state.has("housing") or not state.housing is Dictionary:
 		errors.append("Invalid housing state structure")
