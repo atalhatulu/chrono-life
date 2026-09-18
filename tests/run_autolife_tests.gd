@@ -63,7 +63,11 @@ func _initialize() -> void:
 	check(not Actions.available_actions(state).has("work_hard"), "Infant cannot work hard")
 	PersonalEconomy.grant_income(state, 200, "test")
 	check(Purchases.available_items(state).any(func(i): return i.id == "doctor_visit"), "Age-appropriate meaningful purchases are available")
-	check(not Purchases.available_items(state).any(func(i): return i.id == "cheap_newspaper"), "Future-dated purchases remain locked")
+	var future_gate_state: Dictionary = runner.initial_state(91)
+	future_gate_state.actors.player.age = 12
+	PersonalEconomy.grant_income(future_gate_state, 200, "future_gate_test")
+	check(not Purchases.available_items(future_gate_state).any(func(i): return i.id == "cheap_newspaper"),
+		"Future-dated purchases remain locked before their configured year")
 	var before_cash := int(state.personal_economy.cash)
 	var bought: Dictionary = Purchases.purchase(state, "doctor_visit")
 	check(bought.ok and int(state.personal_economy.cash) < before_cash, "Purchase spends personal cash")
