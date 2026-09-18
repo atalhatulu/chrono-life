@@ -21,7 +21,7 @@ const SocialStatus = preload("res://simulation/social_status_system.gd")
 const Migration = preload("res://simulation/migration_system.gd")
 
 var failures: Array[String] = []
-var checks := 0
+var checks = 0
 
 func check(value: bool, label: String) -> void:
 	checks += 1
@@ -60,21 +60,21 @@ func _initialize() -> void:
 	check(Housing.annual_cost(state) > 0, "Current dwelling contributes an annual housing cost")
 	state.actors.player.age = 16
 	state.world.year = state.actors.player.birth_year + 16
-	var social_id := Relationships.meet_person(state, "social_venue")
+	var social_id = Relationships.meet_person(state, "social_venue")
 	check(social_id != "", "Relationship system can create era-specific encounters")
 	if social_id != "":
 		state.relationships.people[social_id].closeness = 75
 		state.relationships.people[social_id].trust = 70
 		state.relationships.people[social_id].conflict = 65
-		var social_event := SocialEvents.resolve_one(state)
+		var social_event = SocialEvents.resolve_one(state)
 		check(not social_event.is_empty(), "Relationship state can produce a social event")
 		check(state.history.any(func(e): return e.kind == "social_event"), "Social events are written to life history")
 	PersonalEconomy.grant_income(state, 200, "health_test")
 	state.actors.player.conditions = {"epidemic_disease": {"acquired_year": int(state.world.year), "remaining_years": 1, "severity": 70}}
-	var treatment_options := Treatments.available_treatments(state)
+	var treatment_options = Treatments.available_treatments(state)
 	check(not treatment_options.is_empty(), "Active conditions expose matching treatments")
 	if not treatment_options.is_empty():
-		var treatment_result := Treatments.apply(state, str(treatment_options[0].id))
+		var treatment_result = Treatments.apply(state, str(treatment_options[0].id))
 		check(treatment_result.ok, "Treatment can be applied through generic health content")
 	check(str(state.meta.get("education_path", "")) != "", "Education content path is carried into state")
 	check(Actions.available_actions(state).has("rest"), "Rest is available from birth")
@@ -86,7 +86,7 @@ func _initialize() -> void:
 	PersonalEconomy.grant_income(future_gate_state, 200, "future_gate_test")
 	check(not Purchases.available_items(future_gate_state).any(func(i): return i.id == "cheap_newspaper"),
 		"Future-dated purchases remain locked before their configured year")
-	var before_cash := int(state.personal_economy.cash)
+	var before_cash = int(state.personal_economy.cash)
 	var bought: Dictionary = Purchases.purchase(state, "doctor_visit")
 	check(bought.ok and int(state.personal_economy.cash) < before_cash, "Purchase spends personal cash")
 	PersonalEconomy.grant_income(state, 500, "meaningful_spending_test")
@@ -100,9 +100,9 @@ func _initialize() -> void:
 	var development_state: Dictionary = runner.initial_state(55)
 	development_state.actors.player.age = 16
 	development_state.world.year = development_state.actors.player.birth_year + 16
-	var curiosity_before := int(development_state.actors.player.personality.axes.curiosity)
-	var dev_one := Actions.apply(development_state, "self_education")
-	var dev_two := Actions.apply(development_state, "self_education")
+	var curiosity_before = int(development_state.actors.player.personality.axes.curiosity)
+	var dev_one = Actions.apply(development_state, "self_education")
+	var dev_two = Actions.apply(development_state, "self_education")
 	check(dev_one.ok and dev_two.ok, "Repeated life actions can drive long-term development")
 	check(int(development_state.actors.player.personality.axes.curiosity) > curiosity_before,
 		"Life actions shift personality axes")
@@ -110,14 +110,14 @@ func _initialize() -> void:
 		"Life actions convert repeated skill XP into skill levels")
 	check(development_state.actors.player.hobbies.active.has("reading"),
 		"Linked life actions establish hobby progress")
-	var hobby_before := int(development_state.actors.player.hobbies.active.reading.mastery)
+	var hobby_before = int(development_state.actors.player.hobbies.active.reading.mastery)
 	development_state.world.year += 1
 	development_state.actors.player.age += 1
-	var hobby_result := Hobbies.practice(development_state, "player", "reading", "test")
+	var hobby_result = Hobbies.practice(development_state, "player", "reading", "test")
 	check(hobby_result.ok and int(development_state.actors.player.hobbies.active.reading.mastery) > hobby_before,
 		"Manual hobby practice increases mastery")
 
-	var jobs := Content.occupations_by_id(loaded.pack)
+	var jobs = Content.occupations_by_id(loaded.pack)
 	var career_probe: Dictionary = development_state.actors.player
 	career_probe.age = 25
 	career_probe.literacy = 50
@@ -133,8 +133,8 @@ func _initialize() -> void:
 	mobility_state.actors.player.age = 22
 	mobility_state.world.year = mobility_state.actors.player.birth_year + 22
 	PersonalEconomy.grant_income(mobility_state, 5000, "mobility_test")
-	var status_before := int(mobility_state.social_status.score)
-	var asset_result := Assets.acquire(mobility_state, "work_tools")
+	var status_before = int(mobility_state.social_status.score)
+	var asset_result = Assets.acquire(mobility_state, "work_tools")
 	check(asset_result.ok, "Player can acquire a persistent asset")
 	check(mobility_state.assets.owned.has("work_tools"), "Acquired asset is stored in persistent asset state")
 	check(Assets.total_value(mobility_state) > 0, "Persistent assets contribute durable value")
@@ -143,11 +143,11 @@ func _initialize() -> void:
 		"Social status recomputes into a valid score")
 	check(int(mobility_state.social_status.score) >= status_before or mobility_state.social_status.band_id != "",
 		"Asset-aware status remains classified after recompute")
-	var destinations := Migration.available_destinations(mobility_state)
+	var destinations = Migration.available_destinations(mobility_state)
 	check(not destinations.is_empty(), "Eligible adult with cash can see migration destinations")
 	if not destinations.is_empty():
-		var destination_id := str(destinations[0].id)
-		var move_result := Migration.move_to(mobility_state, destination_id)
+		var destination_id = str(destinations[0].id)
+		var move_result = Migration.move_to(mobility_state, destination_id)
 		check(move_result.ok, "Migration can move the player household")
 		check(str(mobility_state.world.location_id) == destination_id, "Migration updates world location")
 		check(str(mobility_state.household.location_id) == destination_id, "Migration updates household location")
@@ -157,8 +157,8 @@ func _initialize() -> void:
 		check(str(mobility_state.households[mobility_state.household.id].location_id) == destination_id,
 			"Migration updates primary household registry location")
 
-	var cash_before_liquidation := int(mobility_state.personal_economy.cash)
-	var liquidation_result := Assets.liquidate(mobility_state, "work_tools")
+	var cash_before_liquidation = int(mobility_state.personal_economy.cash)
+	var liquidation_result = Assets.liquidate(mobility_state, "work_tools")
 	check(liquidation_result.ok, "Owned assets can be liquidated")
 	check(int(mobility_state.personal_economy.cash) > cash_before_liquidation,
 		"Asset liquidation returns value to personal cash")
@@ -209,7 +209,7 @@ func _initialize() -> void:
 		"Independent child can form a partnership")
 	check(family_delta.candidate.family.grandchildren_ids.size() >= 1,
 		"Independent child can produce a grandchild actor")
-	var grandchild_id := str(family_delta.candidate.family.grandchildren_ids[0])
+	var grandchild_id = str(family_delta.candidate.family.grandchildren_ids[0])
 	check(family_delta.candidate.actors.has(grandchild_id),
 		"Grandchild exists as a real actor")
 	check(str(family_delta.candidate.actors[grandchild_id].household_id) == str(family_delta.candidate.actors.child_test.household_id),
@@ -223,11 +223,11 @@ func _initialize() -> void:
 	family_delta.candidate.actors.parent_1.age = 70
 	family_delta.candidate.actors.parent_1.health = 40
 	FamilyDynamics.initialize(family_delta.candidate)
-	var care_result := FamilyDynamics.care_for_parent(family_delta.candidate, "parent_1", "care")
+	var care_result = FamilyDynamics.care_for_parent(family_delta.candidate, "parent_1", "care")
 	check(care_result.ok, "Player can provide elder care to an aging parent")
 	check(int(family_delta.candidate.family.elder_care.parent_1.care) > 0,
 		"Elder care is tracked in family state")
-	var generated_family_event := FamilyEvents.resolve_one(family_delta.candidate)
+	var generated_family_event = FamilyEvents.resolve_one(family_delta.candidate)
 	check(not generated_family_event.is_empty(), "Family state can generate a family event")
 	var first: Dictionary = runner.simulate_auto_life(42, "balanced")
 	var again: Dictionary = runner.simulate_auto_life(42, "balanced")
@@ -261,7 +261,7 @@ func _initialize() -> void:
 	check(first.has("assets"), "AutoLife exposes asset acquisitions")
 	check(first.has("migrations"), "AutoLife exposes migrations")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
-	var varied := {}
+	var varied = {}
 	for seed_value: int in range(20):
 		var result: Dictionary = runner.simulate_auto_life(seed_value, "balanced")
 		check(result.ok, "AutoLife seed %d remains valid" % seed_value)
