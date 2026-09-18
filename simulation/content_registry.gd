@@ -35,10 +35,6 @@ static func validate(pack: Dictionary) -> Array[String]:
 		for path_key: String in pack.content_paths:
 			if not pack.content_paths[path_key] is String or str(pack.content_paths[path_key]).is_empty():
 				errors.append("content_paths entries must be nonempty strings")
-	# legacy required strings
-	for key: String in []:
-		if not pack.get(key) is String or str(pack.get(key, "")).is_empty():
-			errors.append("Missing/nonempty string required: " + key)
 	if not is_integer(pack.get("start_year")):
 		errors.append("start_year must be an integer")
 	if not pack.get("historically_calibrated") is bool:
