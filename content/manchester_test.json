@@ -106,7 +106,13 @@
     "conception_chance_permille": 300,
     "min_birth_interval_years": 2,
     "max_children": 6,
-    "maternal_health_cost": 8
+    "maternal_health_cost": 8,
+    "adult_child_leave_min_age": 18,
+    "adult_child_leave_base_permille": 180,
+    "adult_child_leave_employed_bonus_permille": 350,
+    "divorce_conflict_threshold": 78,
+    "divorce_chance_permille": 300,
+    "remarriage_min_gap_years": 2
   },
   "world_rules": {
     "disease_min": 100,
