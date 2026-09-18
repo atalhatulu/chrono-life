@@ -470,6 +470,12 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	Relationships.annual_drift(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
 	Needs.annual_drift(player)
+	var social_decision: Dictionary = AutoLife.choose_relationship_action(working, policy_name)
+	if not social_decision.is_empty():
+		if social_decision.action == "meet":
+			Relationships.meet_person(working)
+		elif str(social_decision.get("person_id", "")) != "":
+			Relationships.interact(working, str(social_decision.person_id), str(social_decision.action))
 	var purchase_id: String = AutoLife.choose_purchase(working, policy_name)
 	if purchase_id != "":
 		var purchase_result: Dictionary = Purchases.purchase(working, purchase_id)
@@ -486,6 +492,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		PersonalEconomy.maybe_allowance(result.state)
 		result.action_id = action_id
 		result.purchase_id = purchase_id
+		result.social_decision = social_decision
 	return result
 
 
@@ -493,12 +500,15 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 	var state: Dictionary = initial_state(seed_value)
 	var actions: Array = []
 	var purchases: Array = []
+	var social_actions: Array = []
 	while state.meta.status == "running":
 		if int(state.world.year) - int(pack.start_year) >= int(pack.limits.max_years):
 			break
 		var result: Dictionary = auto_step(state, policy_name)
 		if not result.ok:
 			return result
+		if not result.get("social_decision", {}).is_empty():
+			social_actions.append({"year": int(result.state.world.year), "decision": result.social_decision})
 		if str(result.get("purchase_id", "")) != "":
 			purchases.append({"year": int(result.state.world.year), "item_id": result.purchase_id})
 		if str(result.get("action_id", "")) != "":
@@ -506,5 +516,5 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 		state = result.state
 	var player: Dictionary = state.actors[state.meta.player_id]
 	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
-		"state": state, "actions": actions, "purchases": purchases, "life_result": LifeSummary.build(state),
+		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "life_result": LifeSummary.build(state),
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
