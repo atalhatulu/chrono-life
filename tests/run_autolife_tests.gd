@@ -32,14 +32,12 @@ func _initialize() -> void:
 	var before_cash := int(state.personal_economy.cash)
 	var bought: Dictionary = Purchases.purchase(state, "milk")
 	check(bought.ok and int(state.personal_economy.cash) < before_cash, "Purchase spends personal cash")
-	PersonalEconomy.grant_income(state, 500, "ownership_test")
+	PersonalEconomy.grant_income(state, 500, "meaningful_spending_test")
 	state.actors.player.age = 16
 	state.world.year = state.actors.player.birth_year + 16
-	var boots_buy: Dictionary = Purchases.purchase(state, "boots")
-	check(boots_buy.ok, "Durable item can be purchased")
-	check(not Purchases.available_items(state).any(func(i): return i.id == "boots"), "Owned durable item cannot be immediately repurchased")
+	check(not Purchases.available_items(state).any(func(i): return i.id == "coat"), "Routine clothing is not player-facing")
 	var society_buy: Dictionary = Purchases.purchase(state, "friendly_society_dues")
-	check(society_buy.ok, "Membership can be purchased")
+	check(society_buy.ok, "Meaningful membership can be purchased")
 	check(not Purchases.available_items(state).any(func(i): return i.id == "friendly_society_dues"), "Active membership cannot be renewed early")
 	var first: Dictionary = runner.simulate_auto_life(42, "balanced")
 	var again: Dictionary = runner.simulate_auto_life(42, "balanced")
