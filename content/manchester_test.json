@@ -20,7 +20,15 @@
     "essentials_per_person": 300,
     "initial_savings": 800,
     "credit_limit": 1800,
-    "debt_interest_basis_points": 200
+    "debt_interest_basis_points": 200,
+    "essentials_note": "Abstracts routine clothing, fuel, soap, basic household goods and other recurring necessities. These are not player-facing purchases.",
+    "essentials_breakdown": [
+      "routine_clothing",
+      "fuel_and_light",
+      "soap_and_washing",
+      "basic_household_goods",
+      "misc_daily_necessities"
+    ]
   },
   "limits": {
     "max_years": 120,
@@ -222,7 +230,10 @@
         "min_age": 9,
         "max_age": 14,
         "player_alive": true,
-        "education_states": ["basic_schooling", "none"],
+        "education_states": [
+          "basic_schooling",
+          "none"
+        ],
         "occupation_id": "dependent",
         "max_savings": 2000,
         "cooldown_years": 4
@@ -230,9 +241,18 @@
       "utility": {
         "base": 40,
         "modifiers": [
-          {"condition": "budget_deficit_gt_zero", "add": 30},
-          {"condition": "food_security_lt_800", "add": 30},
-          {"condition": "guardian_education_first", "add": -30}
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": 30
+          },
+          {
+            "condition": "food_security_lt_800",
+            "add": 30
+          },
+          {
+            "condition": "guardian_education_first",
+            "add": -30
+          }
         ]
       },
       "choices": [
@@ -285,8 +305,14 @@
       "utility": {
         "base": 30,
         "modifiers": [
-          {"condition": "player_education_first", "add": 25},
-          {"condition": "education_completed", "add": 15}
+          {
+            "condition": "player_education_first",
+            "add": 25
+          },
+          {
+            "condition": "education_completed",
+            "add": 15
+          }
         ]
       },
       "choices": [
@@ -325,8 +351,14 @@
       "utility": {
         "base": 35,
         "modifiers": [
-          {"condition": "budget_deficit_gt_zero", "add": 25},
-          {"condition": "high_employment_pressure", "add": 15}
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": 25
+          },
+          {
+            "condition": "high_employment_pressure",
+            "add": 15
+          }
         ]
       },
       "choices": [
@@ -365,8 +397,14 @@
       "utility": {
         "base": 10,
         "modifiers": [
-          {"condition": "budget_deficit_gt_zero", "add": 40},
-          {"condition": "food_security_lt_800", "add": 30}
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": 40
+          },
+          {
+            "condition": "food_security_lt_800",
+            "add": 30
+          }
         ]
       },
       "choices": [
@@ -398,14 +436,24 @@
       "requirements": {
         "min_age": 6,
         "player_alive": true,
-        "has_any_condition": ["malnutrition", "epidemic_disease", "workplace_injury"],
+        "has_any_condition": [
+          "malnutrition",
+          "epidemic_disease",
+          "workplace_injury"
+        ],
         "cooldown_years": 2
       },
       "utility": {
         "base": 50,
         "modifiers": [
-          {"condition": "player_has_epidemic", "add": 25},
-          {"condition": "player_has_malnutrition", "add": 20}
+          {
+            "condition": "player_has_epidemic",
+            "add": 25
+          },
+          {
+            "condition": "player_has_malnutrition",
+            "add": 20
+          }
         ]
       },
       "choices": [
@@ -445,8 +493,14 @@
       "utility": {
         "base": 25,
         "modifiers": [
-          {"condition": "high_savings", "add": 25},
-          {"condition": "player_pragmatic", "add": 20}
+          {
+            "condition": "high_savings",
+            "add": 25
+          },
+          {
+            "condition": "player_pragmatic",
+            "add": 20
+          }
         ]
       },
       "choices": [
@@ -487,8 +541,14 @@
       "utility": {
         "base": 45,
         "modifiers": [
-          {"condition": "high_savings", "add": 25},
-          {"condition": "budget_deficit_gt_zero", "add": -25}
+          {
+            "condition": "high_savings",
+            "add": 25
+          },
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": -25
+          }
         ]
       },
       "choices": [
