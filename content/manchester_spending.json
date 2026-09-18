@@ -1,0 +1,695 @@
+{
+  "version": "manchester_spending_0.1.0",
+  "currency_note": "Relative test-credit costs, not claims of exact historical prices.",
+  "items": [
+    {
+      "id": "bread_loaf",
+      "label": "Ekmek",
+      "category": "food",
+      "cost": 4,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 1,
+        "energy": 2
+      }
+    },
+    {
+      "id": "potatoes",
+      "label": "Patates ve sebze",
+      "category": "food",
+      "cost": 5,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "health": 1,
+        "energy": 2
+      }
+    },
+    {
+      "id": "cheese",
+      "label": "Peynir",
+      "category": "food",
+      "cost": 7,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 1,
+        "energy": 3
+      }
+    },
+    {
+      "id": "bacon",
+      "label": "Pastırma / bacon",
+      "category": "food",
+      "cost": 10,
+      "min_age": 8,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 3,
+        "energy": 4
+      }
+    },
+    {
+      "id": "butter",
+      "label": "Tereyağı",
+      "category": "food",
+      "cost": 8,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 2
+      }
+    },
+    {
+      "id": "milk",
+      "label": "Süt",
+      "category": "food",
+      "cost": 5,
+      "min_age": 4,
+      "min_year": 1850,
+      "effects": {
+        "health": 2
+      }
+    },
+    {
+      "id": "tea",
+      "label": "Çay",
+      "category": "food",
+      "cost": 6,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 2,
+        "energy": 2
+      }
+    },
+    {
+      "id": "sugar",
+      "label": "Şeker",
+      "category": "food",
+      "cost": 6,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 3
+      }
+    },
+    {
+      "id": "fruit",
+      "label": "Meyve",
+      "category": "food",
+      "cost": 8,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "health": 2,
+        "happiness": 2
+      }
+    },
+    {
+      "id": "market_meal",
+      "label": "Pazardan sıcak yemek",
+      "category": "food",
+      "cost": 12,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "energy": 5,
+        "happiness": 3
+      }
+    },
+    {
+      "id": "sweets",
+      "label": "Şekerleme",
+      "category": "food",
+      "cost": 4,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 5
+      }
+    },
+    {
+      "id": "beer_pint",
+      "label": "Bir pint bira",
+      "category": "drink",
+      "cost": 8,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 5,
+        "stress": -5,
+        "health": -1
+      }
+    },
+    {
+      "id": "public_house_evening",
+      "label": "Pub akşamı",
+      "category": "leisure",
+      "cost": 18,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 10,
+        "stress": -8,
+        "social": 10,
+        "health": -2
+      }
+    },
+    {
+      "id": "free_and_easy",
+      "label": "Free-and-easy müzik gecesi",
+      "category": "leisure",
+      "cost": 16,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 10,
+        "social": 9,
+        "stress": -7
+      }
+    },
+    {
+      "id": "bowling",
+      "label": "Bowling / skittles",
+      "category": "leisure",
+      "cost": 10,
+      "min_age": 12,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 7,
+        "social": 6,
+        "health": 1
+      }
+    },
+    {
+      "id": "quoits",
+      "label": "Quoits oyunu",
+      "category": "leisure",
+      "cost": 7,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 6,
+        "social": 4,
+        "health": 1
+      }
+    },
+    {
+      "id": "theatre_gallery",
+      "label": "Ucuz tiyatro galerisi",
+      "category": "leisure",
+      "cost": 20,
+      "min_age": 12,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 11,
+        "social": 4
+      }
+    },
+    {
+      "id": "flower_show",
+      "label": "Çiçek / sebze sergisi",
+      "category": "leisure",
+      "cost": 8,
+      "min_age": 8,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 6,
+        "social": 4
+      }
+    },
+    {
+      "id": "rail_excursion",
+      "label": "Demiryolu gezisi",
+      "category": "travel",
+      "cost": 35,
+      "min_age": 12,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 15,
+        "stress": -10,
+        "social": 4
+      }
+    },
+    {
+      "id": "omnibus_ride",
+      "label": "Omnibus yolculuğu",
+      "category": "travel",
+      "cost": 8,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "stress": -2,
+        "energy": 3
+      }
+    },
+    {
+      "id": "postage_stamp",
+      "label": "Mektup postası",
+      "category": "social",
+      "cost": 3,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "social": 4,
+        "happiness": 2
+      }
+    },
+    {
+      "id": "stationery",
+      "label": "Kağıt, kalem ve mürekkep",
+      "category": "education",
+      "cost": 12,
+      "min_age": 8,
+      "min_year": 1850,
+      "effects": {
+        "literacy": 3,
+        "willpower": 1
+      }
+    },
+    {
+      "id": "used_book",
+      "label": "İkinci el kitap",
+      "category": "education",
+      "cost": 20,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "literacy": 7,
+        "happiness": 3
+      }
+    },
+    {
+      "id": "broadside_ballad",
+      "label": "Broadside balad / şarkı yaprağı",
+      "category": "media",
+      "cost": 3,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 5,
+        "literacy": 1
+      }
+    },
+    {
+      "id": "periodical",
+      "label": "Dergi / süreli yayın",
+      "category": "media",
+      "cost": 10,
+      "min_age": 12,
+      "min_year": 1850,
+      "effects": {
+        "literacy": 3,
+        "happiness": 3
+      }
+    },
+    {
+      "id": "cheap_newspaper",
+      "label": "Ucuz gazete",
+      "category": "media",
+      "cost": 4,
+      "min_age": 12,
+      "min_year": 1855,
+      "effects": {
+        "literacy": 3
+      }
+    },
+    {
+      "id": "school_fee",
+      "label": "Okul ücreti katkısı",
+      "category": "education",
+      "cost": 15,
+      "min_age": 6,
+      "max_age": 15,
+      "min_year": 1850,
+      "effects": {
+        "literacy": 5,
+        "willpower": 1
+      }
+    },
+    {
+      "id": "evening_class",
+      "label": "Akşam dersi / working men's class",
+      "category": "education",
+      "cost": 18,
+      "min_age": 14,
+      "min_year": 1850,
+      "effects": {
+        "literacy": 6,
+        "willpower": 2,
+        "stress": 2
+      }
+    },
+    {
+      "id": "boots",
+      "label": "Yeni iş botu",
+      "category": "clothing",
+      "cost": 45,
+      "min_age": 9,
+      "min_year": 1850,
+      "effects": {
+        "health": 2,
+        "willpower": 1
+      }
+    },
+    {
+      "id": "boot_repair",
+      "label": "Bot tamiri",
+      "category": "clothing",
+      "cost": 14,
+      "min_age": 9,
+      "min_year": 1850,
+      "effects": {
+        "health": 1
+      }
+    },
+    {
+      "id": "work_shirt",
+      "label": "İş gömleği",
+      "category": "clothing",
+      "cost": 28,
+      "min_age": 12,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 2
+      }
+    },
+    {
+      "id": "coat",
+      "label": "Palto",
+      "category": "clothing",
+      "cost": 70,
+      "min_age": 12,
+      "min_year": 1850,
+      "effects": {
+        "health": 3,
+        "happiness": 3
+      }
+    },
+    {
+      "id": "hat",
+      "label": "Şapka",
+      "category": "clothing",
+      "cost": 20,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 2
+      }
+    },
+    {
+      "id": "sunday_clothes",
+      "label": "Pazar günü kıyafeti",
+      "category": "clothing",
+      "cost": 85,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 6,
+        "social": 5
+      }
+    },
+    {
+      "id": "umbrella",
+      "label": "Şemsiye",
+      "category": "clothing",
+      "cost": 24,
+      "min_age": 14,
+      "min_year": 1850,
+      "effects": {
+        "health": 1
+      }
+    },
+    {
+      "id": "soap",
+      "label": "Sabun",
+      "category": "household",
+      "cost": 5,
+      "min_age": 8,
+      "min_year": 1850,
+      "effects": {
+        "health": 2
+      }
+    },
+    {
+      "id": "candles",
+      "label": "Mum",
+      "category": "household",
+      "cost": 6,
+      "min_age": 8,
+      "min_year": 1850,
+      "effects": {
+        "literacy": 1
+      }
+    },
+    {
+      "id": "coal_share",
+      "label": "Eve kömür katkısı",
+      "category": "household",
+      "cost": 18,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "health": 2,
+        "willpower": 2
+      }
+    },
+    {
+      "id": "washing",
+      "label": "Çamaşır / yıkama gideri",
+      "category": "household",
+      "cost": 12,
+      "min_age": 14,
+      "min_year": 1850,
+      "effects": {
+        "health": 1
+      }
+    },
+    {
+      "id": "household_utensil",
+      "label": "Basit mutfak eşyası",
+      "category": "household",
+      "cost": 25,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 2
+      }
+    },
+    {
+      "id": "blanket",
+      "label": "Battaniye",
+      "category": "household",
+      "cost": 45,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "health": 3,
+        "happiness": 2
+      }
+    },
+    {
+      "id": "doctor_visit",
+      "label": "Doktor muayenesi",
+      "category": "health",
+      "cost": 35,
+      "min_age": 0,
+      "min_year": 1850,
+      "effects": {
+        "health": 6
+      }
+    },
+    {
+      "id": "chemist_tonic",
+      "label": "Chemist / tonik",
+      "category": "health",
+      "cost": 18,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "health": 3
+      }
+    },
+    {
+      "id": "dispensary_fee",
+      "label": "Dispensary katkısı",
+      "category": "health",
+      "cost": 10,
+      "min_age": 6,
+      "min_year": 1850,
+      "effects": {
+        "health": 4
+      }
+    },
+    {
+      "id": "friendly_society_dues",
+      "label": "Friendly society aidatı",
+      "category": "security",
+      "cost": 30,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "willpower": 3,
+        "social": 4
+      }
+    },
+    {
+      "id": "sick_club_dues",
+      "label": "Sick club aidatı",
+      "category": "security",
+      "cost": 16,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "willpower": 2
+      }
+    },
+    {
+      "id": "church_charity",
+      "label": "Kilise / hayır bağışı",
+      "category": "social",
+      "cost": 12,
+      "min_age": 14,
+      "min_year": 1850,
+      "effects": {
+        "social": 3,
+        "willpower": 2
+      }
+    },
+    {
+      "id": "gift_small",
+      "label": "Küçük hediye",
+      "category": "social",
+      "cost": 15,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "social": 7,
+        "happiness": 3
+      }
+    },
+    {
+      "id": "tobacco",
+      "label": "Tütün",
+      "category": "vice",
+      "cost": 9,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 4,
+        "stress": -3,
+        "health": -2
+      }
+    },
+    {
+      "id": "pawn_repayment",
+      "label": "Rehin / borç ödemesine katkı",
+      "category": "finance",
+      "cost": 25,
+      "min_age": 14,
+      "min_year": 1850,
+      "effects": {
+        "willpower": 2
+      }
+    },
+    {
+      "id": "savings_club",
+      "label": "Tasarruf / provident club katkısı",
+      "category": "finance",
+      "cost": 25,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "willpower": 3
+      }
+    },
+    {
+      "id": "flower_purchase",
+      "label": "Çiçek",
+      "category": "social",
+      "cost": 6,
+      "min_age": 10,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 4,
+        "social": 2
+      }
+    },
+    {
+      "id": "toy_simple",
+      "label": "Basit oyuncak",
+      "category": "childhood",
+      "cost": 12,
+      "min_age": 4,
+      "max_age": 13,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 10
+      }
+    },
+    {
+      "id": "marbles",
+      "label": "Misket / küçük oyun malzemesi",
+      "category": "childhood",
+      "cost": 5,
+      "min_age": 5,
+      "max_age": 14,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 7,
+        "social": 3
+      }
+    },
+    {
+      "id": "doll",
+      "label": "Bez / tahta oyuncak bebek",
+      "category": "childhood",
+      "cost": 15,
+      "min_age": 4,
+      "max_age": 13,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 9
+      }
+    },
+    {
+      "id": "cricket_club",
+      "label": "Cricket kulübü katkısı",
+      "category": "leisure",
+      "cost": 20,
+      "min_age": 12,
+      "min_year": 1850,
+      "effects": {
+        "health": 2,
+        "happiness": 8,
+        "social": 7
+      }
+    },
+    {
+      "id": "glee_club",
+      "label": "Glee club / amatör müzik topluluğu",
+      "category": "leisure",
+      "cost": 12,
+      "min_age": 12,
+      "min_year": 1850,
+      "effects": {
+        "happiness": 8,
+        "social": 8
+      }
+    },
+    {
+      "id": "mutual_society_meeting",
+      "label": "Friendly society toplantısı",
+      "category": "social",
+      "cost": 6,
+      "min_age": 16,
+      "min_year": 1850,
+      "effects": {
+        "social": 8,
+        "willpower": 2
+      }
+    }
+  ]
+}
