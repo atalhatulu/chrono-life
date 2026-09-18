@@ -11,6 +11,9 @@ static func initialize(state: Dictionary) -> void:
 			"year_income": 0,
 			"year_spending": 0,
 			"purchases": [],
+			"owned_items": {},
+			"memberships": {},
+			"last_purchase_year": {},
 			"last_allowance_year": -1
 		}
 
@@ -23,6 +26,13 @@ static func begin_year(state: Dictionary) -> void:
 	normalize(state)
 	state.personal_economy.year_income = 0
 	state.personal_economy.year_spending = 0
+	var year := int(state.world.year)
+	var expired: Array[String] = []
+	for id: String in state.personal_economy.memberships:
+		if int(state.personal_economy.memberships[id].get("expires_year", year)) < year:
+			expired.append(id)
+	for id: String in expired:
+		state.personal_economy.memberships.erase(id)
 
 static func grant_income(state: Dictionary, amount: int, source: String) -> void:
 	if amount <= 0:
