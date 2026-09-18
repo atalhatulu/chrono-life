@@ -584,6 +584,16 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 			Relationships.meet_person(working)
 		elif str(social_decision.get("person_id", "")) != "":
 			Relationships.interact(working, str(social_decision.person_id), str(social_decision.action))
+	var asset_id: String = AutoLife.choose_asset(working, policy_name)
+	if asset_id != "":
+		var asset_result: Dictionary = Assets.acquire(working, asset_id)
+		if not asset_result.ok:
+			return {"ok": false, "errors": [asset_result.error]}
+	var migration_id: String = AutoLife.choose_migration(working, policy_name)
+	if migration_id != "":
+		var migration_result: Dictionary = Migration.move_to(working, migration_id)
+		if not migration_result.ok:
+			return {"ok": false, "errors": [migration_result.error]}
 	var hobby_id: String = AutoLife.choose_hobby(working, policy_name)
 	if hobby_id != "":
 		var hobby_result: Dictionary = Hobbies.practice(working, str(working.meta.player_id), hobby_id, "autolife")
@@ -610,6 +620,8 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		PersonalEconomy.maybe_allowance(result.state)
 		result.action_id = action_id
 		result.hobby_id = hobby_id
+		result.asset_id = asset_id
+		result.migration_id = migration_id
 		result.purchase_id = purchase_id
 		result.treatment_id = treatment_id
 		result.social_decision = social_decision
@@ -623,6 +635,8 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 	var state: Dictionary = initial_state(seed_value)
 	var actions: Array = []
 	var hobbies: Array = []
+	var assets: Array = []
+	var migrations: Array = []
 	var purchases: Array = []
 	var social_actions: Array = []
 	var social_events: Array = []
@@ -649,6 +663,10 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 			social_actions.append({"year": int(result.state.world.year), "decision": result.social_decision})
 		if str(result.get("treatment_id", "")) != "":
 			treatments.append({"year": int(result.state.world.year), "treatment_id": result.treatment_id})
+		if str(result.get("asset_id", "")) != "":
+			assets.append({"year": int(result.state.world.year), "asset_id": result.asset_id})
+		if str(result.get("migration_id", "")) != "":
+			migrations.append({"year": int(result.state.world.year), "destination_id": result.migration_id})
 		if str(result.get("hobby_id", "")) != "":
 			hobbies.append({"year": int(result.state.world.year), "hobby_id": result.hobby_id})
 		if str(result.get("purchase_id", "")) != "":
@@ -658,5 +676,5 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 		state = result.state
 	var player: Dictionary = state.actors[state.meta.player_id]
 	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
-		"state": state, "actions": actions, "hobbies": hobbies, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "family_events": family_events, "parenting_actions": parenting_actions, "elder_care_actions": elder_care_actions, "treatments": treatments, "life_result": LifeSummary.build(state),
+		"state": state, "actions": actions, "hobbies": hobbies, "assets": assets, "migrations": migrations, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "family_events": family_events, "parenting_actions": parenting_actions, "elder_care_actions": elder_care_actions, "treatments": treatments, "life_result": LifeSummary.build(state),
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
