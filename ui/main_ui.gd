@@ -14,6 +14,8 @@ const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 const Hobbies = preload("res://simulation/hobby_system.gd")
 const Skills = preload("res://simulation/skill_system.gd")
+const Assets = preload("res://simulation/asset_system.gd")
+const Migration = preload("res://simulation/migration_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -281,7 +283,7 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["health", "Sağlık", "plus"], ["housing", "Barınma", "home"], ["development", "Gelişim", "book"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["health", "Sağlık", "plus"], ["housing", "Barınma", "home"], ["development", "Gelişim", "book"], ["status", "Statü", "family"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
@@ -438,7 +440,7 @@ func start_game(seed_value: int) -> void:
 
 
 func switch_view(view: String) -> void:
-	if view not in ["life", "family", "budget", "education", "career", "health", "housing", "development", "spending"]:
+	if view not in ["life", "family", "budget", "education", "career", "health", "housing", "development", "status", "spending"]:
 		return
 	current_view = view
 	_refresh_ui()
@@ -525,7 +527,7 @@ func _refresh_ui() -> void:
 		fields[key].text = str(player[key])
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
-	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "health": "Sağlığın ve tedavilerin", "housing": "Nerede ve nasıl yaşadığın", "development": "Becerilerin, kişiliğin ve uğraşların", "spending": "Cebindeki para ve harcamalar"}[current_view]
+	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "health": "Sağlığın ve tedavilerin", "housing": "Nerede ve nasıl yaşadığın", "development": "Becerilerin, kişiliğin ve uğraşların", "status": "Varlıkların, toplumsal konumun ve hareketliliğin", "spending": "Cebindeki para ve harcamalar"}[current_view]
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
@@ -601,6 +603,9 @@ func _render_feed() -> void:
 		return
 	if current_view == "development":
 		_render_development(feed)
+		return
+	if current_view == "status":
+		_render_status(feed)
 		return
 	if not state.actors[state.meta.player_id].alive:
 		var memorial := _card(feed)
@@ -1113,6 +1118,94 @@ func _practice_hobby(hobby_id: String) -> void:
 	var result: Dictionary = Hobbies.practice(state, str(state.meta.player_id), hobby_id, "manual")
 	if not result.ok:
 		_show_error(str(result.get("error", "Hobi uygulanamadı.")))
+		return
+	_refresh_ui()
+
+
+func _render_status(parent: Node) -> void:
+	var status: Dictionary = state.get("social_status", {})
+	var status_card := _card(parent)
+	status_card.add_child(_label("TOPLUMSAL KONUM", 10, Palette.MUTED))
+	status_card.add_child(_label(str(status.get("band_id", "unknown")).replace("_", " ").capitalize(), 25, Palette.INK, true))
+	status_card.add_child(_label("Skor: %d / 100" % int(status.get("score", 0)), 13, Palette.MUTED))
+	var components: Dictionary = status.get("components", {})
+	var component_keys: Array = components.keys()
+	component_keys.sort()
+	for key: String in component_keys:
+		var row := _row()
+		status_card.add_child(row)
+		row.add_child(_label(key.replace("_", " ").capitalize(), 12, Palette.MUTED))
+		_spacer(row)
+		row.add_child(_label(str(components[key]), 13, Palette.INK, true))
+
+	var asset_card := _card(parent)
+	asset_card.add_child(_label("VARLIKLAR", 10, Palette.MUTED))
+	asset_card.add_child(_label("Toplam değer: %d" % Assets.total_value(state), 18, Palette.INK, true))
+	var owned: Dictionary = state.get("assets", {}).get("owned", {})
+	if owned.is_empty():
+		asset_card.add_child(_label("Kalıcı bir varlığın yok.", 12, Palette.MUTED))
+	else:
+		var asset_defs := Assets.definitions(state)
+		var asset_ids: Array = owned.keys()
+		asset_ids.sort()
+		for asset_id: String in asset_ids:
+			var entry: Dictionary = owned[asset_id]
+			var def: Dictionary = asset_defs.get(asset_id, {})
+			asset_card.add_child(_label("%s · değer %d · adet %d" % [
+				str(def.get("label", asset_id)),
+				int(entry.get("value", 0)),
+				int(entry.get("quantity", 1))
+			], 12, Palette.INK))
+	var buyable := Assets.available_assets(state)
+	if not buyable.is_empty():
+		asset_card.add_child(_label("EDİNİLEBİLİR", 10, Palette.RUST))
+		for asset: Dictionary in buyable:
+			var row := _row(8)
+			asset_card.add_child(row)
+			var copy := _column(2)
+			row.add_child(copy)
+			copy.add_child(_label(str(asset.label), 13, Palette.INK, true))
+			copy.add_child(_label("%d test birimi" % int(asset.acquire_cost), 11, Palette.MUTED))
+			_spacer(row)
+			var asset_id := str(asset.id)
+			row.add_child(_button("Edin", func(): _acquire_asset(asset_id), "Ghost"))
+
+	var migration_card := _card(parent)
+	migration_card.add_child(_label("YER DEĞİŞTİRME", 10, Palette.MUTED))
+	migration_card.add_child(_label("Şu an: %s" % str(state.world.location_id).replace("_", " ").capitalize(), 16, Palette.INK, true))
+	migration_card.add_child(_label("Toplam taşınma: %d" % int(state.get("migration", {}).get("move_count", 0)), 11, Palette.MUTED))
+	var destinations := Migration.available_destinations(state)
+	if destinations.is_empty():
+		migration_card.add_child(_label("Şu anda uygun bir taşınma seçeneği yok.", 12, Palette.MUTED))
+	else:
+		for destination: Dictionary in destinations:
+			var row := _row(8)
+			migration_card.add_child(row)
+			var copy := _column(2)
+			row.add_child(copy)
+			copy.add_child(_label(str(destination.label), 13, Palette.INK, true))
+			copy.add_child(_label("Taşınma maliyeti: %d" % int(destination.move_cost), 11, Palette.MUTED))
+			_spacer(row)
+			var destination_id := str(destination.id)
+			row.add_child(_button("Taşın", func(): _migrate_to(destination_id), "Primary"))
+
+
+func _acquire_asset(asset_id: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result := Assets.acquire(state, asset_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "Varlık edinilemedi.")))
+		return
+	_refresh_ui()
+
+
+func _migrate_to(destination_id: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result := Migration.move_to(state, destination_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "Taşınma başarısız.")))
 		return
 	_refresh_ui()
 
