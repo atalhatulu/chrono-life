@@ -212,3 +212,31 @@ static func choose_parenting_action(state: Dictionary, policy: String = "balance
 	if policy == "pragmatic" and int(child.willpower) < 45:
 		return {"child_id": best_id, "action": "discipline"}
 	return {"child_id": best_id, "action": "support"}
+
+
+static func choose_elder_care_action(state: Dictionary, policy: String = "balanced") -> Dictionary:
+	if not state.has("family"):
+		return {}
+	var player_id := str(state.meta.player_id)
+	var parents: Array = state.family.get("kinship", {}).get(player_id, {}).get("parents", [])
+	var target := ""
+	var best_need := -1
+	for parent_id: String in parents:
+		if not state.actors.has(parent_id):
+			continue
+		var parent: Dictionary = state.actors[parent_id]
+		if not parent.alive or (int(parent.age) < 60 and int(parent.health) >= 55):
+			continue
+		var care: Dictionary = state.family.get("elder_care", {}).get(parent_id, {})
+		var need := (100 - int(parent.health)) + maxi(0, 60 - int(care.get("care", 0)))
+		if need > best_need:
+			best_need = need
+			target = parent_id
+	if target == "":
+		return {}
+	var care: Dictionary = state.family.get("elder_care", {}).get(target, {})
+	if int(care.get("care", 0)) < 30:
+		return {"parent_id": target, "action": "care"}
+	if policy == "pragmatic":
+		return {"parent_id": target, "action": "visit"}
+	return {"parent_id": target, "action": "care"}
