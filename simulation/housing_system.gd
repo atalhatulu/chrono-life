@@ -6,14 +6,14 @@ static func _path(state: Dictionary) -> String:
 	return str(state.get("meta", {}).get("housing_path", ""))
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := _path(state)
+	var path: String = _path(state)
 	if path.is_empty():
 		return {"dwellings": [], "rules": {}}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"dwellings": [], "rules": {}}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"dwellings": [], "rules": {}}
 	return _cache[path]
@@ -35,28 +35,28 @@ static func initialize(state: Dictionary, initial_dwelling_id: String) -> void:
 		"move_count": 0,
 		"history": []
 	}
-	var defs := dwellings_by_id(state)
+	var defs: Dictionary = dwellings_by_id(state)
 	if defs.has(initial_dwelling_id):
 		state.housing.tenure = str(defs[initial_dwelling_id].get("tenure", "household_use"))
 	state.housing.history.append({"year": int(state.world.year), "kind": "moved_in", "dwelling_id": initial_dwelling_id})
 
 static func current_dwelling(state: Dictionary) -> Dictionary:
-	var defs := dwellings_by_id(state)
+	var defs: Dictionary = dwellings_by_id(state)
 	return defs.get(str(state.get("housing", {}).get("dwelling_id", "")), {})
 
 static func annual_cost(state: Dictionary) -> int:
-	var d := current_dwelling(state)
+	var d: Dictionary = current_dwelling(state)
 	return int(d.get("annual_cost", 0))
 
 static func living_count(state: Dictionary) -> int:
-	var n := 0
+	var n: int = 0
 	for id: String in state.household.member_ids:
 		if state.actors[id].alive:
 			n += 1
 	return n
 
 static func overcrowding(state: Dictionary) -> int:
-	var d := current_dwelling(state)
+	var d: Dictionary = current_dwelling(state)
 	if d.is_empty():
 		return 0
 	return maxi(0, living_count(state) - int(d.get("capacity", 1)))
@@ -72,7 +72,7 @@ static func available_dwellings(state: Dictionary) -> Array[Dictionary]:
 	return out
 
 static func move_to(state: Dictionary, dwelling_id: String) -> Dictionary:
-	var defs := dwellings_by_id(state)
+	var defs: Dictionary = dwellings_by_id(state)
 	if not defs.has(dwelling_id):
 		return {"ok": false, "error": "Unknown dwelling"}
 	var target: Dictionary = defs[dwelling_id]
@@ -81,7 +81,7 @@ static func move_to(state: Dictionary, dwelling_id: String) -> Dictionary:
 		return {"ok": false, "error": "Dwelling unavailable at this age"}
 	if str(state.housing.dwelling_id) == dwelling_id:
 		return {"ok": false, "error": "Already living there"}
-	var previous := str(state.housing.dwelling_id)
+	var previous: String = str(state.housing.dwelling_id)
 	state.housing.dwelling_id = dwelling_id
 	state.housing.tenure = str(target.get("tenure", "rent"))
 	state.housing.since_year = int(state.world.year)
@@ -95,11 +95,11 @@ static func move_to(state: Dictionary, dwelling_id: String) -> Dictionary:
 	return {"ok": true, "dwelling": target}
 
 static func apply_wellbeing(state: Dictionary) -> void:
-	var d := current_dwelling(state)
+	var d: Dictionary = current_dwelling(state)
 	if d.is_empty():
 		return
 	var rules: Dictionary = _catalog(state).get("rules", {})
-	var crowd := overcrowding(state)
+	var crowd: int = overcrowding(state)
 	for id: String in state.household.member_ids:
 		var actor: Dictionary = state.actors[id]
 		if not actor.alive:
