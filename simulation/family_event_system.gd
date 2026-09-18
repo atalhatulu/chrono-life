@@ -27,6 +27,17 @@ static func collect_candidates(state: Dictionary) -> Array[Dictionary]:
 			out.append({"type":"child_milestone","subject_id":child_id,"weight":60})
 		if str(child.household_id) != str(state.household.id) and year - _last_year(state, "adult_child_visit", child_id) >= 3:
 			out.append({"type":"adult_child_visit","subject_id":child_id,"weight":35})
+	var player_id := str(state.meta.player_id)
+	var parents: Array = state.family.get("kinship", {}).get(player_id, {}).get("parents", [])
+	for parent_id: String in parents:
+		if not state.actors.has(parent_id):
+			continue
+		var parent: Dictionary = state.actors[parent_id]
+		if not parent.alive or (int(parent.age) < 60 and int(parent.health) >= 55):
+			continue
+		var care: Dictionary = state.family.get("elder_care", {}).get(parent_id, {})
+		if int(care.get("care", 0)) < 30 and year - _last_year(state, "elder_care_need", parent_id) >= 2:
+			out.append({"type":"elder_care_need","subject_id":parent_id,"weight":45 + (100 - int(parent.health))})
 	for key: String in state.family.get("sibling_bonds", {}):
 		var bond: Dictionary = state.family.sibling_bonds[key]
 		if int(bond.get("rivalry", 0)) >= 55 and year - _last_year(state, "sibling_conflict", key) >= 2:
@@ -88,5 +99,9 @@ static func _apply(state: Dictionary, event: Dictionary) -> Dictionary:
 			bond.closeness = clampi(int(bond.closeness) + 5, 0, 100)
 			title = "Kardeş dayanışması"
 			text = "Çocukların zor bir anda birbirine destek oldu."
+		"elder_care_need":
+			var parent: Dictionary = state.actors[subject]
+			title = "Yaşlanan ebeveynin sana ihtiyaç duyuyor"
+			text = "%s artık günlük yaşamda daha fazla desteğe ihtiyaç duyuyor." % parent.name
 	state.family.history.append({"year":int(state.world.year),"kind":kind,"subject_id":subject})
 	return {"type":kind,"subject_id":subject,"title":title,"text":text}
