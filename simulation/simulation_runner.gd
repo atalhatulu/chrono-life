@@ -221,6 +221,14 @@ func validate_state(state: Dictionary) -> Array[String]:
 		if not state.family is Dictionary or not state.family.has("marital_status") or \
 				state.family.marital_status not in ["unmarried", "married", "widowed"]:
 			errors.append("Invalid family state structure")
+	if not state.has("housing") or not state.housing is Dictionary:
+		errors.append("Invalid housing state structure")
+	else:
+		var housing_defs := Housing.dwellings_by_id(state)
+		if not housing_defs.has(str(state.housing.get("dwelling_id", ""))):
+			errors.append("Unknown current dwelling")
+		if int(state.housing.get("unpaid_years", -1)) < 0 or int(state.housing.get("move_count", -1)) < 0:
+			errors.append("Invalid housing counters")
 	return errors
 
 
