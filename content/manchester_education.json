@@ -1,0 +1,45 @@
+{
+  "version": "manchester_education_0.1.0",
+  "design_note": "Era/location education structure. The generic engine reads stages and pressures without hardcoding Victorian schooling.",
+  "stages": [
+    {
+      "id": "elementary",
+      "label": "Temel eğitim",
+      "min_age": 6,
+      "max_age": 13,
+      "completion_age": 14,
+      "enrollment": "automatic_if_dependent",
+      "attendance_base": 72,
+      "progress_per_year": 12,
+      "literacy_per_year": 10,
+      "minimum_health": 35,
+      "annual_cost": 15,
+      "dropout_pressure": {
+        "household_deficit": 18,
+        "food_insecurity": 20,
+        "employed": 100
+      }
+    },
+    {
+      "id": "evening_school",
+      "label": "Akşam eğitimi",
+      "min_age": 14,
+      "max_age": 30,
+      "enrollment": "optional",
+      "attendance_base": 45,
+      "progress_per_year": 8,
+      "literacy_per_year": 6,
+      "minimum_health": 30,
+      "annual_cost": 18,
+      "dropout_pressure": {
+        "household_deficit": 10,
+        "food_insecurity": 8,
+        "employed": 8
+      }
+    }
+  ],
+  "completion_order": [
+    "elementary",
+    "evening_school"
+  ]
+}
