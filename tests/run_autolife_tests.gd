@@ -25,6 +25,7 @@ func _initialize() -> void:
 	var state: Dictionary = runner.initial_state(42)
 	check(state.actors.player.has("needs"), "Initial player has life needs")
 	check(state.actors.player.has("education"), "Initial player has generic education state")
+	check(state.actors.player.has("career"), "Initial player has generic career state")
 	check(str(state.meta.get("education_path", "")) != "", "Education content path is carried into state")
 	check(Actions.available_actions(state).has("rest"), "Rest is available from birth")
 	check(not Actions.available_actions(state).has("work_hard"), "Infant cannot work hard")
@@ -48,6 +49,7 @@ func _initialize() -> void:
 	check(first.life_result.has("actions"), "Death summary contains action history")
 	check(first.life_result.has("personal_spending"), "Death summary includes personal spending")
 	check(first.state.actors.player.education.has("history"), "AutoLife preserves education history")
+	check(first.life_result.has("career"), "Life summary includes career history")
 	check(first.has("purchases"), "AutoLife exposes purchase history")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
 	var varied := {}
