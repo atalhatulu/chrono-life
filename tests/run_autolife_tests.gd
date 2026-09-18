@@ -10,6 +10,7 @@ const SocialEvents = preload("res://simulation/social_event_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
 const Housing = preload("res://simulation/housing_system.gd")
 const Family = preload("res://simulation/family_system.gd")
+const Delta = preload("res://simulation/year_delta.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -75,6 +76,26 @@ func _initialize() -> void:
 	Family.ensure_state(family_state)
 	check(family_state.family.kinship.has("player"), "Player has kinship record")
 	check(family_state.family.kinship.player.parents.size() >= 2, "Initial parents are linked in kinship graph")
+	var adult_child: Dictionary = family_state.actors.player.duplicate(true)
+	adult_child.id = "child_test"
+	adult_child.name = "Test Child"
+	adult_child.birth_year = int(family_state.world.year) - 22
+	adult_child.age = 22
+	adult_child.occupation_id = "textile_worker"
+	adult_child.income = 3200
+	adult_child.household_id = family_state.household.id
+	family_state.actors[adult_child.id] = adult_child
+	family_state.household.member_ids.append(adult_child.id)
+	family_state.family.children_ids.append(adult_child.id)
+	family_state.family.children_count = family_state.family.children_ids.size()
+	var leave_pack: Dictionary = loaded.pack.duplicate(true)
+	leave_pack.family_rules.adult_child_leave_min_age = 18
+	leave_pack.family_rules.adult_child_leave_base_permille = 1000
+	leave_pack.family_rules.adult_child_leave_employed_bonus_permille = 0
+	var family_delta = Delta.new(family_state, int(family_state.world.year) + 1)
+	Family.advance(family_delta, leave_pack, "test:family", 77)
+	check("child_test" not in family_delta.candidate.household.member_ids, "Adult child can leave the household")
+	check(family_delta.candidate.actors.has("child_test"), "Child remains an actor after leaving home")
 	var first: Dictionary = runner.simulate_auto_life(42, "balanced")
 	var again: Dictionary = runner.simulate_auto_life(42, "balanced")
 	check(first.ok and again.ok, "AutoLife completes without simulation errors")
