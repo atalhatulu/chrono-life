@@ -117,7 +117,7 @@ static func care_for_parent(state: Dictionary, parent_id: String, kind: String) 
 
 static func _annual_elder_care(state: Dictionary) -> void:
 	initialize(state)
-	var player_id := str(state.meta.player_id)
+	var player_id = str(state.meta.player_id)
 	var parents: Array = state.family.get("kinship", {}).get(player_id, {}).get("parents", [])
 	for parent_id: String in parents:
 		if not state.actors.has(parent_id):
@@ -162,8 +162,8 @@ static func _annual_siblings(state: Dictionary, seed_value: int) -> void:
 	children.sort()
 	for i: int in range(children.size()):
 		for j: int in range(i + 1, children.size()):
-			var a := children[i]
-			var b := children[j]
+			var a = children[i]
+			var b = children[j]
 			var bond: Dictionary = _ensure_sibling_bond(state, a, b)
 			var same_household: bool = str(state.actors[a].household_id) == str(state.actors[b].household_id)
 			if same_household:
@@ -179,8 +179,8 @@ static func _annual_siblings(state: Dictionary, seed_value: int) -> void:
 					bond.support = clampi(int(bond.support) + 3, 0, 100)
 
 static func _next_grandchild_id(state: Dictionary) -> String:
-	var n := int(state.family.get("grandchildren_ids", []).size()) + 1
-	var id := "grandchild_%d" % n
+	var n = int(state.family.get("grandchildren_ids", []).size()) + 1
+	var id = "grandchild_%d" % n
 	while state.actors.has(id):
 		n += 1
 		id = "grandchild_%d" % n
@@ -250,7 +250,7 @@ static func _create_descendant_partner(state: Dictionary, child_id: String, seed
 static func _create_grandchild(state: Dictionary, child_id: String, seed_value: int) -> String:
 	var child: Dictionary = state.actors[child_id]
 	var profile: Dictionary = _ensure_descendant_profile(state, child_id)
-	var partner_id := str(profile.partner_id)
+	var partner_id = str(profile.partner_id)
 	if partner_id == "" or not state.actors.has(partner_id):
 		return ""
 	var id: String = _next_grandchild_id(state)
