@@ -3,6 +3,13 @@ extends RefCounted
 const Rng = preload("res://simulation/deterministic_rng.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 
+static func _last_event_year(state: Dictionary, kind: String, person_id: String) -> int:
+	var last := -9999
+	for event: Dictionary in state.relationships.get("history", []):
+		if event.get("kind") == "social_event" and str(event.get("event_type", "")) == kind and str(event.get("person_id", "")) == person_id:
+			last = maxi(last, int(event.get("year", -9999)))
+	return last
+
 static func collect_candidates(state: Dictionary) -> Array[Dictionary]:
 	Relationships.normalize(state)
 	var out: Array[Dictionary] = []
@@ -13,15 +20,15 @@ static func collect_candidates(state: Dictionary) -> Array[Dictionary]:
 			continue
 		if rel.role in ["parent", "child", "family", "spouse"]:
 			continue
-		if int(rel.conflict) >= 60:
+		if int(rel.conflict) >= 60 and year - _last_event_year(state,"conflict",id) >= 2:
 			out.append({"type":"conflict","person_id":id,"weight":20 + int(rel.conflict)})
-		if rel.stage == "romantic_interest" and int(rel.closeness) >= 55 and int(rel.attraction) >= 55:
+		if rel.stage == "romantic_interest" and int(rel.closeness) >= 55 and int(rel.attraction) >= 55 and year - _last_event_year(state,"romance_progress",id) >= 2:
 			out.append({"type":"romance_progress","person_id":id,"weight":25 + int(rel.attraction)})
-		if rel.stage == "dating" and int(rel.conflict) >= 45:
+		if rel.stage == "dating" and int(rel.conflict) >= 45 and year - _last_event_year(state,"relationship_strain",id) >= 2:
 			out.append({"type":"relationship_strain","person_id":id,"weight":20 + int(rel.conflict)})
-		if rel.stage in ["friend","close_friend"] and int(rel.closeness) >= 65:
+		if rel.stage in ["friend","close_friend"] and int(rel.closeness) >= 65 and year - _last_event_year(state,"friend_support",id) >= 3:
 			out.append({"type":"friend_support","person_id":id,"weight":15 + int(rel.closeness)})
-		if int(rel.last_contact_year) <= year - 3 and int(rel.closeness) >= 35:
+		if int(rel.last_contact_year) <= year - 3 and int(rel.closeness) >= 35 and year - _last_event_year(state,"reconnect",id) >= 4:
 			out.append({"type":"reconnect","person_id":id,"weight":18})
 	return out
 
