@@ -16,6 +16,8 @@ static func initialize(state: Dictionary) -> void:
 		state.family.descendant_lives = {}
 	if not state.family.has("grandchildren_ids"):
 		state.family.grandchildren_ids = []
+	if not state.family.has("elder_care"):
+		state.family.elder_care = {}
 
 static func _bond_key(a: String, b: String) -> String:
 	var pair := [a, b]
@@ -79,6 +81,56 @@ static func interact_with_child(state: Dictionary, child_id: String, kind: Strin
 	state.family.history.append({"year": int(state.world.year), "kind": "parenting",
 		"child_id": child_id, "interaction": kind})
 	return {"ok": true}
+
+
+static func care_for_parent(state: Dictionary, parent_id: String, kind: String) -> Dictionary:
+	if not state.actors.has(parent_id) or parent_id not in state.family.get("kinship", {}).get(str(state.meta.player_id), {}).get("parents", []):
+		return {"ok": false, "error": "Unknown parent"}
+	var parent: Dictionary = state.actors[parent_id]
+	if not parent.alive:
+		return {"ok": false, "error": "Parent is not alive"}
+	initialize(state)
+	if not state.family.elder_care.has(parent_id):
+		state.family.elder_care[parent_id] = {"care": 0, "burden": 0, "last_year": -1}
+	var care: Dictionary = state.family.elder_care[parent_id]
+	match kind:
+		"visit":
+			care.care = clampi(int(care.care) + 8, 0, 100)
+			parent.needs.social = clampi(int(parent.needs.social) + 8, 0, 100)
+		"care":
+			care.care = clampi(int(care.care) + 15, 0, 100)
+			care.burden = clampi(int(care.burden) + 8, 0, 100)
+			parent.health = clampi(int(parent.health) + 3, 1, 100)
+			state.actors[state.meta.player_id].needs.stress = clampi(int(state.actors[state.meta.player_id].needs.stress) + 4, 0, 100)
+		"financial_support":
+			care.care = clampi(int(care.care) + 10, 0, 100)
+			care.burden = clampi(int(care.burden) + 5, 0, 100)
+		_:
+			return {"ok": false, "error": "Unknown elder-care interaction"}
+	care.last_year = int(state.world.year)
+	state.family.history.append({"year": int(state.world.year), "kind": "elder_care",
+		"parent_id": parent_id, "interaction": kind})
+	return {"ok": true}
+
+static func _annual_elder_care(state: Dictionary) -> void:
+	initialize(state)
+	var player_id := str(state.meta.player_id)
+	var parents: Array = state.family.get("kinship", {}).get(player_id, {}).get("parents", [])
+	for parent_id: String in parents:
+		if not state.actors.has(parent_id):
+			continue
+		var parent: Dictionary = state.actors[parent_id]
+		if not parent.alive:
+			continue
+		if int(parent.age) < 60 and int(parent.health) >= 55:
+			continue
+		if not state.family.elder_care.has(parent_id):
+			state.family.elder_care[parent_id] = {"care": 0, "burden": 0, "last_year": -1}
+		var care: Dictionary = state.family.elder_care[parent_id]
+		if int(care.last_year) < int(state.world.year) - 1:
+			care.care = clampi(int(care.care) - 3, 0, 100)
+		if int(care.care) < 25:
+			parent.needs.social = clampi(int(parent.needs.social) - 3, 0, 100)
 
 static func _annual_parenting(state: Dictionary) -> void:
 	initialize(state)
@@ -281,5 +333,6 @@ static func _advance_descendants(state: Dictionary, pack: Dictionary, seed_value
 static func advance(state: Dictionary, pack: Dictionary, seed_value: int) -> void:
 	initialize(state)
 	_annual_parenting(state)
+	_annual_elder_care(state)
 	_annual_siblings(state, seed_value)
 	_advance_descendants(state, pack, seed_value)
