@@ -152,8 +152,17 @@ func _initialize() -> void:
 		check(str(mobility_state.world.location_id) == destination_id, "Migration updates world location")
 		check(str(mobility_state.household.location_id) == destination_id, "Migration updates household location")
 		check(str(mobility_state.migration.current_location_id) == destination_id, "Migration state tracks current location")
+		check(not mobility_state.migration.history.is_empty(), "Migration history records the move")
 		check(str(mobility_state.households[mobility_state.household.id].location_id) == destination_id,
 			"Migration updates primary household registry location")
+
+	var cash_before_liquidation := int(mobility_state.personal_economy.cash)
+	var liquidation_result := Assets.liquidate(mobility_state, "work_tools")
+	check(liquidation_result.ok, "Owned assets can be liquidated")
+	check(int(mobility_state.personal_economy.cash) > cash_before_liquidation,
+		"Asset liquidation returns value to personal cash")
+	check(not mobility_state.assets.owned.has("work_tools"),
+		"Non-stackable asset is removed after liquidation")
 
 	var family_state: Dictionary = runner.initial_state(77)
 	Family.ensure_state(family_state)
