@@ -11,7 +11,11 @@ const Consequences = preload("res://simulation/consequence_engine.gd")
 const Storylets = preload("res://simulation/storylet_engine.gd")
 const BotPolicy = preload("res://simulation/bot_policy.gd")
 const Family = preload("res://simulation/family_system.gd")
-const VERSION: String = "0.4.0-phase-1"
+const Needs = preload("res://simulation/needs_system.gd")
+const LifeActions = preload("res://simulation/life_action_system.gd")
+const AutoLife = preload("res://simulation/auto_life_controller.gd")
+const LifeSummary = preload("res://simulation/life_summary.gd")
+const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
 var occupations: Dictionary
@@ -42,6 +46,7 @@ func initial_state(seed_value: int) -> Dictionary:
 		actor.conditions = {}
 		actor.education_state = "none"
 		actor.literacy = 0
+		Needs.initialize_actor(actor)
 		actor.household_id = "household_1"
 		actor.income = _annual_income(actor.occupation_id, int(pack.economy.initial_index))
 		active_income += actor.income
@@ -127,6 +132,10 @@ func validate_state(state: Dictionary) -> Array[String]:
 			errors.append("Invalid dead actor: " + id)
 		if actor.alive and (actor.death_year != 0 or actor.death_cause != ""):
 			errors.append("Living actor has death metadata: " + id)
+		Needs.normalize_actor(actor)
+		for need_key: String in ["happiness", "stress", "social", "energy"]:
+			if not Content.is_integer(actor.needs[need_key]) or actor.needs[need_key] < 0 or actor.needs[need_key] > 100:
+				errors.append("Invalid actor need: " + need_key)
 		for field: String in ["health", "constitution", "willpower", "literacy"]:
 			if not Content.is_integer(actor[field]) or actor[field] < 0 or actor[field] > 100:
 				errors.append("Invalid actor field: " + field)
@@ -433,3 +442,38 @@ func simulate_years(seed_value: int, years: int, schedule: Dictionary = {}, deci
 
 func simulate_life(seed_value: int, decisions: Dictionary = {}, policy_name: String = "heuristic_v1") -> Dictionary:
 	return simulate_years(seed_value, int(pack.limits.max_years), {}, decisions, policy_name)
+
+
+func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionary:
+	if state.meta.status != "running":
+		return {"ok": false, "errors": ["The player's life has already ended"]}
+	var working: Dictionary = state.duplicate(true)
+	var player: Dictionary = working.actors[working.meta.player_id]
+	Needs.annual_drift(player)
+	var action_id: String = AutoLife.choose_action(working, policy_name)
+	if action_id != "":
+		var action_result: Dictionary = LifeActions.apply(working, action_id)
+		if not action_result.ok:
+			return {"ok": false, "errors": [action_result.error]}
+	var result: Dictionary = step(working, [], {}, policy_name)
+	if result.ok:
+		result.action_id = action_id
+	return result
+
+
+func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Dictionary:
+	var state: Dictionary = initial_state(seed_value)
+	var actions: Array = []
+	while state.meta.status == "running":
+		if int(state.world.year) - int(pack.start_year) >= int(pack.limits.max_years):
+			break
+		var result: Dictionary = auto_step(state, policy_name)
+		if not result.ok:
+			return result
+		if str(result.get("action_id", "")) != "":
+			actions.append({"year": int(result.state.world.year), "action_id": result.action_id})
+		state = result.state
+	var player: Dictionary = state.actors[state.meta.player_id]
+	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
+		"state": state, "actions": actions, "life_result": LifeSummary.build(state),
+		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
