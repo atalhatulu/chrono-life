@@ -29,6 +29,10 @@ static func eligible(actor: Dictionary, job: Dictionary, target_age: int) -> boo
 		return true
 	if int(actor.work_capacity) <= 0:
 		return false
+	var required_skills: Dictionary = job.get("required_skills", {})
+	for skill_id: String in required_skills:
+		if int(actor.get("skills", {}).get("values", {}).get(skill_id, 0)) < int(required_skills[skill_id]):
+			return false
 	var required: Array = job.get("required_education_stages", [])
 	var completed: Array = _completed_education(actor)
 	for stage: Variant in required:
@@ -153,7 +157,11 @@ static func prepare(delta: RefCounted, pack: Dictionary, jobs: Dictionary, cause
 		if actor.occupation_id != "dependent":
 			var promotions := _promotion_candidates(actor, jobs)
 			if not promotions.is_empty():
-				var chance := 120 + int(actor.willpower) * 2 + int(actor.literacy)
+				var skill_bonus := 0
+				var current_job: Dictionary = jobs[actor.occupation_id]
+				for skill_id: String in current_job.get("required_skills", {}):
+					skill_bonus += int(actor.get("skills", {}).get("values", {}).get(skill_id, 0)) * 4
+				var chance := 120 + int(actor.willpower) * 2 + int(actor.literacy) + skill_bonus
 				if Rng.integer(seed_value, "career", delta.year, id, "promotion", 0, 999) < mini(chance, 700):
 					var promoted_to := promotions[0]
 					_record_job_end(delta, id, "promotion", cause)
