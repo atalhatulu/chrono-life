@@ -24,6 +24,7 @@ const Treatments = preload("res://simulation/health_treatment_system.gd")
 const Housing = preload("res://simulation/housing_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
+const FamilyEvents = preload("res://simulation/family_event_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -330,6 +331,9 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 	Family.advance(delta, pack, year_event, seed_value)
 	FamilyDynamics.advance(delta.candidate, pack, seed_value)
 	HouseholdNetwork.sync_primary(delta.candidate)
+	var family_event_data: Dictionary = FamilyEvents.resolve_one(delta.candidate)
+	if not family_event_data.is_empty():
+		delta.record("family_event", year_event, family_event_data)
 	var care_event: String = delta.record("household_care_evaluated", year_event,
 		{"consequence_ids": consequences.event_ids})
 	var orphan_support: int = Responses.update_care(delta, pack, care_event) if pack.systems.adaptation else 0
@@ -523,6 +527,9 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	var social_event: Dictionary = SocialEvents.resolve_one(working)
 	var player: Dictionary = working.actors[working.meta.player_id]
 	Needs.annual_drift(player)
+	var parenting_decision: Dictionary = AutoLife.choose_parenting_action(working, policy_name)
+	if not parenting_decision.is_empty():
+		FamilyDynamics.interact_with_child(working, str(parenting_decision.child_id), str(parenting_decision.action))
 	var social_decision: Dictionary = AutoLife.choose_relationship_action(working, policy_name)
 	if not social_decision.is_empty():
 		if social_decision.action == "meet":
@@ -552,6 +559,7 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		result.purchase_id = purchase_id
 		result.treatment_id = treatment_id
 		result.social_decision = social_decision
+		result.parenting_decision = parenting_decision
 		result.social_event = social_event
 	return result
 
@@ -563,12 +571,19 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 	var social_actions: Array = []
 	var social_events: Array = []
 	var treatments: Array = []
+	var parenting_actions: Array = []
+	var family_events: Array = []
 	while state.meta.status == "running":
 		if int(state.world.year) - int(pack.start_year) >= int(pack.limits.max_years):
 			break
 		var result: Dictionary = auto_step(state, policy_name)
 		if not result.ok:
 			return result
+		for ev: Dictionary in result.get("events", []):
+			if ev.kind == "family_event":
+				family_events.append({"year": int(result.state.world.year), "event": ev.details})
+		if not result.get("parenting_decision", {}).is_empty():
+			parenting_actions.append({"year": int(result.state.world.year), "decision": result.parenting_decision})
 		if not result.get("social_event", {}).is_empty():
 			social_events.append({"year": int(result.state.world.year), "event": result.social_event})
 		if not result.get("social_decision", {}).is_empty():
@@ -582,5 +597,5 @@ func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Di
 		state = result.state
 	var player: Dictionary = state.actors[state.meta.player_id]
 	return {"ok": true, "status": "completed" if not player.alive else "year_limit",
-		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "treatments": treatments, "life_result": LifeSummary.build(state),
+		"state": state, "actions": actions, "purchases": purchases, "social_actions": social_actions, "social_events": social_events, "family_events": family_events, "parenting_actions": parenting_actions, "treatments": treatments, "life_result": LifeSummary.build(state),
 		"fingerprint": JSON.stringify(state, "", true).sha256_text()}
