@@ -94,7 +94,7 @@ static func _advance_experience(state: Dictionary, jobs: Dictionary) -> void:
 		if actor.occupation_id == "dependent" or not jobs.has(actor.occupation_id):
 			continue
 		actor.career.experience_years = int(actor.career.experience_years) + 1
-		var track := str(jobs[actor.occupation_id].get("career_track", ""))
+		var track = str(jobs[actor.occupation_id].get("career_track", ""))
 		if track != "":
 			actor.career.track_experience[track] = int(actor.career.track_experience.get(track, 0)) + 1
 
