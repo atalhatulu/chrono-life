@@ -111,7 +111,7 @@ static func advance(delta: RefCounted, pack: Dictionary, cause: String) -> void:
 		actor.education.performance = performance
 		var gained := int(stage.get("progress_per_year", 10)) * attendance / 100
 		actor.education.progress = mini(100, int(actor.education.progress) + gained)
-		var literacy_gain := int(stage.get("literacy_per_year", 0)) * attendance / 100
+		var literacy_gain := int(stage.get("literacy_per_year", 0))
 		if literacy_gain > 0:
 			delta.set_field("actors", "literacy", mini(100, int(actor.literacy) + literacy_gain), cause, id)
 		var completion_age := int(stage.get("completion_age", int(stage.get("max_age", 200)) + 1))
