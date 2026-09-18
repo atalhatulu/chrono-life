@@ -577,7 +577,8 @@
     "spending_catalog": "res://content/manchester_spending.json",
     "life_actions": "res://content/manchester_actions.json",
     "education": "res://content/manchester_education.json",
-    "careers": "res://content/manchester_careers.json"
+    "careers": "res://content/manchester_careers.json",
+    "relationships": "res://content/manchester_relationships.json"
   },
   "pack_id": "manchester_1850",
   "era_id": "industrial_revolution"
