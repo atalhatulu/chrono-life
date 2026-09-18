@@ -454,6 +454,7 @@ func step_resolve(prep: Dictionary, choice_id: String = "") -> Dictionary:
 		var st_event: String = delta.record("storylet_triggered", budget_event,
 			{"storylet_id": storylet.id, "title": storylet.title, "family": storylet.family})
 		var outcome: Dictionary = Storylets.apply_choice(delta, storylet, choice_id, st_event, seed_value, pack)
+		SocialStatus.recompute(delta.candidate)
 		delta.record("storylet_choice_made", st_event, outcome)
 	elif pack.systems.get("storylets", false) and delta.candidate.actors[delta.candidate.meta.player_id].alive:
 		delta.record("quiet_year", budget_event, {"year": year})
