@@ -6,6 +6,7 @@ const Needs = preload("res://simulation/needs_system.gd")
 const Education = preload("res://simulation/education_system.gd")
 const Career = preload("res://simulation/career_system.gd")
 const Health = preload("res://simulation/health_system.gd")
+const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
 
 const FEMALE_NAMES: Array[String] = ["Sarah", "Elizabeth", "Mary", "Hannah", "Alice", "Ellen", "Martha"]
 const MALE_NAMES: Array[String] = ["James", "John", "Thomas", "George", "William", "Joseph", "Robert"]
@@ -164,7 +165,7 @@ static func _end_marriage(delta: RefCounted, state: Dictionary, spouse_id: Strin
 	var spouse: Dictionary = state.actors[spouse_id]
 	if reason != "death":
 		state.household.member_ids.erase(spouse_id)
-		spouse.household_id = "external:" + spouse_id
+		HouseholdNetwork.create_external_household(state, spouse_id, "former_spouse")
 	if state.relationships.people.has(spouse_id):
 		var rel: Dictionary = state.relationships.people[spouse_id]
 		rel.role = "former_spouse" if reason != "death" else "spouse"
@@ -212,10 +213,10 @@ static func _evaluate_children_leaving(delta: RefCounted, pack: Dictionary, caus
 		if Rng.integer(seed_value, "family", delta.year, child_id, "leave_home", 0, 999) >= clampi(chance, 0, 950):
 			continue
 		state.household.member_ids.erase(child_id)
-		child.household_id = "independent:" + child_id
+		var new_household_id := HouseholdNetwork.create_external_household(state, child_id, "adult_child")
 		state.family.history.append({"year": delta.year, "kind": "child_left_home", "child_id": child_id})
 		delta.record("child_left_home", cause, {"child_id": child_id, "age": child.age,
-			"occupation_id": child.occupation_id})
+			"occupation_id": child.occupation_id, "household_id": new_household_id})
 		if state.relationships.people.has(child_id):
 			state.relationships.people[child_id].contact = maxi(20, int(state.relationships.people[child_id].contact) - 15)
 
