@@ -6,14 +6,14 @@ const Skills = preload("res://simulation/skill_system.gd")
 static var _cache: Dictionary = {}
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := str(state.get("meta", {}).get("assets_path", ""))
+	var path: String = str(state.get("meta", {}).get("assets_path", ""))
 	if path.is_empty():
 		return {"assets": []}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"assets": []}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"assets": []}
 	return _cache[path]
@@ -53,10 +53,10 @@ static func available_assets(state: Dictionary) -> Array[Dictionary]:
 
 static func acquire(state: Dictionary, asset_id: String) -> Dictionary:
 	initialize(state)
-	var defs := definitions(state)
+	var defs: Dictionary = definitions(state)
 	if not defs.has(asset_id):
 		return {"ok": false, "error": "Unknown asset"}
-	var allowed := false
+	var allowed: bool = false
 	for asset: Dictionary in available_assets(state):
 		if str(asset.id) == asset_id:
 			allowed = true
@@ -64,9 +64,9 @@ static func acquire(state: Dictionary, asset_id: String) -> Dictionary:
 	if not allowed:
 		return {"ok": false, "error": "Asset unavailable"}
 	var asset: Dictionary = defs[asset_id]
-	var cost := int(asset.get("acquire_cost", 0))
+	var cost: int = int(asset.get("acquire_cost", 0))
 	if cost > 0:
-		var spend := PersonalEconomy.spend(state, cost, "asset", asset_id)
+		var spend: Dictionary = PersonalEconomy.spend(state, cost, "asset", asset_id)
 		if not spend.ok:
 			return spend
 	var entry: Dictionary = state.assets.owned.get(asset_id, {
@@ -85,18 +85,18 @@ static func acquire(state: Dictionary, asset_id: String) -> Dictionary:
 
 static func annual_update(state: Dictionary) -> void:
 	initialize(state)
-	var defs := definitions(state)
+	var defs: Dictionary = definitions(state)
 	for asset_id: String in state.assets.owned:
 		if not defs.has(asset_id):
 			continue
 		var entry: Dictionary = state.assets.owned[asset_id]
-		var dep := int(defs[asset_id].get("depreciation_permille", 0))
+		var dep: int = int(defs[asset_id].get("depreciation_permille", 0))
 		if dep > 0:
 			entry.value = maxi(0, int(entry.value) * (1000 - dep) / 1000)
 
 static func total_value(state: Dictionary) -> int:
 	initialize(state)
-	var total := 0
+	var total: int = 0
 	for asset_id: String in state.assets.owned:
 		total += int(state.assets.owned[asset_id].get("value", 0))
 	return total
@@ -104,16 +104,16 @@ static func total_value(state: Dictionary) -> int:
 
 static func liquidate(state: Dictionary, asset_id: String) -> Dictionary:
 	initialize(state)
-	var defs := definitions(state)
+	var defs: Dictionary = definitions(state)
 	if not defs.has(asset_id) or not state.assets.owned.has(asset_id):
 		return {"ok": false, "error": "Asset is not owned"}
 	var entry: Dictionary = state.assets.owned[asset_id]
-	var quantity := int(entry.get("quantity", 1))
+	var quantity: int = int(entry.get("quantity", 1))
 	if quantity <= 0:
 		return {"ok": false, "error": "Asset is not owned"}
 	var definition: Dictionary = defs[asset_id]
-	var unit_value := int(entry.get("value", 0)) / maxi(quantity, 1)
-	var proceeds := int(unit_value * int(definition.get("liquidate_permille", 700)) / 1000.0)
+	var unit_value: int = int(entry.get("value", 0)) / maxi(quantity, 1)
+	var proceeds: int = int(unit_value * int(definition.get("liquidate_permille", 700)) / 1000.0)
 	entry.quantity = quantity - 1
 	entry.value = maxi(0, int(entry.value) - unit_value)
 	if int(entry.quantity) <= 0:
@@ -135,11 +135,11 @@ static func remove_asset(state: Dictionary, asset_id: String, reason: String = "
 	if not state.assets.owned.has(asset_id):
 		return false
 	var entry: Dictionary = state.assets.owned[asset_id]
-	var quantity := int(entry.get("quantity", 1))
+	var quantity: int = int(entry.get("quantity", 1))
 	if quantity <= 1:
 		state.assets.owned.erase(asset_id)
 	else:
-		var unit_value := int(entry.get("value", 0)) / maxi(quantity, 1)
+		var unit_value: int = int(entry.get("value", 0)) / maxi(quantity, 1)
 		entry.quantity = quantity - 1
 		entry.value = maxi(0, int(entry.value) - unit_value)
 		state.assets.owned[asset_id] = entry
