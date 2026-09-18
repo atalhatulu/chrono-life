@@ -30,12 +30,12 @@ static func _update_traits(state: Dictionary, actor: Dictionary) -> void:
 			preserved.append(trait)
 	for threshold: Dictionary in _catalog(state).get("thresholds", []):
 		var value := int(actor.personality.axes.get(threshold.axis, 50))
-		var pass := true
+		var qualifies := true
 		if threshold.has("min") and value < int(threshold.min):
-			pass = false
+			qualifies = false
 		if threshold.has("max") and value > int(threshold.max):
 			pass = false
-		if pass and threshold.trait not in preserved:
+		if qualifies and threshold.trait not in preserved:
 			preserved.append(threshold.trait)
 	actor.traits = preserved
 
