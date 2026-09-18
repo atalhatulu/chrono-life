@@ -1,0 +1,81 @@
+{
+  "version": "manchester_housing_0.1.0",
+  "design_note": "Minimal test content for the generic dwelling system. Values are gameplay calibration, not historical measurements.",
+  "dwellings": [
+    {
+      "id": "family_room",
+      "label": "Aile evi",
+      "tenure": "household_use",
+      "annual_cost": 1100,
+      "capacity": 4,
+      "quality": 42,
+      "sanitation": 35,
+      "security": 45,
+      "privacy": 25,
+      "min_age": 0,
+      "tags": [
+        "shared",
+        "urban"
+      ]
+    },
+    {
+      "id": "lodging_room",
+      "label": "Kiralık oda",
+      "tenure": "rent",
+      "annual_cost": 850,
+      "capacity": 1,
+      "quality": 32,
+      "sanitation": 30,
+      "security": 30,
+      "privacy": 48,
+      "min_age": 16,
+      "tags": [
+        "rent",
+        "urban"
+      ]
+    },
+    {
+      "id": "worker_flat",
+      "label": "İşçi dairesi",
+      "tenure": "rent",
+      "annual_cost": 1500,
+      "capacity": 4,
+      "quality": 55,
+      "sanitation": 48,
+      "security": 55,
+      "privacy": 58,
+      "min_age": 18,
+      "tags": [
+        "rent",
+        "family",
+        "urban"
+      ]
+    },
+    {
+      "id": "better_flat",
+      "label": "Daha iyi konut",
+      "tenure": "rent",
+      "annual_cost": 2300,
+      "capacity": 5,
+      "quality": 70,
+      "sanitation": 65,
+      "security": 70,
+      "privacy": 72,
+      "min_age": 20,
+      "tags": [
+        "rent",
+        "family",
+        "urban"
+      ]
+    }
+  ],
+  "rules": {
+    "overcrowding_health_penalty_per_person": 3,
+    "overcrowding_stress_per_person": 4,
+    "low_quality_health_threshold": 35,
+    "low_quality_health_penalty": 4,
+    "good_quality_happiness_threshold": 65,
+    "good_quality_happiness_bonus": 4,
+    "forced_move_unpaid_years": 2
+  }
+}
