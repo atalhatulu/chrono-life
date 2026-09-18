@@ -8,6 +8,7 @@ const Palette = preload("res://ui/chronicle_theme.gd")
 const Words = preload("res://ui/chronicle_text.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
+const Treatments = preload("res://simulation/health_treatment_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -275,7 +276,7 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["education", "Eğitim", "book"], ["career", "Kariyer", "book"], ["health", "Sağlık", "plus"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
@@ -432,7 +433,7 @@ func start_game(seed_value: int) -> void:
 
 
 func switch_view(view: String) -> void:
-	if view not in ["life", "family", "budget", "education", "career", "spending"]:
+	if view not in ["life", "family", "budget", "education", "career", "health", "spending"]:
 		return
 	current_view = view
 	_refresh_ui()
@@ -519,7 +520,7 @@ func _refresh_ui() -> void:
 		fields[key].text = str(player[key])
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
-	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "spending": "Cebindeki para ve harcamalar"}[current_view]
+	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "education": "Eğitim hayatın", "career": "İş ve kariyer hayatın", "health": "Sağlığın ve tedavilerin", "spending": "Cebindeki para ve harcamalar"}[current_view]
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
@@ -586,6 +587,9 @@ func _render_feed() -> void:
 		return
 	if current_view == "career":
 		_render_career(feed)
+		return
+	if current_view == "health":
+		_render_health(feed)
 		return
 	if not state.actors[state.meta.player_id].alive:
 		var memorial := _card(feed)
@@ -738,6 +742,67 @@ func _render_budget(parent: Node) -> void:
 		row.add_child(_label(str(item[1]), 17, Palette.INK, true))
 	column.add_child(_label("Son tamamlanan yılın hesabı. Tutarlar test birimidir." if has_ledger else "İlk yılın hesabı henüz kapanmadı. Tutarlar test birimidir.", 11, Palette.MUTED, false, true))
 	column.add_child(_label("Gıda ihtiyacının %%%d kadarı karşılanıyor." % int(state.household.food_security / 10), 13, Palette.MUTED, false, true))
+
+
+func _render_health(parent: Node) -> void:
+	var player: Dictionary = state.actors[state.meta.player_id]
+	var profile: Dictionary = player.get("health_profile", {})
+	var card := _card(parent)
+	card.add_child(_label("SAĞLIK DURUMU", 10, Palette.MUTED))
+	card.add_child(_label("%d / 100" % int(player.health), 27, Palette.INK, true))
+	card.add_child(_label("Çalışma kapasitesi: %d / 1000" % int(player.work_capacity), 12, Palette.MUTED))
+	if player.conditions.is_empty():
+		card.add_child(_label("Aktif bir sağlık sorunu görünmüyor.", 13, Palette.MUTED))
+	else:
+		for condition_id: String in player.conditions:
+			var condition: Dictionary = player.conditions[condition_id]
+			card.add_child(_label("%s · Şiddet %d" % [
+				condition_id.replace("_", " ").capitalize(),
+				int(condition.get("severity", 50))
+			], 14, Palette.INK, true))
+	var disabilities: Array = profile.get("disabilities", [])
+	if not disabilities.is_empty():
+		var permanent := _card(parent)
+		permanent.add_child(_label("KALICI ETKİLER", 10, Palette.RUST))
+		for disability: Variant in disabilities:
+			permanent.add_child(_label(str(disability).replace("_", " ").capitalize(), 13, Palette.INK))
+	var options: Array[Dictionary] = Treatments.available_treatments(state)
+	if not options.is_empty():
+		var treatment_card := _card(parent)
+		treatment_card.add_child(_label("TEDAVİ SEÇENEKLERİ", 10, Palette.MUTED))
+		for treatment: Dictionary in options:
+			var row := _row(8)
+			treatment_card.add_child(row)
+			var text := _column(2)
+			row.add_child(text)
+			text.add_child(_label(str(treatment.label), 14, Palette.INK, true))
+			text.add_child(_label("%d test birimi · başarı %d%%" % [
+				int(treatment.cost), int(treatment.get("success_bp", 0)) / 100
+			], 11, Palette.MUTED))
+			_spacer(row)
+			var treatment_id := str(treatment.id)
+			row.add_child(_button("Tedavi ol", func(): _take_treatment(treatment_id), "Primary"))
+	var history: Array = profile.get("treatment_history", [])
+	if not history.is_empty():
+		var history_card := _card(parent)
+		history_card.add_child(_label("TEDAVİ GEÇMİŞİ", 10, Palette.MUTED))
+		for index: int in range(history.size() - 1, maxi(-1, history.size() - 6), -1):
+			var entry: Dictionary = history[index]
+			history_card.add_child(_label("%d · %s · %d başarılı müdahale" % [
+				int(entry.get("year", 0)),
+				str(entry.get("treatment_id", "")).replace("_", " ").capitalize(),
+				int(entry.get("success_count", 0))
+			], 12, Palette.MUTED))
+
+
+func _take_treatment(treatment_id: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result: Dictionary = Treatments.apply(state, treatment_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "Tedavi uygulanamadı.")))
+		return
+	_refresh_ui()
 
 
 func _render_career(parent: Node) -> void:
