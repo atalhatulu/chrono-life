@@ -6,6 +6,7 @@ const Runner = preload("res://simulation/simulation_runner.gd")
 const Delta = preload("res://simulation/year_delta.gd")
 const Palette = preload("res://ui/chronicle_theme.gd")
 const Words = preload("res://ui/chronicle_text.gd")
+const Purchases = preload("res://simulation/purchase_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -273,7 +274,7 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["spending", "Harcamalar", "wallet"], ["new", "Yeni hayat", "plus"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
@@ -430,7 +431,7 @@ func start_game(seed_value: int) -> void:
 
 
 func switch_view(view: String) -> void:
-	if view not in ["life", "family", "budget"]:
+	if view not in ["life", "family", "budget", "spending"]:
 		return
 	current_view = view
 	_refresh_ui()
@@ -517,7 +518,7 @@ func _refresh_ui() -> void:
 		fields[key].text = str(player[key])
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
-	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi"}[current_view]
+	fields.section.text = {"life": "Hayatından sayfalar", "family": "Seni çevreleyen insanlar", "budget": "Evin geçimi", "spending": "Cebindeki para ve harcamalar"}[current_view]
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
@@ -575,6 +576,9 @@ func _render_feed() -> void:
 		return
 	if current_view == "budget":
 		_render_budget(feed)
+		return
+	if current_view == "spending":
+		_render_spending(feed)
 		return
 	if not state.actors[state.meta.player_id].alive:
 		var memorial := _card(feed)
@@ -646,13 +650,58 @@ func _render_budget(parent: Node) -> void:
 	column.add_child(_label("Gıda ihtiyacının %%%d kadarı karşılanıyor." % int(state.household.food_security / 10), 13, Palette.MUTED, false, true))
 
 
+func _render_spending(parent: Node) -> void:
+	var economy: Dictionary = state.get("personal_economy", {})
+	var wallet := _card(parent)
+	wallet.add_child(_label("KİŞİSEL PARA", 10, Palette.MUTED))
+	wallet.add_child(_label("%d test birimi" % int(economy.get("cash", 0)), 27, Palette.INK, true))
+	wallet.add_child(_label("Toplam kazanç: %d · Toplam harcama: %d" % [
+		int(economy.get("lifetime_income", 0)), int(economy.get("lifetime_spending", 0))], 12, Palette.MUTED))
+	var grouped: Dictionary = {}
+	for item: Dictionary in Purchases.available_items(state):
+		var category := str(item.category)
+		if not grouped.has(category):
+			grouped[category] = []
+		grouped[category].append(item)
+	var categories: Array = grouped.keys()
+	categories.sort()
+	if categories.is_empty():
+		var empty := _card(parent)
+		empty.add_child(_label("Şu anda cebindeki parayla alınabilecek bir şey yok.", 14, Palette.MUTED, false, true))
+		return
+	for category: String in categories:
+		var card := _card(parent)
+		card.add_child(_label(category.to_upper(), 10, Palette.RUST))
+		for item: Dictionary in grouped[category]:
+			var row := _row(10)
+			card.add_child(row)
+			var text := _column(2)
+			row.add_child(text)
+			text.add_child(_label(str(item.label), 15, Palette.INK, true))
+			text.add_child(_label("%d test birimi" % int(item.cost), 11, Palette.MUTED))
+			_spacer(row)
+			var item_id: String = str(item.id)
+			row.add_child(_button("Satın al", func(): _buy_item(item_id), "Ghost"))
+
+
+func _buy_item(item_id: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result: Dictionary = Purchases.purchase(state, item_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "Satın alma başarısız.")))
+		return
+	error_label.hide()
+	_refresh_ui()
+
+
 func _render_sidebar() -> void:
 	_clear(side_info)
 	side_info.add_child(_label("EVİNDE HAYAT", 10, Palette.MUTED))
 	side_info.add_child(_label(Words.word(str(state.household.living_standard)), 20, Palette.INK, true, true))
 	var summary := _row(16)
 	side_info.add_child(summary)
-	for item: Array in [["BİRİKİM", state.household.savings], ["BORÇ", state.household.debt]]:
+	for item: Array in [["BİRİKİM", state.household.savings], ["BORÇ", state.household.debt], ["CEBİN", state.get("personal_economy", {}).get("cash", 0)]]:
 		var value := _column(2)
 		summary.add_child(value)
 		value.add_child(_label(item[0], 9, Palette.MUTED))
