@@ -512,7 +512,7 @@
     "hobbies": "res://content/manchester_hobbies.json",
     "personality": "res://content/generic_personality.json",
     "assets": "res://content/manchester_assets.json",
-    "status": "res://content/generic_status.json",
+    "status": "res://content/manchester_status.json",
     "migration": "res://content/manchester_migration.json"
   },
   "pack_id": "manchester_1850",
