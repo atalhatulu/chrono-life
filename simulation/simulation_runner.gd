@@ -23,6 +23,7 @@ const SocialEvents = preload("res://simulation/social_event_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
 const Housing = preload("res://simulation/housing_system.gd")
 const HouseholdNetwork = preload("res://simulation/household_network_system.gd")
+const FamilyDynamics = preload("res://simulation/family_dynamics_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -236,6 +237,21 @@ func validate_state(state: Dictionary) -> Array[String]:
 		if not state.family is Dictionary or not state.family.has("marital_status") or \
 				state.family.marital_status not in ["unmarried", "married", "widowed", "divorced"]:
 			errors.append("Invalid family state structure")
+	if not state.has("households") or not state.households is Dictionary:
+		errors.append("Invalid household registry")
+	else:
+		var resident_seen: Dictionary = {}
+		for household_id: String in state.households:
+			var household_entry: Dictionary = state.households[household_id]
+			for actor_id: String in household_entry.get("member_ids", []):
+				if not state.actors.has(actor_id):
+					errors.append("Household registry references unknown actor: " + actor_id)
+					continue
+				if resident_seen.has(actor_id):
+					errors.append("Actor belongs to multiple households: " + actor_id)
+				resident_seen[actor_id] = household_id
+				if str(state.actors[actor_id].household_id) != household_id:
+					errors.append("Actor household registry mismatch: " + actor_id)
 	if not state.has("housing") or not state.housing is Dictionary:
 		errors.append("Invalid housing state structure")
 	else:
@@ -312,6 +328,8 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 		return {"ok": false, "errors": consequences.errors, "diagnostic_events": delta.events}
 	Education.advance(delta, pack, year_event)
 	Family.advance(delta, pack, year_event, seed_value)
+	FamilyDynamics.advance(delta.candidate, pack, seed_value)
+	HouseholdNetwork.sync_primary(delta.candidate)
 	var care_event: String = delta.record("household_care_evaluated", year_event,
 		{"consequence_ids": consequences.event_ids})
 	var orphan_support: int = Responses.update_care(delta, pack, care_event) if pack.systems.adaptation else 0
