@@ -7,6 +7,7 @@ const Purchases = preload("res://simulation/purchase_system.gd")
 const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const SocialEvents = preload("res://simulation/social_event_system.gd")
+const Treatments = preload("res://simulation/health_treatment_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -29,6 +30,7 @@ func _initialize() -> void:
 	check(state.actors.player.has("education"), "Initial player has generic education state")
 	check(state.actors.player.has("career"), "Initial player has generic career state")
 	check(str(state.meta.get("relationships_path", "")) != "", "Relationship content path is carried into state")
+	check(str(state.meta.get("health_path", "")) != "", "Health content path is carried into state")
 	state.actors.player.age = 16
 	state.world.year = state.actors.player.birth_year + 16
 	var social_id := Relationships.meet_person(state, "social_venue")
@@ -40,6 +42,13 @@ func _initialize() -> void:
 		var social_event := SocialEvents.resolve_one(state)
 		check(not social_event.is_empty(), "Relationship state can produce a social event")
 		check(state.history.any(func(e): return e.kind == "social_event"), "Social events are written to life history")
+	PersonalEconomy.grant_income(state, 200, "health_test")
+	state.actors.player.conditions = {"epidemic_disease": {"acquired_year": int(state.world.year), "remaining_years": 1, "severity": 70}}
+	var treatment_options := Treatments.available_treatments(state)
+	check(not treatment_options.is_empty(), "Active conditions expose matching treatments")
+	if not treatment_options.is_empty():
+		var treatment_result := Treatments.apply(state, str(treatment_options[0].id))
+		check(treatment_result.ok, "Treatment can be applied through generic health content")
 	check(str(state.meta.get("education_path", "")) != "", "Education content path is carried into state")
 	check(Actions.available_actions(state).has("rest"), "Rest is available from birth")
 	check(not Actions.available_actions(state).has("work_hard"), "Infant cannot work hard")
@@ -66,6 +75,7 @@ func _initialize() -> void:
 	check(first.life_result.has("career"), "Life summary includes career history")
 	check(first.life_result.has("relationships"), "Life summary includes relationship history")
 	check(first.has("social_actions"), "AutoLife exposes social decisions")
+	check(first.has("treatments"), "AutoLife exposes treatment history")
 	check(first.has("purchases"), "AutoLife exposes purchase history")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
 	var varied := {}
