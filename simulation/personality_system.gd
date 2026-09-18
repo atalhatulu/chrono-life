@@ -3,14 +3,14 @@ extends RefCounted
 static var _cache: Dictionary = {}
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := str(state.get("meta", {}).get("personality_path", ""))
+	var path: String = str(state.get("meta", {}).get("personality_path", ""))
 	if path.is_empty():
 		return {"axes": [], "action_deltas": {}, "thresholds": []}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"axes": [], "action_deltas": {}, "thresholds": []}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"axes": [], "action_deltas": {}, "thresholds": []}
 	return _cache[path]
@@ -26,7 +26,7 @@ static func initialize_actor(state: Dictionary, actor: Dictionary) -> void:
 static func _update_traits(state: Dictionary, actor: Dictionary) -> void:
 	var derived: Array = []
 	for threshold: Dictionary in _catalog(state).get("thresholds", []):
-		var derived_trait := str(threshold.get("trait", ""))
+		var derived_trait: String = str(threshold.get("trait", ""))
 		if derived_trait != "" and derived_trait not in derived:
 			derived.append(derived_trait)
 	var preserved: Array = []
@@ -34,13 +34,13 @@ static func _update_traits(state: Dictionary, actor: Dictionary) -> void:
 		if actor_trait not in derived:
 			preserved.append(actor_trait)
 	for threshold: Dictionary in _catalog(state).get("thresholds", []):
-		var value := int(actor.personality.axes.get(threshold.axis, 50))
-		var qualifies := true
+		var value: int = int(actor.personality.axes.get(threshold.axis, 50))
+		var qualifies: bool = true
 		if threshold.has("min") and value < int(threshold.min):
 			qualifies = false
 		if threshold.has("max") and value > int(threshold.max):
 			qualifies = false
-		var threshold_trait := str(threshold.get("trait", ""))
+		var threshold_trait: String = str(threshold.get("trait", ""))
 		if qualifies and threshold_trait != "" and threshold_trait not in preserved:
 			preserved.append(threshold_trait)
 	actor.traits = preserved
@@ -63,7 +63,7 @@ static func apply_action(state: Dictionary, actor_id: String, action_id: String)
 static func annual_drift(state: Dictionary, actor: Dictionary) -> void:
 	initialize_actor(state, actor)
 	for axis: String in actor.personality.axes:
-		var v := int(actor.personality.axes[axis])
+		var v: int = int(actor.personality.axes[axis])
 		if v > 50:
 			actor.personality.axes[axis] = v - 1
 		elif v < 50:
