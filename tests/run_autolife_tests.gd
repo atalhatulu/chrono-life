@@ -8,6 +8,7 @@ const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 const SocialEvents = preload("res://simulation/social_event_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
+const Housing = preload("res://simulation/housing_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -31,6 +32,9 @@ func _initialize() -> void:
 	check(state.actors.player.has("career"), "Initial player has generic career state")
 	check(str(state.meta.get("relationships_path", "")) != "", "Relationship content path is carried into state")
 	check(str(state.meta.get("health_path", "")) != "", "Health content path is carried into state")
+	check(str(state.meta.get("housing_path", "")) != "", "Housing content path is carried into state")
+	check(str(state.housing.get("dwelling_id", "")) != "", "Initial housing state is created")
+	check(Housing.annual_cost(state) > 0, "Current dwelling contributes an annual housing cost")
 	state.actors.player.age = 16
 	state.world.year = state.actors.player.birth_year + 16
 	var social_id := Relationships.meet_person(state, "social_venue")
@@ -76,6 +80,7 @@ func _initialize() -> void:
 	check(first.life_result.has("relationships"), "Life summary includes relationship history")
 	check(first.has("social_actions"), "AutoLife exposes social decisions")
 	check(first.has("treatments"), "AutoLife exposes treatment history")
+	check(first.state.has("housing"), "AutoLife preserves housing state")
 	check(first.has("purchases"), "AutoLife exposes purchase history")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
 	var varied := {}
