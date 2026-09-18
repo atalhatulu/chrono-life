@@ -26,12 +26,13 @@ static func initialize_actor(state: Dictionary, actor: Dictionary) -> void:
 static func _update_traits(state: Dictionary, actor: Dictionary) -> void:
 	var derived: Array = []
 	for threshold: Dictionary in _catalog(state).get("thresholds", []):
-		if threshold.trait not in derived:
-			derived.append(threshold.trait)
+		var derived_trait := str(threshold.get("trait", ""))
+		if derived_trait != "" and derived_trait not in derived:
+			derived.append(derived_trait)
 	var preserved: Array = []
-	for trait: Variant in actor.get("traits", []):
-		if trait not in derived:
-			preserved.append(trait)
+	for actor_trait: Variant in actor.get("traits", []):
+		if actor_trait not in derived:
+			preserved.append(actor_trait)
 	for threshold: Dictionary in _catalog(state).get("thresholds", []):
 		var value := int(actor.personality.axes.get(threshold.axis, 50))
 		var qualifies := true
@@ -39,8 +40,9 @@ static func _update_traits(state: Dictionary, actor: Dictionary) -> void:
 			qualifies = false
 		if threshold.has("max") and value > int(threshold.max):
 			qualifies = false
-		if qualifies and threshold.trait not in preserved:
-			preserved.append(threshold.trait)
+		var threshold_trait := str(threshold.get("trait", ""))
+		if qualifies and threshold_trait != "" and threshold_trait not in preserved:
+			preserved.append(threshold_trait)
 	actor.traits = preserved
 
 static func apply_action(state: Dictionary, actor_id: String, action_id: String) -> void:
