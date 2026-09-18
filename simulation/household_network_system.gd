@@ -31,13 +31,19 @@ static func create_external_household(state: Dictionary, founder_id: String,
 	while state.households.has(id):
 		id = "%s_%d" % [base, suffix]
 		suffix += 1
+	for household_id: String in state.households:
+		state.households[household_id].member_ids.erase(founder_id)
 	state.households[id] = {
 		"id": id,
 		"member_ids": [founder_id],
 		"location_id": str(state.world.location_id),
 		"kind": kind,
 		"formed_year": int(state.world.year),
-		"active": true
+		"active": true,
+		"food_security": 1000,
+		"debt": 0,
+		"savings": 0,
+		"living_standard": "external_sim"
 	}
 	if state.actors.has(founder_id):
 		state.actors[founder_id].household_id = id
