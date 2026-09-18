@@ -25,6 +25,11 @@ static func start_job(delta: RefCounted, id: String, job_id: String, cause: Stri
 	if actor.education_state == "basic_schooling":
 		var school_event: String = delta.record("school_interrupted", event, {"actor_id": id})
 		delta.set_field("actors", "education_state", "interrupted", school_event, id)
+		if actor.has("education"):
+			var stage_id := str(actor.education.get("current_stage", ""))
+			actor.education.current_stage = ""
+			actor.education.dropout_count = int(actor.education.get("dropout_count", 0)) + 1
+			actor.education.history.append({"year": delta.year, "kind": "interrupted", "stage_id": stage_id})
 
 
 static func prepare(delta: RefCounted, pack: Dictionary, jobs: Dictionary, cause: String) -> int:
