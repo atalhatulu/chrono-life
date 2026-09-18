@@ -112,7 +112,12 @@
     "adult_child_leave_employed_bonus_permille": 350,
     "divorce_conflict_threshold": 78,
     "divorce_chance_permille": 300,
-    "remarriage_min_gap_years": 2
+    "remarriage_min_gap_years": 2,
+    "descendant_marriage_min_age": 20,
+    "descendant_marriage_base_permille": 140,
+    "descendant_marriage_age_bonus_permille": 15,
+    "descendant_birth_chance_permille": 180,
+    "descendant_max_children": 4
   },
   "world_rules": {
     "disease_min": 100,
