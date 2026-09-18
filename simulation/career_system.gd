@@ -25,6 +25,8 @@ static func eligible(actor: Dictionary, job: Dictionary, target_age: int) -> boo
 		return false
 	if int(actor.literacy) < int(job.get("minimum_literacy", 0)):
 		return false
+	if int(job.get("annual_income", 0)) == 0:
+		return true
 	if int(actor.work_capacity) <= 0:
 		return false
 	var required: Array = job.get("required_education_stages", [])
