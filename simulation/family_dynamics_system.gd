@@ -229,7 +229,8 @@ static func _create_grandchild(state: Dictionary, child_id: String, seed_value: 
 	return id
 
 static func _advance_descendants(state: Dictionary, pack: Dictionary, seed_value: int) -> void:
-	var min_marriage_age := int(pack.get("family_rules", {}).get("min_marriage_age", 18))
+	var rules: Dictionary = pack.get("family_rules", {})
+	var min_marriage_age := int(rules.get("descendant_marriage_min_age", rules.get("min_marriage_age", 18) + 2))
 	for child_id: String in state.family.get("children_ids", []):
 		if not state.actors.has(child_id):
 			continue
@@ -237,21 +238,21 @@ static func _advance_descendants(state: Dictionary, pack: Dictionary, seed_value
 		if not child.alive or str(child.household_id) == str(state.household.id):
 			continue
 		var profile := _ensure_descendant_profile(state, child_id)
-		if str(profile.marital_status) == "single" and int(child.age) >= min_marriage_age + 2:
-			var chance := 120 + maxi(0, int(child.age) - min_marriage_age) * 15
-			if Rng.integer(seed_value, "descendants", int(state.world.year), child_id, "marry", 0, 999) < mini(chance, 600):
+		if str(profile.marital_status) == "single" and int(child.age) >= min_marriage_age:
+			var chance := int(rules.get("descendant_marriage_base_permille", 120)) + maxi(0, int(child.age) - min_marriage_age) * int(rules.get("descendant_marriage_age_bonus_permille", 15))
+			if Rng.integer(seed_value, "descendants", int(state.world.year), child_id, "marry", 0, 999) < mini(chance, 1000):
 				_create_descendant_partner(state, child_id, seed_value)
 		if str(profile.marital_status) != "married":
 			continue
 		var gap := int(state.world.year) - int(profile.get("last_birth_year", 0))
 		if int(profile.get("last_birth_year", 0)) > 0 and gap < 2:
 			continue
-		var max_children := mini(4, int(pack.get("family_rules", {}).get("max_children", 6)))
+		var max_children := int(rules.get("descendant_max_children", mini(4, int(rules.get("max_children", 6)))))
 		if profile.children_ids.size() >= max_children:
 			continue
 		if int(child.age) > 45:
 			continue
-		if Rng.integer(seed_value, "descendants", int(state.world.year), child_id, "birth", 0, 999) < 180:
+		if Rng.integer(seed_value, "descendants", int(state.world.year), child_id, "birth", 0, 999) < int(rules.get("descendant_birth_chance_permille", 180)):
 			_create_grandchild(state, child_id, seed_value)
 
 static func advance(state: Dictionary, pack: Dictionary, seed_value: int) -> void:
