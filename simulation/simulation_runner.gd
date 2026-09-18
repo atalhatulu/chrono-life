@@ -21,6 +21,7 @@ const Purchases = preload("res://simulation/purchase_system.gd")
 const Education = preload("res://simulation/education_system.gd")
 const SocialEvents = preload("res://simulation/social_event_system.gd")
 const Treatments = preload("res://simulation/health_treatment_system.gd")
+const Housing = preload("res://simulation/housing_system.gd")
 const VERSION: String = "0.5.0-phase-1a"
 
 var pack: Dictionary
@@ -73,6 +74,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"education_path": str(pack.get("content_paths", {}).get("education", "")),
 			"relationships_path": str(pack.get("content_paths", {}).get("relationships", "")),
 			"health_path": str(pack.get("content_paths", {}).get("health", "")),
+			"housing_path": str(pack.get("content_paths", {}).get("housing", "")),
 			"start_year": int(pack.start_year), "status": "running"},
 		"world": {"year": int(pack.start_year), "location_id": pack.location_id,
 			"economy_index": int(pack.economy.initial_index),
@@ -93,6 +95,7 @@ func initial_state(seed_value: int) -> Dictionary:
 	}
 	Relationships.initialize(result_state)
 	PersonalEconomy.initialize(result_state)
+	Housing.initialize(result_state, str(pack.get("initial_dwelling_id", "")))
 	return result_state
 
 
@@ -299,8 +302,10 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 		{"active_income": active_income, "earned_by_actor": earned,
 		"consequence_ids": consequences.event_ids})
 	delta.set_field("household", "income", active_income, income_event)
+	var economy_for_year: Dictionary = economy.duplicate(true)
+	economy_for_year.rent = Housing.annual_cost(delta.candidate)
 	var ledger: Dictionary = Household.calculate(delta.candidate.household,
-		delta.candidate.actors, economy, food_index, earned, participation, support)
+		delta.candidate.actors, economy_for_year, food_index, earned, participation, support)
 	ledger.year = year
 	var budget_event: String = delta.record("household_budget", income_event, ledger)
 	for mapping: Array in [["savings", "closing_savings"], ["debt", "closing_debt"],
@@ -313,6 +318,8 @@ func step_prepare(state: Dictionary, commands: Array = [], decision_override: Di
 	if ledger.food_security < 1000:
 		delta.record("food_insecurity", budget_event, {"food_security": ledger.food_security})
 	delta.candidate.ledgers.append(ledger)
+	Housing.record_payment(delta.candidate, int(ledger.rent_due), int(ledger.rent_paid))
+	Housing.apply_wellbeing(delta.candidate)
 
 	var storylet: Dictionary = {}
 	if not delta.candidate.actors[state.meta.player_id].alive:
