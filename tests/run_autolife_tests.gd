@@ -57,10 +57,10 @@ func _initialize() -> void:
 	check(Actions.available_actions(state).has("rest"), "Rest is available from birth")
 	check(not Actions.available_actions(state).has("work_hard"), "Infant cannot work hard")
 	PersonalEconomy.grant_income(state, 200, "test")
-	check(Purchases.available_items(state).any(func(i): return i.id == "milk"), "Age-appropriate 1850 purchases are available")
+	check(Purchases.available_items(state).any(func(i): return i.id == "doctor_visit"), "Age-appropriate meaningful purchases are available")
 	check(not Purchases.available_items(state).any(func(i): return i.id == "cheap_newspaper"), "Future-dated purchases remain locked")
 	var before_cash := int(state.personal_economy.cash)
-	var bought: Dictionary = Purchases.purchase(state, "milk")
+	var bought: Dictionary = Purchases.purchase(state, "doctor_visit")
 	check(bought.ok and int(state.personal_economy.cash) < before_cash, "Purchase spends personal cash")
 	PersonalEconomy.grant_income(state, 500, "meaningful_spending_test")
 	state.actors.player.age = 16
