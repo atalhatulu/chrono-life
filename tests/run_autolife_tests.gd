@@ -3,6 +3,8 @@ extends SceneTree
 const Content = preload("res://simulation/content_registry.gd")
 const Runner = preload("res://simulation/simulation_runner.gd")
 const Actions = preload("res://simulation/life_action_system.gd")
+const Purchases = preload("res://simulation/purchase_system.gd")
+const PersonalEconomy = preload("res://simulation/personal_economy_system.gd")
 
 var failures: Array[String] = []
 var checks := 0
@@ -24,11 +26,19 @@ func _initialize() -> void:
 	check(state.actors.player.has("needs"), "Initial player has life needs")
 	check(Actions.available_actions(state).has("rest"), "Rest is available from birth")
 	check(not Actions.available_actions(state).has("work_hard"), "Infant cannot work hard")
+	PersonalEconomy.grant_income(state, 200, "test")
+	check(Purchases.available_items(state).any(func(i): return i.id == "milk"), "Age-appropriate 1850 purchases are available")
+	check(not Purchases.available_items(state).any(func(i): return i.id == "cheap_newspaper"), "Future-dated purchases remain locked")
+	var before_cash := int(state.personal_economy.cash)
+	var bought: Dictionary = Purchases.purchase(state, "milk")
+	check(bought.ok and int(state.personal_economy.cash) < before_cash, "Purchase spends personal cash")
 	var first: Dictionary = runner.simulate_auto_life(42, "balanced")
 	var again: Dictionary = runner.simulate_auto_life(42, "balanced")
 	check(first.ok and again.ok, "AutoLife completes without simulation errors")
 	check(first.fingerprint == again.fingerprint, "AutoLife is deterministic for same seed and policy")
 	check(first.life_result.has("actions"), "Death summary contains action history")
+	check(first.life_result.has("personal_spending"), "Death summary includes personal spending")
+	check(first.has("purchases"), "AutoLife exposes purchase history")
 	check(first.state.history.any(func(e): return e.kind == "life_action"), "Life actions are recorded in history")
 	var varied := {}
 	for seed_value: int in range(20):
