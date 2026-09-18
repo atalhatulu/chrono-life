@@ -273,11 +273,13 @@ func _build_dock(parent: Node) -> void:
 	parent.add_child(panel)
 	action_dock = _row(8)
 	panel.add_child(action_dock)
-	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["budget", "Geçim", "wallet"], ["new", "Yeni hayat", "plus"]]:
+	for item: Array in [["life", "Hayatım", "book"], ["family", "Ailem", "family"], ["advance", "+1 yıl", ""], ["auto", "Oto hayat", ""], ["budget", "Geçim", "wallet"], ["new", "Yeni hayat", "plus"]]:
 		var key: String = item[0]
 		var action: Callable = func(): switch_view(key)
 		if key == "advance":
 			action = _on_advance_pressed
+		elif key == "auto":
+			action = _run_auto_life
 		elif key == "new":
 			action = _open_new_game
 		var button := _button(item[1], action, "Primary" if key == "advance" else "Navigation", item[2])
@@ -372,6 +374,33 @@ func _confirm_new_game() -> void:
 	seed_input.remove_theme_color_override("font_color")
 	overlay.hide()
 	start_game(value.to_int())
+
+
+func _run_auto_life() -> void:
+	if runner == null or _busy:
+		return
+	_busy = true
+	var seed_value: int = str(state.meta.master_seed).to_int()
+	var result: Dictionary = runner.simulate_auto_life(seed_value, "balanced")
+	_busy = false
+	if not result.ok:
+		_show_error("Otomatik hayat tamamlanamadı: " + str(result.get("errors", [])))
+		return
+	state = result.state
+	pending_prep = {}
+	var summary: Dictionary = result.life_result
+	modal_title.text = "Hayat tamamlandı"
+	_clear(modal_body)
+	seed_input.hide()
+	auto_policy.hide()
+	modal_body.add_child(_label("%s · %d yaş" % [summary.name, summary.age_at_death], 20, Palette.INK, true))
+	modal_body.add_child(_label("Ölüm: %s\nOkuryazarlık: %d\nSon birikim: %d\nBorç: %d\nEvlilik: %s\nÇocuk: %d\nToplam aktivite: %d" % [
+		summary.death_cause if summary.death_cause != "" else "Hayat sınırı",
+		summary.literacy, summary.final_savings, summary.final_debt,
+		summary.marital_status, summary.children, result.actions.size()], 14, Palette.INK, false, true))
+	modal_body.add_child(_label("Aktiviteler: " + str(summary.actions), 12, Palette.MUTED, false, true))
+	overlay.show()
+	_refresh_ui()
 
 
 func _open_tools() -> void:
