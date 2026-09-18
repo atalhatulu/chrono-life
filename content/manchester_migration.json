@@ -10,22 +10,22 @@
       "kind": "current"
     },
     {
-      "id": "liverpool",
-      "label": "Liverpool",
+      "id": "salford",
+      "label": "Salford",
       "region_id": "northwest_england",
       "min_age": 16,
-      "move_cost": 700,
-      "kind": "city",
-      "employment_modifier": 40
+      "move_cost": 450,
+      "kind": "nearby_city",
+      "employment_modifier": 20
     },
     {
-      "id": "london",
-      "label": "London",
-      "region_id": "england",
-      "min_age": 18,
-      "move_cost": 1300,
-      "kind": "city",
-      "employment_modifier": 70
+      "id": "ancoats",
+      "label": "Ancoats",
+      "region_id": "manchester",
+      "min_age": 16,
+      "move_cost": 300,
+      "kind": "district",
+      "employment_modifier": 30
     },
     {
       "id": "rural_lancashire",
