@@ -1,130 +1,7 @@
 {
-  "version": "manchester_spending_0.2.0",
+  "version": "manchester_spending_0.3.0",
   "currency_note": "Relative test-credit costs, not claims of exact historical prices.",
   "items": [
-    {
-      "id": "bread_loaf",
-      "label": "Ekmek",
-      "category": "food",
-      "cost": 4,
-      "min_age": 6,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 1,
-        "energy": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "potatoes",
-      "label": "Patates ve sebze",
-      "category": "food",
-      "cost": 5,
-      "min_age": 6,
-      "min_year": 1850,
-      "effects": {
-        "health": 1,
-        "energy": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "cheese",
-      "label": "Peynir",
-      "category": "food",
-      "cost": 7,
-      "min_age": 6,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 1,
-        "energy": 3
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "bacon",
-      "label": "Pastırma / bacon",
-      "category": "food",
-      "cost": 10,
-      "min_age": 8,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 3,
-        "energy": 4
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "butter",
-      "label": "Tereyağı",
-      "category": "food",
-      "cost": 8,
-      "min_age": 6,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "milk",
-      "label": "Süt",
-      "category": "food",
-      "cost": 5,
-      "min_age": 4,
-      "min_year": 1850,
-      "effects": {
-        "health": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "tea",
-      "label": "Çay",
-      "category": "food",
-      "cost": 6,
-      "min_age": 10,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 2,
-        "energy": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "sugar",
-      "label": "Şeker",
-      "category": "food",
-      "cost": 6,
-      "min_age": 6,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 3
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "fruit",
-      "label": "Meyve",
-      "category": "food",
-      "cost": 8,
-      "min_age": 6,
-      "min_year": 1850,
-      "effects": {
-        "health": 2,
-        "happiness": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
     {
       "id": "market_meal",
       "label": "Pazardan sıcak yemek",
@@ -135,19 +12,6 @@
       "effects": {
         "energy": 5,
         "happiness": 3
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "sweets",
-      "label": "Şekerleme",
-      "category": "food",
-      "cost": 4,
-      "min_age": 6,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 5
       },
       "purchase_type": "consumable",
       "cooldown_years": 0
@@ -199,36 +63,6 @@
       "cooldown_years": 1
     },
     {
-      "id": "bowling",
-      "label": "Bowling / skittles",
-      "category": "leisure",
-      "cost": 10,
-      "min_age": 12,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 7,
-        "social": 6,
-        "health": 1
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "quoits",
-      "label": "Quoits oyunu",
-      "category": "leisure",
-      "cost": 7,
-      "min_age": 10,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 6,
-        "social": 4,
-        "health": 1
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
       "id": "theatre_gallery",
       "label": "Ucuz tiyatro galerisi",
       "category": "leisure",
@@ -241,20 +75,6 @@
       },
       "purchase_type": "consumable",
       "cooldown_years": 1
-    },
-    {
-      "id": "flower_show",
-      "label": "Çiçek / sebze sergisi",
-      "category": "leisure",
-      "cost": 8,
-      "min_age": 8,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 6,
-        "social": 4
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
     },
     {
       "id": "rail_excursion",
@@ -272,48 +92,6 @@
       "cooldown_years": 1
     },
     {
-      "id": "omnibus_ride",
-      "label": "Omnibus yolculuğu",
-      "category": "travel",
-      "cost": 8,
-      "min_age": 10,
-      "min_year": 1850,
-      "effects": {
-        "stress": -2,
-        "energy": 3
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "postage_stamp",
-      "label": "Mektup postası",
-      "category": "social",
-      "cost": 3,
-      "min_age": 10,
-      "min_year": 1850,
-      "effects": {
-        "social": 4,
-        "happiness": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "stationery",
-      "label": "Kağıt, kalem ve mürekkep",
-      "category": "education",
-      "cost": 12,
-      "min_age": 8,
-      "min_year": 1850,
-      "effects": {
-        "literacy": 3,
-        "willpower": 1
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
       "id": "used_book",
       "label": "İkinci el kitap",
       "category": "education",
@@ -323,20 +101,6 @@
       "effects": {
         "literacy": 7,
         "happiness": 3
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "broadside_ballad",
-      "label": "Broadside balad / şarkı yaprağı",
-      "category": "media",
-      "cost": 3,
-      "min_age": 10,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 5,
-        "literacy": 1
       },
       "purchase_type": "consumable",
       "cooldown_years": 0
@@ -397,180 +161,6 @@
       },
       "purchase_type": "service",
       "cooldown_years": 1
-    },
-    {
-      "id": "boots",
-      "label": "Yeni iş botu",
-      "category": "clothing",
-      "cost": 45,
-      "min_age": 9,
-      "min_year": 1850,
-      "effects": {
-        "health": 2,
-        "willpower": 1
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 2
-    },
-    {
-      "id": "boot_repair",
-      "label": "Bot tamiri",
-      "category": "clothing",
-      "cost": 14,
-      "min_age": 9,
-      "min_year": 1850,
-      "effects": {
-        "health": 1
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "work_shirt",
-      "label": "İş gömleği",
-      "category": "clothing",
-      "cost": 28,
-      "min_age": 12,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 2
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 2
-    },
-    {
-      "id": "coat",
-      "label": "Palto",
-      "category": "clothing",
-      "cost": 70,
-      "min_age": 12,
-      "min_year": 1850,
-      "effects": {
-        "health": 3,
-        "happiness": 3
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 5
-    },
-    {
-      "id": "hat",
-      "label": "Şapka",
-      "category": "clothing",
-      "cost": 20,
-      "min_age": 10,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 2
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 3
-    },
-    {
-      "id": "sunday_clothes",
-      "label": "Pazar günü kıyafeti",
-      "category": "clothing",
-      "cost": 85,
-      "min_age": 16,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 6,
-        "social": 5
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 5
-    },
-    {
-      "id": "umbrella",
-      "label": "Şemsiye",
-      "category": "clothing",
-      "cost": 24,
-      "min_age": 14,
-      "min_year": 1850,
-      "effects": {
-        "health": 1
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 4
-    },
-    {
-      "id": "soap",
-      "label": "Sabun",
-      "category": "household",
-      "cost": 5,
-      "min_age": 8,
-      "min_year": 1850,
-      "effects": {
-        "health": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "candles",
-      "label": "Mum",
-      "category": "household",
-      "cost": 6,
-      "min_age": 8,
-      "min_year": 1850,
-      "effects": {
-        "literacy": 1
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "coal_share",
-      "label": "Eve kömür katkısı",
-      "category": "household",
-      "cost": 18,
-      "min_age": 10,
-      "min_year": 1850,
-      "effects": {
-        "health": 2,
-        "willpower": 2
-      },
-      "purchase_type": "household_contribution",
-      "cooldown_years": 1
-    },
-    {
-      "id": "washing",
-      "label": "Çamaşır / yıkama gideri",
-      "category": "household",
-      "cost": 12,
-      "min_age": 14,
-      "min_year": 1850,
-      "effects": {
-        "health": 1
-      },
-      "purchase_type": "household_contribution",
-      "cooldown_years": 1
-    },
-    {
-      "id": "household_utensil",
-      "label": "Basit mutfak eşyası",
-      "category": "household",
-      "cost": 25,
-      "min_age": 16,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 2
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 5
-    },
-    {
-      "id": "blanket",
-      "label": "Battaniye",
-      "category": "household",
-      "cost": 45,
-      "min_age": 16,
-      "min_year": 1850,
-      "effects": {
-        "health": 3,
-        "happiness": 2
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 5
     },
     {
       "id": "doctor_visit",
@@ -639,20 +229,6 @@
       "membership_years": 1
     },
     {
-      "id": "church_charity",
-      "label": "Kilise / hayır bağışı",
-      "category": "social",
-      "cost": 12,
-      "min_age": 14,
-      "min_year": 1850,
-      "effects": {
-        "social": 3,
-        "willpower": 2
-      },
-      "purchase_type": "household_contribution",
-      "cooldown_years": 1
-    },
-    {
       "id": "gift_small",
       "label": "Küçük hediye",
       "category": "social",
@@ -667,34 +243,6 @@
       "cooldown_years": 0
     },
     {
-      "id": "tobacco",
-      "label": "Tütün",
-      "category": "vice",
-      "cost": 9,
-      "min_age": 16,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 4,
-        "stress": -3,
-        "health": -2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
-    },
-    {
-      "id": "pawn_repayment",
-      "label": "Rehin / borç ödemesine katkı",
-      "category": "finance",
-      "cost": 25,
-      "min_age": 14,
-      "min_year": 1850,
-      "effects": {
-        "willpower": 2
-      },
-      "purchase_type": "household_contribution",
-      "cooldown_years": 1
-    },
-    {
       "id": "savings_club",
       "label": "Tasarruf / provident club katkısı",
       "category": "finance",
@@ -706,20 +254,6 @@
       },
       "purchase_type": "membership",
       "membership_years": 1
-    },
-    {
-      "id": "flower_purchase",
-      "label": "Çiçek",
-      "category": "social",
-      "cost": 6,
-      "min_age": 10,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 4,
-        "social": 2
-      },
-      "purchase_type": "consumable",
-      "cooldown_years": 0
     },
     {
       "id": "toy_simple",
@@ -749,20 +283,6 @@
       },
       "purchase_type": "durable",
       "repurchase_years": 1
-    },
-    {
-      "id": "doll",
-      "label": "Bez / tahta oyuncak bebek",
-      "category": "childhood",
-      "cost": 15,
-      "min_age": 4,
-      "max_age": 13,
-      "min_year": 1850,
-      "effects": {
-        "happiness": 9
-      },
-      "purchase_type": "durable",
-      "repurchase_years": 3
     },
     {
       "id": "cricket_club",
@@ -807,5 +327,6 @@
       "purchase_type": "consumable",
       "cooldown_years": 0
     }
-  ]
+  ],
+  "design_note": "Player-facing catalog only contains meaningful life choices. Routine clothing, fuel, soap, household goods and similar necessities are abstracted into household living costs."
 }
