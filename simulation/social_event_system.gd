@@ -4,7 +4,7 @@ const Rng = preload("res://simulation/deterministic_rng.gd")
 const Relationships = preload("res://simulation/relationship_system.gd")
 
 static func _last_event_year(state: Dictionary, kind: String, person_id: String) -> int:
-	var last := -9999
+	var last: int = -9999
 	for event: Dictionary in state.relationships.get("history", []):
 		if event.get("kind") == "social_event" and str(event.get("event_type", "")) == kind and str(event.get("person_id", "")) == person_id:
 			last = maxi(last, int(event.get("year", -9999)))
@@ -13,7 +13,7 @@ static func _last_event_year(state: Dictionary, kind: String, person_id: String)
 static func collect_candidates(state: Dictionary) -> Array[Dictionary]:
 	Relationships.normalize(state)
 	var out: Array[Dictionary] = []
-	var year := int(state.world.year)
+	var year: int = int(state.world.year)
 	for id: String in state.relationships.people:
 		var rel: Dictionary = state.relationships.people[id]
 		if not rel.alive:
@@ -33,24 +33,24 @@ static func collect_candidates(state: Dictionary) -> Array[Dictionary]:
 	return out
 
 static func resolve_one(state: Dictionary) -> Dictionary:
-	var candidates := collect_candidates(state)
+	var candidates: Array[Dictionary] = collect_candidates(state)
 	if candidates.is_empty():
 		return {}
 	var weights: Array[int] = []
 	for c: Dictionary in candidates:
 		weights.append(int(c.weight))
-	var seed := str(state.meta.master_seed).to_int()
-	var idx := Rng.weighted(seed, "social_events", int(state.world.year), str(state.meta.player_id), "pick", weights)
+	var seed: int = str(state.meta.master_seed).to_int()
+	var idx: int = Rng.weighted(seed, "social_events", int(state.world.year), str(state.meta.player_id), "pick", weights)
 	var selected: Dictionary = candidates[idx]
 	return _apply(state, selected)
 
 static func _apply(state: Dictionary, event: Dictionary) -> Dictionary:
-	var id := str(event.person_id)
+	var id: String = str(event.person_id)
 	var rel: Dictionary = state.relationships.people[id]
-	var year := int(state.world.year)
-	var kind := str(event.type)
-	var title := ""
-	var text := ""
+	var year: int = int(state.world.year)
+	var kind: String = str(event.type)
+	var title: String = ""
+	var text: String = ""
 	match kind:
 		"conflict":
 			title = "Gerilim tırmandı"
