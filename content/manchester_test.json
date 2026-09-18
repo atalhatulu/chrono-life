@@ -574,7 +574,8 @@
     }
   ],
   "content_paths": {
-    "spending_catalog": "res://content/manchester_spending.json"
+    "spending_catalog": "res://content/manchester_spending.json",
+    "life_actions": "res://content/manchester_actions.json"
   },
   "pack_id": "manchester_1850",
   "era_id": "industrial_revolution"
