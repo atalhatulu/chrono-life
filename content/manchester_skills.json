@@ -3,8 +3,8 @@
   "design_note": "Minimal period test content for generic skill progression.",
   "skills": [
     {
-      "id": "literacy",
-      "label": "Okuryazarlık",
+      "id": "reading_comprehension",
+      "label": "Okuma kavrayışı",
       "category": "cognitive",
       "max_level": 100
     },
@@ -45,9 +45,9 @@
       "social_confidence": 4
     },
     "study": {
-      "literacy": 10,
       "numeracy": 7,
-      "work_discipline": 4
+      "work_discipline": 4,
+      "reading_comprehension": 10
     },
     "family_time": {
       "social_confidence": 5
@@ -56,9 +56,9 @@
       "social_confidence": 9
     },
     "self_education": {
-      "literacy": 8,
       "numeracy": 5,
-      "work_discipline": 4
+      "work_discipline": 4,
+      "reading_comprehension": 8
     },
     "work_hard": {
       "work_discipline": 10,
@@ -69,7 +69,7 @@
       "social_confidence": 5
     },
     "buy_book": {
-      "literacy": 9
+      "reading_comprehension": 9
     }
   }
 }
