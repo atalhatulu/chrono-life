@@ -135,31 +135,33 @@ static func interact(state: Dictionary, id: String, kind: String) -> Dictionary:
 	if not state.relationships.people.has(id):
 		return {"ok": false, "error": "Unknown relationship"}
 	var rel: Dictionary = state.relationships.people[id]
+	var player: Dictionary = state.actors[state.meta.player_id]
+	var axes: Dictionary = player.get("personality", {}).get("axes", {})
 	if not rel.alive:
 		return {"ok": false, "error": "Person is not alive"}
 	match kind:
 		"spend_time":
-			rel.closeness += 9
-			rel.trust += 4
+			rel.closeness += 9 + int(axes.get("sociability", 50)) / 25
+			rel.trust += 4 + int(axes.get("empathy", 50)) / 35
 			rel.contact += 10
 			rel.conflict -= 2
 		"talk":
-			rel.closeness += 5
-			rel.trust += 5
+			rel.closeness += 5 + int(axes.get("sociability", 50)) / 30
+			rel.trust += 5 + int(axes.get("empathy", 50)) / 30
 			rel.contact += 7
 		"gift":
-			rel.closeness += 7
+			rel.closeness += 7 + int(axes.get("empathy", 50)) / 30
 			rel.trust += 2
 		"argue":
-			rel.conflict += 16
+			rel.conflict += 16 + maxi(0, int(axes.get("risk_tolerance", 50)) - 50) / 10
 			rel.trust -= 8
 			rel.closeness -= 5
 		"apologize":
-			rel.conflict -= 10
-			rel.trust += 4
+			rel.conflict -= 10 + int(axes.get("empathy", 50)) / 25
+			rel.trust += 4 + int(axes.get("empathy", 50)) / 35
 		"flirt":
-			rel.closeness += 5
-			rel.attraction += 6
+			rel.closeness += 5 + int(axes.get("sociability", 50)) / 35
+			rel.attraction += 6 + int(axes.get("risk_tolerance", 50)) / 35
 			rel.conflict += 1
 		_:
 			return {"ok": false, "error": "Unknown interaction"}
