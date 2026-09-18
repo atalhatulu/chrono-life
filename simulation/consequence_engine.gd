@@ -1,6 +1,8 @@
 extends RefCounted
 ## Direct consequences only. Behavioral responses are selected elsewhere.
 
+const Career = preload("res://simulation/career_system.gd")
+
 
 static func process(delta: RefCounted, commands: Array, earned: Dictionary,
 		participation: Dictionary, parent_event: String, limit: int) -> Dictionary:
@@ -40,12 +42,18 @@ static func process(delta: RefCounted, commands: Array, earned: Dictionary,
 			{"actor_id": id, "command_id": trigger.id, "worked_permille": trigger.worked_permille,
 			"cause": trigger.get("cause", "scenario")})
 		event_ids.append(event)
-		var had_income_source: bool = actor.occupation_id != "dependent"
+		var previous_job: String = str(actor.occupation_id)
+		var had_income_source: bool = previous_job != "dependent"
 		var cutoff: int = mini(int(cutoffs.get(id, 1000)), int(trigger.worked_permille))
 		cutoffs[id] = cutoff
 		earned[id] = int(int(full_earnings[id]) * cutoff / 1000.0)
 		delta.set_field("actors", "occupation_id", "dependent", event, id)
 		delta.set_field("actors", "income", 0, event, id)
+		Career.initialize_actor(actor)
+		if had_income_source:
+			actor.career.current_job = "dependent"
+			actor.career.history.append({"year": delta.year, "kind": "ended", "occupation_id": previous_job,
+				"reason": "death" if trigger.type == "actor_died" else "job_lost"})
 		if trigger.type == "actor_died":
 			participation[id] = int(trigger.worked_permille)
 			delta.set_field("actors", "alive", false, event, id)
