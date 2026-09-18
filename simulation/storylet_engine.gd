@@ -272,7 +272,7 @@ static func apply_choice(delta: RefCounted, storylet: Dictionary, choice_id: Str
 
 	# 11. Kalıcı varlık kaldırma
 	if effects.has("remove_asset"):
-		var removed_asset_id := str(effects.remove_asset)
+		var removed_asset_id: String = str(effects.remove_asset)
 		if Assets.remove_asset(state, removed_asset_id, "storylet:" + str(storylet.id)):
 			outcome.applied_effects["removed_asset"] = removed_asset_id
 
@@ -280,7 +280,7 @@ static func apply_choice(delta: RefCounted, storylet: Dictionary, choice_id: Str
 	if selected_choice.id == "marry" or effects.has("create_spouse"):
 		Family.ensure_state(state)
 		if str(state.family.get("current_spouse_id", "")) == "" and not pack.is_empty():
-			var marriage_event := Family.create_spouse(delta, pack, cause_event, seed_value)
+			var marriage_event: String = Family.create_spouse(delta, pack, cause_event, seed_value)
 			outcome.applied_effects["married"] = marriage_event != ""
 
 	return outcome
