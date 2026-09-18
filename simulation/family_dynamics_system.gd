@@ -152,16 +152,27 @@ static func _create_descendant_partner(state: Dictionary, child_id: String, seed
 	if state.actors.has(partner_id):
 		return partner_id
 	var sex := "female" if child.get("sex", "male") == "male" else "male"
-	var partner := child.duplicate(true)
-	partner.id = partner_id
-	partner.name = "Partner of " + str(child.name)
-	partner.sex = sex
-	partner.birth_year = int(child.birth_year) + Rng.integer(seed_value, "descendants", int(state.world.year), child_id, "partner_age", -3, 3)
+	var partner := {
+		"id": partner_id,
+		"name": "Partner of " + str(child.name),
+		"sex": sex,
+		"birth_year": int(child.birth_year) + Rng.integer(seed_value, "descendants", int(state.world.year), child_id, "partner_age", -3, 3),
+		"alive": true,
+		"death_year": 0,
+		"death_cause": "",
+		"health": 80,
+		"constitution": 60,
+		"willpower": 50,
+		"literacy": int(child.literacy),
+		"conditions": {},
+		"education_state": str(child.education_state),
+		"occupation_id": str(child.occupation_id),
+		"income": int(child.income),
+		"work_capacity": 1000,
+		"household_id": str(child.household_id),
+		"traits": []
+	}
 	partner.age = int(state.world.year) - int(partner.birth_year)
-	partner.household_id = str(child.household_id)
-	partner.conditions = {}
-	partner.death_year = 0
-	partner.death_cause = ""
 	Needs.initialize_actor(partner)
 	Education.initialize_actor(partner)
 	Career.initialize_actor(partner)
@@ -218,9 +229,21 @@ static func _create_grandchild(state: Dictionary, child_id: String, seed_value: 
 	state.family.grandchildren_ids.append(id)
 	if not state.family.kinship.has(child_id):
 		state.family.kinship[child_id] = {"parents": [], "children": [], "siblings": []}
+	if not state.family.kinship.has(partner_id):
+		state.family.kinship[partner_id] = {"parents": [], "children": [], "siblings": []}
 	if not state.family.kinship.has(id):
 		state.family.kinship[id] = {"parents": [child_id, partner_id], "children": [], "siblings": []}
-	state.family.kinship[child_id].children.append(id)
+	if id not in state.family.kinship[child_id].children:
+		state.family.kinship[child_id].children.append(id)
+	if id not in state.family.kinship[partner_id].children:
+		state.family.kinship[partner_id].children.append(id)
+	for sibling_id: String in profile.children_ids:
+		if sibling_id == id or not state.family.kinship.has(sibling_id):
+			continue
+		if sibling_id not in state.family.kinship[id].siblings:
+			state.family.kinship[id].siblings.append(sibling_id)
+		if id not in state.family.kinship[sibling_id].siblings:
+			state.family.kinship[sibling_id].siblings.append(id)
 	state.family.history.append({"year": int(state.world.year), "kind": "grandchild_born",
 		"parent_id": child_id, "grandchild_id": id})
 	state.history.append({"id":"%d:grandchild_born:%s" % [int(state.world.year), id],
