@@ -7,6 +7,7 @@ const Delta = preload("res://simulation/year_delta.gd")
 const Palette = preload("res://ui/chronicle_theme.gd")
 const Words = preload("res://ui/chronicle_text.gd")
 const Purchases = preload("res://simulation/purchase_system.gd")
+const Relationships = preload("res://simulation/relationship_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -616,6 +617,7 @@ func _render_feed() -> void:
 
 
 func _render_family(parent: Node, compact: bool = false) -> void:
+	Relationships.normalize(state)
 	var player_id: String = state.meta.player_id
 	var ids: Array = state.actors.keys()
 	ids.sort()
@@ -623,10 +625,11 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		if id == player_id:
 			continue
 		var actor: Dictionary = state.actors[id]
+		var relation_data: Dictionary = state.relationships.people.get(id, {})
 		var column: VBoxContainer = _column(3) if compact else _card(parent)
 		if compact:
 			parent.add_child(column)
-		var relation: String = "Aile üyesi"
+		var relation: String = str(relation_data.get("stage", "Aile üyesi"))
 		if id in ["parent_1", "parent_2"]:
 			relation = "Annen" if actor.get("sex", "male") == "female" else "Baban"
 		elif id == "spouse":
@@ -638,6 +641,87 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		column.add_child(_label("%d yaş · %s" % [actor.age, "Hayatta" if actor.alive else "Anısına"], 11, Palette.MUTED))
 		if not compact:
 			column.add_child(_label(Words.word(str(actor.occupation_id)) if actor.alive else "%d yılında hayatını kaybetti." % actor.death_year, 13, Palette.MUTED, false, true))
+			if not relation_data.is_empty():
+				column.add_child(_label("Yakınlık %d · Güven %d · Çatışma %d" % [
+					int(relation_data.get("closeness", 0)),
+					int(relation_data.get("trust", 0)),
+					int(relation_data.get("conflict", 0))
+				], 12, Palette.MUTED))
+				if actor.alive:
+					var row := _row(6)
+					column.add_child(row)
+					for action: String in ["talk", "spend_time", "apologize"]:
+						var person_id := id
+						var interaction := action
+						row.add_child(_button({
+							"talk": "Konuş",
+							"spend_time": "Vakit geçir",
+							"apologize": "Özür dile"
+						}[action], func(): _relationship_interaction(person_id, interaction), "Ghost"))
+	if compact:
+		return
+
+	var social_ids: Array = state.relationships.people.keys()
+	social_ids.sort()
+	var shown_nonfamily := false
+	for id: String in social_ids:
+		if state.actors.has(id):
+			continue
+		var rel: Dictionary = state.relationships.people[id]
+		if not rel.alive:
+			continue
+		if not shown_nonfamily:
+			var heading := _card(parent)
+			heading.add_child(_label("SOSYAL ÇEVREN", 10, Palette.MUTED))
+			shown_nonfamily = true
+		var card := _card(parent)
+		card.add_child(_label(str(rel.stage).replace("_", " ").to_upper(), 9, Palette.MUTED))
+		card.add_child(_label(str(rel.name), 19, Palette.INK, true))
+		card.add_child(_label("Yakınlık %d · Güven %d · Çatışma %d · Uyum %d · Çekim %d" % [
+			int(rel.closeness), int(rel.trust), int(rel.conflict),
+			int(rel.compatibility), int(rel.attraction)
+		], 12, Palette.MUTED, false, true))
+		card.add_child(_label("%d'de tanıştınız · %s" % [
+			int(rel.met_year), str(rel.met_via).replace("_", " ")
+		], 11, Palette.MUTED))
+		var actions := _row(6)
+		card.add_child(actions)
+		for action: String in ["talk", "spend_time", "gift", "flirt", "argue", "apologize"]:
+			var person_id := id
+			var interaction := action
+			actions.add_child(_button({
+				"talk": "Konuş",
+				"spend_time": "Vakit geçir",
+				"gift": "Hediye",
+				"flirt": "Flört et",
+				"argue": "Tartış",
+				"apologize": "Özür dile"
+			}[action], func(): _relationship_interaction(person_id, interaction), "Ghost"))
+
+	var meet_card := _card(parent)
+	meet_card.add_child(_label("YENİ İNSANLAR", 10, Palette.MUTED))
+	meet_card.add_child(_label("Sosyal çevreni genişletebilir, yeni arkadaşlar veya romantik bağlar kurabilirsin.", 12, Palette.MUTED, false, true))
+	meet_card.add_child(_button("Yeni biriyle tanış", _meet_new_person, "Primary"))
+
+
+func _relationship_interaction(person_id: String, interaction: String) -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var result: Dictionary = Relationships.interact(state, person_id, interaction)
+	if not result.ok:
+		_show_error(str(result.get("error", "Etkileşim başarısız.")))
+		return
+	_refresh_ui()
+
+
+func _meet_new_person() -> void:
+	if _busy or not pending_prep.is_empty():
+		return
+	var id := Relationships.meet_person(state)
+	if id == "":
+		_show_error("Şu anda yeni biriyle tanışamadın.")
+		return
+	_refresh_ui()
 
 
 func _render_budget(parent: Node) -> void:
