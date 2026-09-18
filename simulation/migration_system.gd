@@ -23,7 +23,8 @@ static func initialize(state: Dictionary) -> void:
 			"current_location_id": str(state.world.location_id),
 			"last_move_year": int(state.world.year) - 100,
 			"move_count": 0,
-			"history": []
+			"history": [],
+			"world_modifiers": {}
 		}
 
 static func available_destinations(state: Dictionary) -> Array[Dictionary]:
@@ -67,11 +68,10 @@ static func move_to(state: Dictionary, destination_id: String) -> Dictionary:
 	state.migration.current_location_id = destination_id
 	state.migration.last_move_year = int(state.world.year)
 	state.migration.move_count = int(state.migration.move_count) + 1
+	state.migration.world_modifiers = target.get("world_modifiers", {}).duplicate(true)
 	state.migration.history.append({"year":int(state.world.year),"from":previous,"to":destination_id,"cost":cost})
 	if state.has("households") and state.households.has(str(state.household.id)):
 		state.households[str(state.household.id)].location_id = destination_id
-	var employment_shift := int(target.get("employment_modifier", 0))
-	state.world.employment_pressure = clampi(int(state.world.employment_pressure) + employment_shift, 0, 1000)
 	state.history.append({"id":"%d:migration:%d" % [int(state.world.year), state.history.size()],
 		"year":int(state.world.year),"kind":"migration","cause_id":"",
 		"details":{"from":previous,"to":destination_id,"cost":cost}})
