@@ -152,6 +152,7 @@ func _initialize() -> void:
 		check(str(mobility_state.world.location_id) == destination_id, "Migration updates world location")
 		check(str(mobility_state.household.location_id) == destination_id, "Migration updates household location")
 		check(str(mobility_state.migration.current_location_id) == destination_id, "Migration state tracks current location")
+		check(mobility_state.migration.has("world_modifiers"), "Migration stores destination world modifiers")
 		check(not mobility_state.migration.history.is_empty(), "Migration history records the move")
 		check(str(mobility_state.households[mobility_state.household.id].location_id) == destination_id,
 			"Migration updates primary household registry location")
