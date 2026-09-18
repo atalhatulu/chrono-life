@@ -3,14 +3,14 @@ extends RefCounted
 static var _cache: Dictionary = {}
 
 static func _catalog(state: Dictionary) -> Dictionary:
-	var path := str(state.get("meta", {}).get("skills_path", ""))
+	var path: String = str(state.get("meta", {}).get("skills_path", ""))
 	if path.is_empty():
 		return {"skills": [], "action_skill_xp": {}}
 	if _cache.has(path):
 		return _cache[path]
 	if not FileAccess.file_exists(path):
 		return {"skills": [], "action_skill_xp": {}}
-	var f := FileAccess.open(path, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	var parsed: Variant = JSON.parse_string(f.get_as_text())
 	_cache[path] = parsed if parsed is Dictionary else {"skills": [], "action_skill_xp": {}}
 	return _cache[path]
@@ -19,7 +19,7 @@ static func initialize_actor(state: Dictionary, actor: Dictionary) -> void:
 	if not actor.has("skills"):
 		actor.skills = {"values": {}, "xp": {}, "history": []}
 	for definition: Dictionary in _catalog(state).get("skills", []):
-		var id := str(definition.id)
+		var id: String = str(definition.id)
 		if not actor.skills["values"].has(id):
 			actor.skills["values"][id] = 0
 			actor.skills["xp"][id] = 0
@@ -35,11 +35,11 @@ static func add_xp(state: Dictionary, actor_id: String, skill_id: String, amount
 		return
 	var actor: Dictionary = state.actors[actor_id]
 	initialize_actor(state, actor)
-	var defs := definitions(state)
+	var defs: Dictionary = definitions(state)
 	if not defs.has(skill_id):
 		return
-	var xp := int(actor.skills["xp"].get(skill_id, 0)) + amount
-	var value := int(actor.skills["values"].get(skill_id, 0))
+	var xp: int = int(actor.skills["xp"].get(skill_id, 0)) + amount
+	var value: int = int(actor.skills["values"].get(skill_id, 0))
 	while xp >= 10 + value * 2 and value < int(defs[skill_id].get("max_level", 100)):
 		xp -= 10 + value * 2
 		value += 1
