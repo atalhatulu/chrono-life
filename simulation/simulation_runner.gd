@@ -68,6 +68,7 @@ func initial_state(seed_value: int) -> Dictionary:
 			"spending_catalog_path": str(pack.get("content_paths", {}).get("spending_catalog", "")),
 			"life_actions_path": str(pack.get("content_paths", {}).get("life_actions", "")),
 			"education_path": str(pack.get("content_paths", {}).get("education", "")),
+			"relationships_path": str(pack.get("content_paths", {}).get("relationships", "")),
 			"start_year": int(pack.start_year), "status": "running"},
 		"world": {"year": int(pack.start_year), "location_id": pack.location_id,
 			"economy_index": int(pack.economy.initial_index),
