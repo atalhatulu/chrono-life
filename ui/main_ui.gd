@@ -893,6 +893,118 @@ func _render_life_actions(parent: Node) -> void:
 		flow.add_child(btn)
 
 
+func _render_latest_year_balance(parent: Node) -> void:
+	if pages.is_empty():
+		return
+	var last_page: Dictionary = pages[pages.size() - 1]
+	var b: Dictionary = last_page.get("balance", {})
+	if b.is_empty():
+		return
+
+	var card := _card(parent, 14)
+	var header := _row(6)
+	card.add_child(header)
+	header.add_child(_label("SON YILIN BİLANÇOSU · %d" % int(last_page.get("year", state.world.year)), 10, Palette.RUST))
+	_spacer(header)
+	var std_name: String = Words.word(str(b.get("living_standard", "basic")))
+	header.add_child(_label("Yaşam Standardı: %s" % std_name, 10, Palette.MUTED))
+
+	var income: int = int(b.get("income", 0))
+	var expenses: int = int(b.get("expenses", 0))
+	var net: int = income - expenses
+	var savings: int = int(b.get("savings", 0))
+	var debt: int = int(b.get("debt", 0))
+
+	# 4 Sütunlu Finansal Izgara
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 6)
+	card.add_child(grid)
+
+	var stat_boxes: Array = [
+		["HANE GELİRİ", "+%d şilin" % income, "Ücretler ve ek kazançlar", Palette.INK],
+		["ZORUNLU GİDER", "-%d şilin" % expenses, "Kira, ekmek ve yakacak", Palette.RUST],
+		["YILLIK NET", "%+d şilin" % net, "Tasarrufa eklenen / eksilen", Palette.GREEN if net >= 0 else Palette.RUST],
+		["KASA / BORÇ", "%d şilin" % savings + ("" if debt == 0 else " (%d borç)" % debt), "Mevcut hane rezervi", Palette.INK if debt == 0 else Palette.RUST]
+	]
+
+	for item: Array in stat_boxes:
+		var col := _column(1)
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(col)
+		col.add_child(_label(str(item[0]), 9, Palette.MUTED))
+		col.add_child(_label(str(item[1]), 14, item[3], true))
+		col.add_child(_label(str(item[2]), 9, Palette.MUTED))
+
+	# İkinci Satır: Yaşamsal Göstergeler Şeridi
+	var life_strip := PanelContainer.new()
+	life_strip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	life_strip.add_theme_stylebox_override("panel", Palette.box(Color("f5f2e8"), 6, Palette.LINE, 8))
+	card.add_child(life_strip)
+
+	var strip_row := _row(12)
+	life_strip.add_child(strip_row)
+
+	var food_pct: int = int(b.get("food_security", 1000)) / 10
+	var food_color: Color = Palette.INK if food_pct >= 90 else Palette.RUST
+	strip_row.add_child(_label("Gıda Güvencesi: %%%d" % food_pct, 11, food_color))
+	strip_row.add_child(_label("·", 11, Palette.MUTED))
+	strip_row.add_child(_label("Sağlık: %d/100" % int(b.get("health", 0)), 11, Palette.INK))
+	strip_row.add_child(_label("·", 11, Palette.MUTED))
+	strip_row.add_child(_label("İrade: %d/100" % int(b.get("willpower", 0)), 11, Palette.INK))
+	strip_row.add_child(_label("·", 11, Palette.MUTED))
+	strip_row.add_child(_label("Okuma: %d/100" % int(b.get("literacy", 0)), 11, Palette.INK))
+
+
+func _render_card_balance(parent: Node, b: Dictionary) -> void:
+	if b.is_empty():
+		return
+	var panel := PanelContainer.new()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.add_theme_stylebox_override("panel", Palette.box(Color("f7f5ed"), 6, Color("e4e1d5"), 8))
+	parent.add_child(panel)
+
+	var vbox := _column(3)
+	panel.add_child(vbox)
+
+	var row1 := _row(8)
+	vbox.add_child(row1)
+	row1.add_child(_label("Mali Bilanço:", 10, Palette.MUTED))
+
+	var income: int = int(b.get("income", 0))
+	var expenses: int = int(b.get("expenses", 0))
+	var net: int = income - expenses
+	var savings: int = int(b.get("savings", 0))
+	var debt: int = int(b.get("debt", 0))
+
+	row1.add_child(_label("+%d ş. Gelir" % income, 10, Palette.INK))
+	row1.add_child(_label("·", 10, Palette.MUTED))
+	row1.add_child(_label("-%d ş. Gider" % expenses, 10, Palette.RUST))
+	row1.add_child(_label("·", 10, Palette.MUTED))
+	row1.add_child(_label("Net %+d ş." % net, 10, Palette.GREEN if net >= 0 else Palette.RUST))
+	_spacer(row1)
+	var cash_str: String = "Kasa: %d ş." % savings
+	if debt > 0:
+		cash_str += " · Borç: %d ş." % debt
+	row1.add_child(_label(cash_str, 10, Palette.INK if debt == 0 else Palette.RUST))
+
+	var row2 := _row(8)
+	vbox.add_child(row2)
+	row2.add_child(_label("Yaşam & Beden:", 10, Palette.MUTED))
+
+	var food_pct: int = int(b.get("food_security", 1000)) / 10
+	var std_name: String = Words.word(str(b.get("living_standard", "basic")))
+	row2.add_child(_label("Gıda %%%d" % food_pct, 10, Palette.INK if food_pct >= 90 else Palette.RUST))
+	row2.add_child(_label("·", 10, Palette.MUTED))
+	row2.add_child(_label("Standart: %s" % std_name, 10, Palette.INK))
+	row2.add_child(_label("·", 10, Palette.MUTED))
+	row2.add_child(_label("Sağlık: %d" % int(b.get("health", 0)), 10, Palette.INK))
+	row2.add_child(_label("·", 10, Palette.MUTED))
+	row2.add_child(_label("İrade: %d" % int(b.get("willpower", 0)), 10, Palette.INK))
+
+
 func _render_life_chronicle(parent: Node) -> void:
 	if not state.actors[state.meta.player_id].alive:
 		_render_life_summary(parent)
@@ -911,6 +1023,10 @@ func _render_life_chronicle(parent: Node) -> void:
 		var act_spacer := Control.new()
 		act_spacer.custom_minimum_size.y = 8
 		parent.add_child(act_spacer)
+		_render_latest_year_balance(parent)
+		var bal_spacer := Control.new()
+		bal_spacer.custom_minimum_size.y = 10
+		parent.add_child(bal_spacer)
 
 	for index: int in range(pages.size() - 1, -1, -1):
 		var page: Dictionary = pages[index]
@@ -927,6 +1043,8 @@ func _render_life_chronicle(parent: Node) -> void:
 		card.add_child(_label(page.title, 17, Palette.INK, true, true))
 		if str(page.body).strip_edges() != "":
 			card.add_child(_label(page.body, 13, Color("4a544a"), false, true))
+		if page.has("balance") and not page.balance.is_empty():
+			_render_card_balance(card, page.balance)
 		var card_spacer := Control.new()
 		card_spacer.custom_minimum_size.y = 6
 		parent.add_child(card_spacer)

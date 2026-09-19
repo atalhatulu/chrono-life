@@ -270,8 +270,25 @@ static func page(events: Array, state: Dictionary) -> Dictionary:
 			tag = "HAYATINDAN BİR AN"
 	if lines.is_empty():
 		lines.append("Gündelik hayat kendi akışında sürdü. Ailenin bütçesi ve sağlığı bu yıl da değişmeye devam etti.")
+
+	var has_ledger: bool = not state.get("ledgers", []).is_empty()
+	var ledger: Dictionary = state.ledgers[state.ledgers.size() - 1] if has_ledger else {}
+	var player_id: String = str(state.get("meta", {}).get("player_id", ""))
+	var player: Dictionary = state.get("actors", {}).get(player_id, {})
+	var balance: Dictionary = {
+		"income": int(ledger.get("earned_income", 0)),
+		"expenses": int(ledger.get("paid_expenses", 0)),
+		"savings": int(state.get("household", {}).get("savings", 0)),
+		"debt": int(state.get("household", {}).get("debt", 0)),
+		"food_security": int(state.get("household", {}).get("food_security", 1000)),
+		"health": int(player.get("health", 0)),
+		"willpower": int(player.get("willpower", 0)),
+		"literacy": int(player.get("literacy", 0)),
+		"living_standard": str(state.get("household", {}).get("living_standard", "basic"))
+	}
+
 	return {"year": int(state.world.year), "title": title, "body": "\n".join(lines),
-		"tag": tag, "important": priority > 0}
+		"tag": tag, "important": priority > 0, "balance": balance}
 
 
 static func story_wording(story_id: String, state: Dictionary, raw_title: String, raw_text: String) -> Array:
