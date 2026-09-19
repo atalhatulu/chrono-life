@@ -4,6 +4,7 @@ const Content = preload("res://simulation/content_registry.gd")
 const Runner = preload("res://simulation/simulation_runner.gd")
 const Storylets = preload("res://simulation/storylet_engine.gd")
 const Family = preload("res://simulation/family_system.gd")
+const FamilyTree = preload("res://simulation/family_tree_system.gd")
 const Household = preload("res://simulation/household_system.gd")
 
 var checks: int = 0
@@ -39,6 +40,7 @@ func _initialize() -> void:
 	test_widowhood()
 	test_household_budget_impact()
 	test_family_cohort_invariants()
+	test_family_tree_system()
 	print("Family systems: %d checks, %d failures" % [checks, failures.size()])
 	quit(0 if failures.is_empty() else 1)
 
@@ -249,3 +251,38 @@ func test_family_cohort_invariants() -> void:
 
 	check(married_count > 0, "Cohort produced marriages under pragmatic bot policy")
 	check(children_born_total > 0, "Cohort produced childbirths")
+
+
+func test_family_tree_system() -> void:
+	var runner = Runner.new(pack)
+	var state: Dictionary = runner.initial_state(42)
+
+	# Başlangıçta ağaç oluşturma: Anne, Baba ve Oyuncu olmalı
+	var tree: Dictionary = FamilyTree.build_tree(state)
+	check(tree.has("generations"), "Family tree generates generations structure")
+	check(tree.stats.total_members >= 3, "Initial family tree contains at least 3 members (parents and player)")
+	check(tree.stats.generations_count >= 2, "Initial family tree spans at least roots and core generation")
+
+	var roots_found: bool = false
+	var core_found: bool = false
+	for gen: Dictionary in tree.generations:
+		if gen.level == -1:
+			roots_found = true
+			check(gen.members.size() >= 2, "Roots generation contains both parents")
+		elif gen.level == 0:
+			core_found = true
+			var player_in_core: bool = false
+			for m: Dictionary in gen.members:
+				if m.is_player:
+					player_in_core = true
+					check(m.role_label == "Sen", "Player role label is 'Sen'")
+			check(player_in_core, "Player is present in core generation")
+	check(roots_found, "Roots generation is present in tree")
+	check(core_found, "Core generation is present in tree")
+
+	# Simüle edilmiş bir hayat ile çok kuşaklı ağacı doğrula
+	var sim: Dictionary = runner.simulate_life(42, {}, "pragmatic")
+	check(sim.ok, "Simulation for family tree test completed successfully")
+	var sim_tree: Dictionary = FamilyTree.build_tree(sim.state)
+	check(sim_tree.stats.total_members >= tree.stats.total_members, "Simulated life expands or preserves family tree members")
+	check(sim_tree.stats.living_count + sim_tree.stats.deceased_count == sim_tree.stats.total_members, "Stats invariant: living + deceased == total")

@@ -35,7 +35,19 @@ const STORIES: Dictionary = {
 	"pawn_family_heirloom": ["Bir saatin hatırası", "Borçlar büyüyor. Rehinci, ailenin son gümüş saatine karşılık hemen para verebilir. Bu saat, evde kalan birkaç hatıradan biri."],
 	"dispensary_treatment": ["Dispanserin önündeki sıra", "Gönüllü bir hekim, mahallede küçük bir dispanser açtı. Bekleyenlere bakılıyor ve ilaç dağıtılıyor. Sıraya girmek zaman ve biraz para gerektirecek."],
 	"mutual_aid_subscription": ["Yalnız olmak zorunda değilsin", "Mahalledeki işçiler seni yardımlaşma cemiyetine davet ediyor. Küçük katkılar, hastalık ve zor günler için ortak bir sandıkta toplanıyor."],
-	"courtship_and_marriage": ["Irwell kıyısında bir yürüyüş", "Birlikte geçirilen ayların ardından, sevdiğin kişi aynı evi paylaşmaktan söz ediyor. Önünüzde, artık beraber yazabileceğiniz bir hayat var."]
+	"courtship_and_marriage": ["Irwell kıyısında bir yürüyüş", "Birlikte geçirilen ayların ardından, sevdiğin kişi aynı evi paylaşmaktan söz ediyor. Önünüzde, artık beraber yazabileceğiniz bir hayat var."],
+	"street_apprentice": ["Sokaklarda bir zanaat", "Mahalledeki demir ustası, ocağın başına alıp yetiştirecek güvenilir bir çırak arıyor. Bu iş hem kuvvet hem sabır ister."],
+	"cholera_outbreak_1853": ["Kuyu suyu ve kolera", "1853 yazında mahalle tulumbasından su içenler birer birer yatağa düşüyor. Hekimler tulumba suyunun kaynatılmasını tembihliyor."],
+	"cotton_famine_crisis": ["Pamuk kıtlığı ve sessiz tezgahlar", "Limanlara ham pamuk gelmiyor. Manchester dokuma fabrikaları bir bir kapılarına kilit vuruyor; işsizlik kapıda."],
+	"tenancy_rent_hike": ["Kira zammı ve dar sokak", "Ev sahibi kapıya dayanıp haftalık kiraya zam istediğini bildirdi. Kabul etmezsen sokakta kalma tehlikesi var."],
+	"temperance_pledge": ["Ayıklık Cemiyeti ve meyhane", "Pazar ayininden sonra Ayıklık Cemiyeti üyeleri sokakta broşür dağıtıyor; içkiyi bırakıp cemiyet defterine imza atmanı istiyorlar."],
+	"child_marriage_alliance": ["Bir evladın izdivacı", "Yetişkin evladın, mahallenin saygın ailelerinden birinin çocuğuyla evlenmek istiyor. Senden çeyiz ve düğün desteği bekleniyor."],
+	"factory_inspector_inquest": ["Krallık müfettişi fabrikada", "Londra'dan gelen fabrika müfettişi, çalışma saatlerini ve korumasız makineleri gizlice soruşturuyor; sana sorular soruyor."],
+	"elder_retirement_decision": ["Ağırlaşan dokuma mekiği", "Mekik atarken ellerin titriyor, dizlerin rutubetli fabrika zemininde sızlıyor. Evdekiler artık tezgahı gençlere bırakmanı istiyor."],
+	"infant_care_dilemma": ["Beşik ve dokuma tezgahı", "Evin geçimi için annenin pamuk fabrikasına dönmesi gerekiyor. Mahallenin yaşlı kadını birkaç peni karşılığı seni gündüz bakmayı öneriyor; fakat odadaki çocuklara afyon şurubu içirildiği fısıldanıyor."],
+	"smallpox_vaccine_visit": ["Dispanserin aşı iğnesi", "Mahalleye gelen bir hekim, çocukları çiçek salgınından korumak için aşı yapıyor. Komşuların bir kısmı hekime şüpheyle bakarken salgın her kış can alıyor."],
+	"street_perils_mud": ["Çamur ve demir tekerlekler", "İsli sokaklarda çocuklar ağır yük arabalarının ve kanal mavnalarının arasında koşturuyor. Sen de kapı eşiğinden dar sokaklara adım atıyorsun."],
+	"first_hornbook_alphabet": ["Eski bir hece tahtası", "Bir akrabadan kalan yıpranmış tahta hece levhası eline geçiyor. Kömürle kararmış parmaklarınla harflerin şekillerini takip ediyorsun."]
 }
 const CHOICES: Dictionary = {
 	"comply": ["Fabrikada çalışmayı kabul et", "Okuldan ayrıl ve ailenin gelirine katkıda bulun."],
@@ -52,7 +64,42 @@ const CHOICES: Dictionary = {
 	"join_society": ["Cemiyete katıl", "Aidat öde ve yardımlaşma sandığına katkı yap."],
 	"decline_society": ["Şimdilik katılma", "Birikimini elinde tut."],
 	"marry": ["Birlikte bir hayat kur", "Evlen ve aynı haneyi paylaşmaya başla."],
-	"remain_single": ["Biraz daha bekle", "Yeni sorumlulukları daha sonraya bırak."]
+	"remain_single": ["Biraz daha bekle", "Yeni sorumlulukları daha sonraya bırak."],
+	"take_apprenticeship": ["Ocağın başına geç", "Demirci çıraklığını kabul et; ellerin nasır tutsun ama bir meslek öğren."],
+	"stay_free": ["Okulda ve sokakta kal", "Ağır demir işinden kaçın; bağımsız kalmayı seç."],
+	"boil_and_cleanse": ["Suyu kaynat ve evi temizle", "Kömüre ve temiz suya birkaç kuruş harca; aileni salgından koru."],
+	"drink_and_pray": ["Olduğu gibi iç ve kadere güven", "Masraftan kaçın; tulumba suyunu kullanmaya devam et."],
+	"soup_kitchen_relief": ["Aşevi kuyruğuna gir", "Yardım ekmeğini kabul et; gururu bir kenara bırakıp karnını doyur."],
+	"dock_odd_jobs": ["Rıhtımda ne iş çıkarsa yap", "Günübirlik hamallık ve ağır işler ara; sağlığını zorlayarak geçin."],
+	"pay_rent_hike": ["Zammı öde ve çatını koru", "Bütçeyi daha da kıs; başını sokacak bir evin olsun."],
+	"dispute_rent": ["Ev sahibiyle pazarlık et ve diren", "Hakkını ara; anlaşamazsan tahliye edilme riskini göze al."],
+	"sign_temperance": ["Ayıklık senedine imza at", "İçkiden ve meyhane masrafından uzak dur; cemiyetin saygısını kazan."],
+	"tavern_fellowship": ["İşçi dostlarla kadeh kaldır", "Akşam yorgunluğunu meyhanede dostlarla at; birikiminden biraz harca."],
+	"bless_marriage": ["Düğün masrafını karşıla ve kutsa", "Birikiminden fedakarlık yap; ailenin itibarını ve mutluluğunu artır."],
+	"urge_frugality": ["Tutumlu olmalarını tembihle", "Düğünü sade tut; bütçeyi riske atma."],
+	"speak_truth": ["Hakikati olduğu gibi anlat", "Makinelerin tehlikesini ve uzun saatleri açıkla; işten atılma riskini göze al."],
+	"keep_head_down": ["Görmedim, bilmiyorum de", "Patronun kulağına gitmesinden kork; işini ve ekmeğini riske atma."],
+	"retire_home": ["Tezgahı bırak ve ocağın başına çekil", "Fabrikadan ayrıl; sağlığını ve huzurunu koruyarak mütevazı bir ömür sür."],
+	"labor_to_end": ["Nefesin yettiğince çalış", "Kimseye yük olmamak için son ana kadar dokuma tezgahında kal."],
+	"dame_minder": ["Yaşlı bakıcıya emanet et", "Evin gelirini koru; kalabalık odada sulu çorba ve uyku şurubuyla idare et."],
+	"mother_stays_home": ["Annenin evde kalması için bütçeyi kıs", "Kazançtan fedakarlık et; anne şefkati ve temiz bakımla büyü."],
+	"accept_vaccination": ["Aşı bedelini öde ve iğneyi kabul et", "Koldaki küçük bir acıyla amansız çiçek hastalığına karşı korun."],
+	"rely_on_hearth": ["Evdeki şifalı otlara ve duaya güven", "Parayı ekmeğe sakla; kış salgınlarının kapından geçip gitmesini um."],
+	"brave_the_alleys": ["Sokak çetesiyle çamurda koştur", "Sokakta serbestçe büyü; uyanıklık ve dayanıklılık kazanırken kaza riskini göze al."],
+	"stay_by_hearth": ["Eşik dibinde, kömür kovası yanında kal", "Evden uzaklaşma; soğuk yağmurdan ve at arabalarından korun."],
+	"trace_letters": ["Harfleri ve sesleri çözmeye çalış", "Erken yaşta harfleri öğren; merakını ve zihnini geliştir."],
+	"help_household_chores": ["Levhayı bırakıp su ve kül taşı", "Küçük ellerle küçük işlere koş; eve birkaç kuruş kazandır."]
+}
+const ACTION_DESCRIPTIONS: Dictionary = {
+	"play": ["Sokakta akranlarınla koşturup çocukluğun tadını çıkardın.", "Çocukluk neşesi"],
+	"study": ["Kandil ışığında ders çalıştın; okuryazarlığını geliştirdin.", "Öğrenme gayreti"],
+	"rest": ["Bu yıl bedenini dinlendirdin ve güç topladın.", "Huzurlu bir mola"],
+	"family_time": ["Ailenle ocak başında vakit geçirdin; bağlarınız güçlendi.", "Aile ocağı"],
+	"socialize": ["Mahalledeki dostlarla bir araya gelip dertleştin.", "Dost meclisi"],
+	"self_education": ["Geceleri gazete ve kitaplarla kendi kendini eğittin.", "Zihni diri tutmak"],
+	"work_hard": ["İşine dört elle sarılıp fazla mesai yaptın; azmini kanıtladın.", "Alın teri"],
+	"cheap_leisure": ["Cebinden küçük bir pay ayırıp çalgılı kahvede dinlendin.", "Küçük bir nefes"],
+	"buy_book": ["Biriktirdiğin parayla yeni bir kitap alıp ufkunu açtın.", "Yeni bir sayfa"]
 }
 
 
@@ -144,6 +191,53 @@ static func page(events: Array, state: Dictionary) -> Dictionary:
 				text = "Hanene dışarıdan geçim desteği ulaştı."
 				heading = "Bir yardım eli"
 				level = 2
+			"marriage_ended":
+				text = "Eşini kaybettin. Evinde derin bir yalnızlık başladı."
+				heading = "Yalnız kalan bir ev"
+				level = 9
+			"child_left_home":
+				text = "Çocuğun kendi hayatını kurmak üzere evden ayrıldı."
+				heading = "Yuvadan uçanlar"
+				level = 6
+			"personal_transfer":
+				var amt: int = int(d.get("amount", 0))
+				if amt > 0:
+					text = "Bu yıl kişisel bütçene %d aktarıldı." % amt
+					heading = "Cebindeki kazanç"
+					level = 2
+			"personal_spending":
+				text = "%s için kişisel bütçenden %d harcadın." % [word(str(d.get("category", "Gereksinim"))), int(d.get("amount", 0))]
+				heading = "Gündelik ihtiyaçlar"
+				level = 2
+			"moved_residence":
+				text = "Yeni bir konuta taşındınız: %s." % word(str(d.get("residence_id", "Yeni ev")))
+				heading = "Yeni bir çatı altında"
+				level = 5
+			"person_met":
+				text = "Yeni biriyle tanıştın: %s." % str(d.get("person_name", "Yeni bir tanıdık"))
+				heading = "Yeni bir sima"
+				level = 3
+			"treatment_administered":
+				text = "%s tedavisi gördün." % word(str(d.get("treatment_id", "Tedavi")))
+				heading = "Şifa arayışı"
+				level = 4
+			"disability_acquired":
+				text = "Yaşanan kaza kalıcı bir bedensel etki bıraktı."
+				heading = "Kalıcı bir iz"
+				level = 7
+			"family_event":
+				text = "Aile içinde yeni bir hadise yaşandı."
+				heading = "Aile meclisi"
+				level = 3
+			"life_action":
+				var aid: String = str(d.get("action_id", ""))
+				if ACTION_DESCRIPTIONS.has(aid):
+					text = ACTION_DESCRIPTIONS[aid][0]
+					heading = ACTION_DESCRIPTIONS[aid][1]
+				else:
+					text = "Bu yıl kişisel bir adım attın: %s." % word(aid)
+					heading = "Kişisel gayret"
+				level = 4
 		if text != "" and text not in lines:
 			lines.append(text)
 		if level > priority:

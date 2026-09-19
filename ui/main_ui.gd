@@ -17,6 +17,8 @@ const Skills = preload("res://simulation/skill_system.gd")
 const Assets = preload("res://simulation/asset_system.gd")
 const Migration = preload("res://simulation/migration_system.gd")
 const SocialStatus = preload("res://simulation/social_status_system.gd")
+const FamilyTree = preload("res://simulation/family_tree_system.gd")
+const LifeActions = preload("res://simulation/life_action_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -24,9 +26,11 @@ var state: Dictionary = {}
 var pending_prep: Dictionary = {}
 var pages: Array[Dictionary] = []
 var current_view: String = "life"
+var _view_handlers: Dictionary = {}
 var fields: Dictionary = {}
 var navigation: Dictionary = {}
 var bars: Dictionary = {}
+var stats_row: HBoxContainer
 var main_column: VBoxContainer
 var content_column: VBoxContainer
 var feed: VBoxContainer
@@ -45,6 +49,7 @@ var hero_banner: Control
 var more_button: Button
 var stop_auto_button: Button
 var _auto_stop: bool = false
+var auto_step_delay: float = 0.0 if DisplayServer.get_name() == "headless" else 0.45
 var error_label: Label
 var overlay: ColorRect
 var modal_body: VBoxContainer
@@ -57,6 +62,7 @@ var _busy: bool = false
 
 func _ready() -> void:
 	theme = Palette.create()
+	_init_view_handlers()
 	_build()
 	resized.connect(_responsive)
 	var loaded: Dictionary = Content.load_pack()
@@ -68,6 +74,21 @@ func _ready() -> void:
 	runner = Runner.new(pack)
 	start_game(42)
 	_responsive()
+
+
+func _init_view_handlers() -> void:
+	_view_handlers = {
+		"life": _render_life_chronicle,
+		"family": _render_family,
+		"budget": _render_budget,
+		"spending": _render_spending,
+		"education": _render_education,
+		"career": _render_career,
+		"health": _render_health,
+		"housing": _render_housing,
+		"development": _render_development,
+		"status": _render_status
+	}
 
 
 func _label(text: String, font_size: int = 14, color: Color = Palette.INK,
@@ -105,6 +126,14 @@ func _row(gap: int = 12) -> HBoxContainer:
 	var box = HBoxContainer.new()
 	box.add_theme_constant_override("separation", gap)
 	return box
+
+
+func _flow(gap: int = 6) -> HFlowContainer:
+	var flow = HFlowContainer.new()
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_theme_constant_override("h_separation", gap)
+	flow.add_theme_constant_override("v_separation", gap)
+	return flow
 
 
 func _spacer(parent: Node, vertical: bool = false) -> Control:
@@ -237,9 +266,10 @@ func _build_header(parent: Node) -> void:
 	initials.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	var identity = _column(2)
 	profile.add_child(identity)
-	var name_label = _field(identity, "name", "William Thompson", 29, Palette.INK, true)
+	var name_label = _field(identity, "name", "William Thompson", 26, Palette.INK, true)
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	name_label.custom_minimum_size.x = 200
+	name_label.custom_minimum_size.x = 140
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_field(identity, "age", "0 yaş · İlk yıllar", 13, Palette.MUTED)
 	var balance = _column(2)
 	balance.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -305,6 +335,7 @@ func _build_dock(parent: Node) -> void:
 		if key == "advance":
 			btn_advance = button
 			button.name = "AdvanceYear"
+			button.clip_text = true
 			button.custom_minimum_size = Vector2(196, 68)
 			button.add_theme_font_size_override("font_size", 22)
 		elif key == "more":
@@ -317,29 +348,59 @@ func _build_dock(parent: Node) -> void:
 func _open_sections() -> void:
 	if _busy:
 		return
-	modal_title.text = "Hayatının diğer sayfaları"
+	modal_title.text = "Yaşam Alanları"
 	_clear(modal_body)
 	seed_input.hide()
 	auto_policy.hide()
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 10)
-	modal_body.add_child(grid)
-	for item: Array in [["education", "Eğitim"], ["career", "Kariyer"], ["health", "Sağlık"], ["housing", "Barınma"], ["development", "Gelişim"], ["status", "Varlıklar ve statü"], ["spending", "Harcamalar"]]:
+
+	modal_body.add_child(_label("BEDEN VE ZİHİN", 10, Palette.RUST))
+	var grid_body := GridContainer.new()
+	grid_body.columns = 2
+	grid_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid_body.add_theme_constant_override("h_separation", 8)
+	grid_body.add_theme_constant_override("v_separation", 8)
+	modal_body.add_child(grid_body)
+
+	for item: Array in [["health", "Sağlık & Tedavi"], ["education", "Eğitim & Akıl"], ["development", "Beceriler & Mizaç"]]:
 		var key: String = item[0]
 		var button := _button(item[1], func():
 			overlay.hide()
 			switch_view(key))
 		button.name = "Section_" + key
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(button)
+		grid_body.add_child(button)
+
+	modal_body.add_child(_label("GEÇİM VE VARLIK", 10, Palette.RUST))
+	var grid_wealth := GridContainer.new()
+	grid_wealth.columns = 2
+	grid_wealth.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid_wealth.add_theme_constant_override("h_separation", 8)
+	grid_wealth.add_theme_constant_override("v_separation", 8)
+	modal_body.add_child(grid_wealth)
+
+	for item: Array in [["career", "Kariyer & İş"], ["spending", "Kişisel Harcama"], ["housing", "Barınma & Konut"], ["status", "Varlıklar & Statü"]]:
+		var key: String = item[0]
+		var button := _button(item[1], func():
+			overlay.hide()
+			switch_view(key))
+		button.name = "Section_" + key
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid_wealth.add_child(button)
+
+	var actions_row := _row(8)
+	actions_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	modal_body.add_child(actions_row)
+
 	var auto_button := _button("Oto hayat", _open_auto_life)
 	auto_button.disabled = not pending_prep.is_empty() or state.meta.status != "running"
-	grid.add_child(auto_button)
+	auto_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions_row.add_child(auto_button)
+
 	var new_button := _button("Yeni hayat", _open_new_game, "Ghost", "plus")
 	new_button.name = "NewLife"
-	modal_body.add_child(new_button)
+	new_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions_row.add_child(new_button)
+
 	overlay.show()
 
 
@@ -355,18 +416,37 @@ func _open_auto_life() -> void:
 	overlay.show()
 
 
+func _get_stat_value(key: String) -> int:
+	if state.is_empty() or not state.has("actors"):
+		return 50
+	var player: Dictionary = state.actors.get(state.meta.player_id, {})
+	match key:
+		"health":
+			return int(player.get("health", 100))
+		"happiness":
+			return int(player.get("needs", {}).get("happiness", 55))
+		"smarts":
+			return int(player.get("literacy", 0))
+		"prestige":
+			return int(state.get("social_status", {}).get("score", player.get("willpower", 50)))
+		_:
+			return int(player.get(key, 50))
+
+
 func _build_stats(parent: Node) -> void:
-	var stats = _row(18)
-	parent.add_child(stats)
-	for item: Array in [["health", "Sağlık"], ["literacy", "Okuryazarlık"], ["willpower", "İrade"]]:
-		var stat = _column(6)
-		stats.add_child(stat)
-		var line = _row()
+	stats_row = _row(8)
+	stats_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	parent.add_child(stats_row)
+	for item: Array in [["health", "Sağlık"], ["happiness", "Mutluluk"], ["smarts", "Akıl"], ["prestige", "İtibar"]]:
+		var stat := _column(3)
+		stat.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		stats_row.add_child(stat)
+		var line := _row(2)
 		stat.add_child(line)
-		line.add_child(_label(item[1], 12, Palette.MUTED))
+		line.add_child(_label(item[1], 10, Palette.MUTED))
 		_spacer(line)
-		_field(line, item[0], "100", 12)
-		var bar = ProgressBar.new()
+		_field(line, item[0], "100", 10)
+		var bar := ProgressBar.new()
 		bar.show_percentage = false
 		bar.custom_minimum_size.y = 5
 		stat.add_child(bar)
@@ -450,8 +530,10 @@ func _run_auto_life() -> void:
 			break
 		_accept_result(result)
 		_refresh_ui()
-		# Commit one year per frame so the stop button remains responsive.
-		await get_tree().process_frame
+		if auto_step_delay > 0.0:
+			await get_tree().create_timer(auto_step_delay).timeout
+		else:
+			await get_tree().process_frame
 	_busy = false
 	stop_auto_button.hide()
 	_refresh_ui()
@@ -545,7 +627,12 @@ func _accept_result(result: Dictionary) -> void:
 		return
 	state = result.state
 	error_label.hide()
-	pages.append(Words.page(result.events, state))
+	var all_events: Array = result.events.duplicate()
+	var cur_year: int = int(state.world.year)
+	for hist_item: Dictionary in state.history:
+		if int(hist_item.get("year", 0)) == cur_year and str(hist_item.get("kind", "")) == "life_action":
+			all_events.append(hist_item)
+	pages.append(Words.page(all_events, state))
 
 
 func _show_error(message: String) -> void:
@@ -557,8 +644,12 @@ func _refresh_ui() -> void:
 	if state.is_empty():
 		return
 	var player: Dictionary = state.actors[state.meta.player_id]
+	var is_portrait: bool = size.x < 768 or (size.x < size.y)
 	fields.name.text = player.name
-	fields.age.text = "%d yaş · %s · %d" % [player.age, Words.stage(int(player.age)), state.world.year]
+	if player.alive:
+		fields.age.text = "%d yaş · %s · %d" % [player.age, Words.stage(int(player.age)), state.world.year]
+	else:
+		fields.age.text = "%d yaş · Vefat (%d)" % [player.age, state.world.year]
 	fields.location.text = str(state.world.location_id).replace("_", " ").to_upper()
 	fields.year.text = str(state.world.year)
 	fields.initials.text = ""
@@ -569,8 +660,9 @@ func _refresh_ui() -> void:
 	if not player.alive:
 		fields.hero_caption.text = "Yaşanmış bir hayat, geride kalan izler."
 	for key: String in bars:
-		bars[key].value = player[key]
-		fields[key].text = str(player[key])
+		var stat_val: int = _get_stat_value(key)
+		bars[key].value = stat_val
+		fields[key].text = str(stat_val)
 	for key: String in navigation:
 		navigation[key].theme_type_variation = "SelectedNav" if key == current_view else "Navigation"
 	more_button.theme_type_variation = "SelectedNav" if current_view not in navigation else "Navigation"
@@ -578,7 +670,12 @@ func _refresh_ui() -> void:
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
-	btn_advance.text = "Hayat tamamlandı" if not player.alive else ("Kararını bekliyor" if not pending_prep.is_empty() else "+1 yıl")
+	if not player.alive:
+		btn_advance.text = "Son" if is_portrait else "Tamamlandı"
+	elif not pending_prep.is_empty():
+		btn_advance.text = "Karar" if is_portrait else "Karar bekliyor"
+	else:
+		btn_advance.text = "+1 yıl"
 	return_to_decision.visible = not pending_prep.is_empty() and current_view != "life"
 	fields.footer.text = "Her yıl yeni bir sayfa." if player.alive else "%d yıllık bir hayat." % player.age
 	fields.hint.text = "Büyük kararları şimdilik ailen veriyor." if player.age < 16 else "Geçmişin seninle. Sıradaki yıl henüz yazılmadı."
@@ -608,84 +705,286 @@ func _render_decision() -> void:
 	decision_box.add_child(_label(wording[1], 14, Palette.INK, false, true))
 	var choices = GridContainer.new()
 	choices.columns = 2
-	choices.add_theme_constant_override("h_separation", 12)
-	choices.add_theme_constant_override("v_separation", 10)
+	choices.add_theme_constant_override("h_separation", 10)
+	choices.add_theme_constant_override("v_separation", 8)
 	decision_box.add_child(choices)
 	for choice: Dictionary in story.choices:
 		var copy: Array = Words.CHOICES.get(choice.id, [choice.label, choice.description])
 		var id: String = choice.id
-		var button = _button(str(copy[0]) + "\n" + str(copy[1]), func(): _on_choice_selected(id), "Choice")
+		var cues: Array[String] = []
+		var fx: Dictionary = choice.get("effects", {})
+		if fx.has("cash_cost"):
+			cues.append("-%d Nakit" % int(fx.cash_cost))
+		if fx.has("cash_grant"):
+			cues.append("+%d Nakit" % int(fx.cash_grant))
+		if fx.has("health_delta"):
+			cues.append(("%+d Sağlık" % int(fx.health_delta)))
+		if fx.has("willpower_delta"):
+			cues.append(("%+d İrade" % int(fx.willpower_delta)))
+		if fx.has("literacy_delta"):
+			cues.append(("%+d Okuma" % int(fx.literacy_delta)))
+		if fx.has("deferred_job"):
+			cues.append("İş: %s" % Words.word(str(fx.deferred_job)))
+		if fx.has("cure_condition"):
+			cues.append("Şifa")
+		if fx.has("injury_hazard_bp"):
+			cues.append("Kaza Riski")
+		if fx.has("agency_check"):
+			var ac: Dictionary = fx.agency_check
+			cues.append("%s Sınavı" % Words.word(str(ac.get("attr", "willpower"))))
+
+		var btn_label: String = str(copy[0]) + "\n" + str(copy[1])
+		if not cues.is_empty():
+			btn_label += "\n[" + " · ".join(cues) + "]"
+
+		var button = _button(btn_label, func(): _on_choice_selected(id), "Choice")
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.custom_minimum_size.y = 68
+		button.custom_minimum_size.y = 74
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.name = "Choice_" + id
 		choices.add_child(button)
 		choice_buttons.append(button)
 
 
+func _render_life_summary(parent: Node) -> void:
+	var player_id: String = str(state.meta.player_id)
+	var player: Dictionary = state.actors[player_id]
+	var economy: Dictionary = state.get("personal_economy", {})
+	var career: Dictionary = player.get("career", {})
+	var education: Dictionary = player.get("education", {})
+	var family: Dictionary = state.get("family", {})
+	var tree: Dictionary = FamilyTree.build_tree(state)
+	var status: Dictionary = state.get("social_status", {})
+	var current_dwelling: Dictionary = Housing.current_dwelling(state)
+
+	var card: VBoxContainer = _card(parent, 16)
+	card.add_child(_label("BİR HAYATIN ARDINDAN", 10, Palette.RUST))
+
+	var header_box: VBoxContainer = _column(2)
+	card.add_child(header_box)
+	header_box.add_child(_label(str(player.name), 24, Palette.INK, true, true))
+
+	var cause_name: String = Words.word(str(player.get("death_cause", "old_age")))
+	var span_text: String = "%d — %d (%d yaşında) · %s" % [
+		int(player.birth_year), int(player.death_year), int(player.age), cause_name
+	]
+	header_box.add_child(_label(span_text, 12, Palette.MUTED, false, true))
+
+	# Biyografik Anlatı
+	var bio: String = "%s, %d yılında başlayan ömrünü %d yaşında tamamladı. " % [
+		str(player.name), int(player.birth_year), int(player.age)
+	]
+	var children_count: int = int(family.get("children_count", 0))
+	var marriages_list: Array = family.get("marriages", [])
+	if not marriages_list.is_empty():
+		bio += "%d evlilik yaşadı ve %d evlat yetiştirdi. " % [marriages_list.size(), children_count]
+	elif children_count > 0:
+		bio += "%d evlat yetiştirdi. " % children_count
+	else:
+		bio += "Kendi yolunu bağımsız yürüdü. "
+
+	var work_years: int = int(career.get("experience_years", 0))
+	if work_years > 0:
+		bio += "%d yıl boyunca emek verdi. " % work_years
+	bio += "Geriye onurlu bir hayat ve ailesine bıraktığı hatıralar kaldı."
+	card.add_child(_label(bio, 13, Color("4a544a"), false, true))
+
+	# Kompakt 2 sütunlu yaşam tablosu
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 8)
+	card.add_child(grid)
+
+	var highest_occupation: String = Words.word(str(player.occupation_id))
+	var current_education: String = Words.word(str(education.get("current_stage", "Yok")))
+	var living_place: String = str(current_dwelling.get("label", "Bilinmeyen konut"))
+
+	var items: Array = [
+		["MESLEK", highest_occupation],
+		["EĞİTİM", current_education],
+		["KAZANILAN GELİR", "%d birim" % int(economy.get("lifetime_income", 0))],
+		["TOPLAM HARCAMA", "%d birim" % int(economy.get("lifetime_spending", 0))],
+		["HANE BİRİKİMİ", "%d birim" % int(state.household.savings)],
+		["SON KONUT", living_place],
+		["KONUM", Words.word(str(status.get("band_id", "halk")))],
+		["AİLE MİRASI", "%d birey (%d kuşak)" % [int(tree.stats.total_members), int(tree.stats.generations_count)]]
+	]
+
+	for item: Array in items:
+		var col := _column(1)
+		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(col)
+		col.add_child(_label(str(item[0]), 9, Palette.MUTED))
+		var val_lbl := _label(str(item[1]), 12, Palette.INK, true)
+		val_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		col.add_child(val_lbl)
+
+	var btn_new := _button("Yeni bir hayat başlat", _open_new_game, "Primary")
+	btn_new.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.add_child(btn_new)
+
+
 func _render_feed() -> void:
 	_clear(feed)
 	feed.add_theme_constant_override("separation", 0 if current_view == "life" else 12)
-	if current_view == "family":
-		_render_family(feed)
-		return
-	if current_view == "budget":
-		_render_budget(feed)
-		return
-	if current_view == "spending":
-		_render_spending(feed)
-		return
-	if current_view == "education":
-		_render_education(feed)
-		return
-	if current_view == "career":
-		_render_career(feed)
-		return
-	if current_view == "health":
-		_render_health(feed)
-		return
-	if current_view == "housing":
-		_render_housing(feed)
-		return
-	if current_view == "development":
-		_render_development(feed)
-		return
-	if current_view == "status":
-		_render_status(feed)
+	var handler: Callable = _view_handlers.get(current_view, _render_life_chronicle)
+	handler.call(feed)
+
+
+func _perform_life_action(action_id: String) -> void:
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
 		return
 	if not state.actors[state.meta.player_id].alive:
-		var memorial = _card(feed)
-		memorial.add_child(_label("BİR HAYATIN ARDINDAN", 10, Palette.RUST))
-		memorial.add_child(_label(state.actors[state.meta.player_id].name, 27, Palette.INK, true))
-		memorial.add_child(_label("%s · %s" % ["%d — %d" % [state.actors[state.meta.player_id].birth_year, state.actors[state.meta.player_id].death_year], Words.word(str(state.actors[state.meta.player_id].death_cause))], 13, Palette.MUTED, false, true))
-		memorial.add_child(_button("Yeni bir hayat başlat", _open_new_game, "Primary"))
+		return
+	var current_year: int = int(state.world.year)
+	if int(state.meta.get("action_used_year", -1)) == current_year:
+		_show_error("Bu yıl için kişisel inisiyatif hakkını zaten kullandın.")
+		return
+	var result: Dictionary = LifeActions.apply(state, action_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "Eylem gerçekleştirilemedi.")))
+		return
+	state.meta["action_used_year"] = current_year
+	_refresh_ui()
+
+
+func _render_life_actions(parent: Node) -> void:
+	if state.is_empty() or not state.actors[state.meta.player_id].alive:
+		return
+	var current_year: int = int(state.world.year)
+	var used_this_year: bool = int(state.meta.get("action_used_year", -1)) == current_year
+
+	var card := _card(parent, 12)
+	var header := _row(6)
+	card.add_child(header)
+	header.add_child(_label("YILLIK İNİSİYATİF", 10, Palette.RUST))
+	_spacer(header)
+	var badge_txt: String = "Tamamlandı" if used_this_year else "1 Eylem Hakkı"
+	header.add_child(_label(badge_txt, 10, Palette.MUTED if used_this_year else Palette.INK))
+
+	if used_this_year:
+		card.add_child(_label("Bu yılki kişisel eylemini tamamladın. Yeni yılda (+1 Yıl) tekrar bir tercih yapabilirsin.", 12, Palette.MUTED, false, true))
+		return
+
+	var available: Array[String] = LifeActions.available_actions(state)
+	if available.is_empty():
+		card.add_child(_label("Şu anda uygun bir serbest eylem görünmüyor.", 12, Palette.MUTED))
+		return
+
+	var by_id: Dictionary = LifeActions.actions_by_id(state)
+	var flow := _flow(6)
+	card.add_child(flow)
+
+	for action_id: String in available:
+		var act: Dictionary = by_id.get(action_id, {})
+		var label_str: String = str(act.get("label", action_id))
+		var cost: int = int(act.get("cash_cost", 0))
+		if cost > 0:
+			label_str += " (%d b.)" % cost
+		var aid: String = action_id
+		var btn := _button(label_str, func(): _perform_life_action(aid), "Ghost")
+		btn.add_theme_font_size_override("font_size", 11)
+		btn.custom_minimum_size.y = 38
+		flow.add_child(btn)
+
+
+func _render_life_chronicle(parent: Node) -> void:
+	if not state.actors[state.meta.player_id].alive:
+		_render_life_summary(parent)
+	if state.actors.has(state.meta.player_id) and state.actors[state.meta.player_id].alive:
+		var current_age: int = int(state.actors[state.meta.player_id].age)
+		var age_focus := _column(2)
+		parent.add_child(age_focus)
+		age_focus.add_child(_label("%d yaşındasın." % current_age, 25, Palette.INK, true))
+		var occ_text: String = Words.word(str(state.actors[state.meta.player_id].occupation_id))
+		var stage_text: String = Words.stage(current_age)
+		age_focus.add_child(_label("%s · %s" % [stage_text, occ_text], 12, Palette.MUTED))
+		var top_spacer := Control.new()
+		top_spacer.custom_minimum_size.y = 6
+		parent.add_child(top_spacer)
+		_render_life_actions(parent)
+		var act_spacer := Control.new()
+		act_spacer.custom_minimum_size.y = 8
+		parent.add_child(act_spacer)
+
 	for index: int in range(pages.size() - 1, -1, -1):
 		var page: Dictionary = pages[index]
 		if not show_quiet and not page.important:
 			continue
-		var entry = _row(20)
-		feed.add_child(entry)
-		var date = _column(2)
-		date.size_flags_horizontal = Control.SIZE_FILL
-		date.custom_minimum_size.x = 72
-		entry.add_child(date)
-		date.add_child(_label(str(page.year), 23, Palette.RUST, true))
+		var card := _card(parent, 14)
+		var top_row := _row(8)
+		card.add_child(top_row)
 		var age: int = int(page.year) - int(state.actors[state.meta.player_id].birth_year)
-		date.add_child(_label("%d yaş" % age, 11, Palette.MUTED))
-		var copy = _column(5)
-		entry.add_child(copy)
-		copy.add_child(_label(page.title, 19, Palette.INK, true, true))
-		copy.add_child(_label(page.body, 14, Color("637063"), false, true))
-		var separator = HSeparator.new()
-		separator.add_theme_stylebox_override("separator", Palette.box(Palette.LINE, 0, Color.TRANSPARENT, 0))
-		separator.add_theme_constant_override("separation", 25)
-		feed.add_child(separator)
+		top_row.add_child(_label("%d · %d yaş" % [int(page.year), age], 11, Palette.RUST))
+		_spacer(top_row)
+		if page.get("tag", "") != "":
+			top_row.add_child(_label(str(page.tag), 9, Palette.MUTED))
+		card.add_child(_label(page.title, 17, Palette.INK, true, true))
+		if str(page.body).strip_edges() != "":
+			card.add_child(_label(page.body, 13, Color("4a544a"), false, true))
+		var card_spacer := Control.new()
+		card_spacer.custom_minimum_size.y = 6
+		parent.add_child(card_spacer)
+
+
+func _render_family_tree(parent: Node) -> void:
+	var tree: Dictionary = FamilyTree.build_tree(state)
+	var tree_card: VBoxContainer = _card(parent, 14)
+	tree_card.add_child(_label("SOY AĞACI", 10, Palette.RUST))
+	var summary_txt: String = "%d birey · %d kuşak · %d hayatta" % [
+		int(tree.stats.total_members),
+		int(tree.stats.generations_count),
+		int(tree.stats.living_count)
+	]
+	tree_card.add_child(_label(summary_txt, 12, Palette.MUTED))
+
+	for gen: Dictionary in tree.generations:
+		var gen_box: VBoxContainer = _column(4)
+		tree_card.add_child(gen_box)
+		var gen_header: HBoxContainer = _row(6)
+		gen_box.add_child(gen_header)
+		gen_header.add_child(_label(str(gen.title).to_upper(), 10, Palette.INK))
+		_spacer(gen_header)
+		gen_header.add_child(_label(str(gen.description), 10, Palette.MUTED))
+
+		var grid := GridContainer.new()
+		grid.columns = 2
+		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_theme_constant_override("h_separation", 6)
+		grid.add_theme_constant_override("v_separation", 6)
+		gen_box.add_child(grid)
+
+		for m: Dictionary in gen.members:
+			var panel := PanelContainer.new()
+			panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var bg_color: Color = Color("fbf8f1") if m.alive else Color("edeae1")
+			var border_color: Color = Palette.RUST if m.is_player else (Palette.LINE if m.alive else Color.TRANSPARENT)
+			panel.add_theme_stylebox_override("panel", Palette.box(bg_color, 8, border_color, 8))
+			grid.add_child(panel)
+
+			var col := _column(1)
+			panel.add_child(col)
+
+			var role_tag: String = "%s%s" % [str(m.role_label), " (Sen)" if m.is_player else ""]
+			col.add_child(_label(role_tag.to_upper(), 8, Palette.RUST if m.is_player else Palette.MUTED))
+			var name_lbl := _label(str(m.name), 12, Palette.INK, true)
+			name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			col.add_child(name_lbl)
+
+			var status_str: String = "%d yaş" % int(m.age) if m.alive else "† %d" % int(m.death_year)
+			col.add_child(_label(status_str, 9, Palette.MUTED))
 
 
 func _render_family(parent: Node, compact: bool = false) -> void:
 	Relationships.normalize(state)
 	var player_id: String = state.meta.player_id
+
+	if not compact:
+		_render_family_tree(parent)
+
 	var ids: Array = state.actors.keys()
 	ids.sort()
 	for id: String in ids:
@@ -723,7 +1022,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 					int(relation_data.get("conflict", 0))
 				], 12, Palette.MUTED))
 				if actor.alive:
-					var row = _row(6)
+					var row = _flow(6)
 					column.add_child(row)
 					for action: String in ["talk", "spend_time", "apologize"]:
 						var person_id = id
@@ -739,7 +1038,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 							int(parenting.get("involvement", 55)), int(parenting.get("support", 55)),
 							int(parenting.get("discipline", 50)), int(parenting.get("conflict", 10))
 						], 11, Palette.MUTED, false, true))
-						var parenting_row = _row(6)
+						var parenting_row = _flow(6)
 						column.add_child(parenting_row)
 						for p_action: String in ["support", "spend_time", "education_support", "discipline"]:
 							var child_id = id
@@ -756,7 +1055,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 						column.add_child(_label("Bakım · Destek %d · Yük %d" % [
 							int(elder.get("care", 0)), int(elder.get("burden", 0))
 						], 11, Palette.MUTED))
-						var elder_row = _row(6)
+						var elder_row = _flow(6)
 						column.add_child(elder_row)
 						for care_action: String in ["visit", "care", "financial_support"]:
 							var parent_id = id
@@ -843,7 +1142,7 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		card.add_child(_label("%d'de tanıştınız · %s" % [
 			int(rel.met_year), str(rel.met_via).replace("_", " ")
 		], 11, Palette.MUTED))
-		var actions = _row(6)
+		var actions = _flow(6)
 		card.add_child(actions)
 		for action: String in ["talk", "spend_time", "gift", "flirt", "argue", "apologize"]:
 			var person_id = id
@@ -1355,14 +1654,36 @@ func _render_sidebar() -> void:
 
 
 func _responsive() -> void:
+	var is_portrait: bool = size.x < 768 or (size.x < size.y)
 	if hero_banner != null:
-		hero_banner.visible = size.y >= 760
-		main_column.add_theme_constant_override("separation", 14 if size.y >= 760 else 10)
+		hero_banner.visible = size.y >= 760 and size.x >= 480
+		main_column.add_theme_constant_override("separation", 12 if size.y >= 760 else 8)
 	if right_panel != null:
 		right_panel.visible = size.x >= 1280
 	if page_margin != null:
-		var inset: int = maxi(24, int((size.x - 1280) / 2))
+		var min_inset: int = 12 if is_portrait else 24
+		var inset: int = maxi(min_inset, int((size.x - 1280) / 2))
 		page_margin.add_theme_constant_override("margin_left", inset)
 		page_margin.add_theme_constant_override("margin_right", inset)
-		page_margin.add_theme_constant_override("margin_top", 12)
-		page_margin.add_theme_constant_override("margin_bottom", 16)
+		page_margin.add_theme_constant_override("margin_top", 10 if is_portrait else 12)
+		page_margin.add_theme_constant_override("margin_bottom", 12 if is_portrait else 16)
+	if action_dock != null:
+		action_dock.add_theme_constant_override("separation", 4 if is_portrait else 8)
+		if btn_advance != null:
+			if is_portrait:
+				btn_advance.custom_minimum_size = Vector2(108, 54)
+				btn_advance.add_theme_font_size_override("font_size", 18)
+			else:
+				btn_advance.custom_minimum_size = Vector2(196, 68)
+				btn_advance.add_theme_font_size_override("font_size", 22)
+		for btn: Button in [navigation.get("life"), navigation.get("family"), navigation.get("budget"), more_button]:
+			if btn != null:
+				btn.custom_minimum_size = Vector2(0, 48) if is_portrait else Vector2(0, 54)
+				btn.add_theme_font_size_override("font_size", 11 if is_portrait else 14)
+				btn.add_theme_constant_override("h_separation", 2 if is_portrait else 6)
+	if stats_row != null:
+		stats_row.add_theme_constant_override("separation", 8 if is_portrait else 18)
+	if fields.has("tagline"):
+		fields["tagline"].visible = not is_portrait or size.x >= 460
+	if fields.has("name"):
+		fields["name"].add_theme_font_size_override("font_size", 20 if is_portrait else 26)

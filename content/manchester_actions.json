@@ -5,7 +5,7 @@
     {
       "id": "play",
       "label": "Oyna",
-      "min_age": 4,
+      "min_age": 2,
       "max_age": 15,
       "effects": {
         "health": 2,

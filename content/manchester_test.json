@@ -499,6 +499,502 @@
           }
         }
       ]
+    },
+    {
+      "id": "street_apprentice",
+      "family": "childhood",
+      "title": "The Blacksmith's Bellows",
+      "text": "A master smith at the end of the alley needs a sharp lad to pump the heavy bellows and sweep hot cinders. It pays a few pennies and teaches the smell of iron.",
+      "requirements": {
+        "min_age": 7,
+        "max_age": 13,
+        "player_alive": true,
+        "occupation_id": "dependent",
+        "cooldown_years": 3
+      },
+      "utility": {
+        "base": 30,
+        "modifiers": [
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": 20
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "take_apprenticeship",
+          "label": "Take the hammer and learn the trade",
+          "description": "Earn small wages and learn practical grit, though soot stings your lungs.",
+          "effects": {
+            "cash_grant": 150,
+            "willpower_delta": 3,
+            "health_delta": -2
+          }
+        },
+        {
+          "id": "stay_free",
+          "label": "Remain in the alley with your friends",
+          "description": "Treasure what little childhood remains before factory years.",
+          "effects": {
+            "willpower_delta": -1,
+            "health_delta": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "cholera_outbreak_1853",
+      "family": "health_crisis",
+      "title": "Foul Water at the Pump",
+      "text": "The public water pump smells of canal runoff, and two neighbors have perished of sudden cramps and fever. Doctors warn that cholera walks the streets of Manchester.",
+      "requirements": {
+        "min_age": 5,
+        "max_age": 85,
+        "player_alive": true,
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 40,
+        "modifiers": [
+          {
+            "condition": "food_security_lt_800",
+            "add": 25
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "boil_and_cleanse",
+          "label": "Spend scarce pennies on coal to boil every drop",
+          "description": "Costly fuel shields your family from the pestilence.",
+          "effects": {
+            "cash_cost": 120,
+            "health_delta": 5,
+            "willpower_delta": 4
+          }
+        },
+        {
+          "id": "drink_and_pray",
+          "label": "Rely on the local pump and pray for strength",
+          "description": "Saves money, but the dirty pump tests your constitution.",
+          "effects": {
+            "health_delta": -10,
+            "willpower_delta": -2
+          }
+        }
+      ]
+    },
+    {
+      "id": "cotton_famine_crisis",
+      "family": "industrial_crisis",
+      "title": "The Cotton Panic",
+      "text": "War in America has choked off Southern cotton ships. The mills stand silent, boilers cold. Foremen announce half-time wages and mass dismissals across Lancashire.",
+      "requirements": {
+        "min_age": 16,
+        "max_age": 68,
+        "player_alive": true,
+        "not_occupation": "dependent",
+        "cooldown_years": 4
+      },
+      "utility": {
+        "base": 50,
+        "modifiers": [
+          {
+            "condition": "high_employment_pressure",
+            "add": 30
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "soup_kitchen_relief",
+          "label": "Swallow your pride and seek soup kitchen relief",
+          "description": "Public charity feeds the household through the bitter winter.",
+          "effects": {
+            "cash_grant": 300,
+            "willpower_delta": -5
+          }
+        },
+        {
+          "id": "dock_odd_jobs",
+          "label": "Scramble for heavy canal haulage odd jobs",
+          "description": "Brutal back-breaking labor that keeps you independent of relief.",
+          "effects": {
+            "cash_grant": 450,
+            "health_delta": -8,
+            "willpower_delta": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "tenancy_rent_hike",
+      "family": "housing_pressure",
+      "title": "The Landlord's Knock",
+      "text": "A stern agent from the landlord company delivers notice: tenement rents are climbing. Families who cannot pay by month's end will have their mattresses put on the cobbles.",
+      "requirements": {
+        "min_age": 18,
+        "player_alive": true,
+        "cooldown_years": 3
+      },
+      "utility": {
+        "base": 35,
+        "modifiers": [
+          {
+            "condition": "budget_deficit_gt_zero",
+            "add": 25
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "pay_rent_hike",
+          "label": "Pinch every farthing and meet the landlord's demand",
+          "description": "Keeps your roof safe at the cost of empty pantry shelves.",
+          "effects": {
+            "cash_cost": 250,
+            "willpower_delta": 2
+          }
+        },
+        {
+          "id": "dispute_rent",
+          "label": "Organize neighbors to petition against the extortion",
+          "description": "Collective defiance gains respect, but risks prompt bailiff visits.",
+          "effects": {
+            "willpower_delta": 8,
+            "set_flag": "tenant_activist"
+          }
+        }
+      ]
+    },
+    {
+      "id": "temperance_pledge",
+      "family": "lifestyle",
+      "title": "The Temperance Banner",
+      "text": "Workers flock to the noisy tavern after grueling shifts, while chapel reformers hold torchlit rallies outside, urging men and women to sign the pledge of total abstinence.",
+      "requirements": {
+        "min_age": 16,
+        "max_age": 60,
+        "player_alive": true,
+        "cooldown_years": 4,
+        "not_flag": "temperance_pledged"
+      },
+      "utility": {
+        "base": 25,
+        "modifiers": [
+          {
+            "condition": "player_pragmatic",
+            "add": 15
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "sign_temperance",
+          "label": "Take the ribbon and sign the sobriety pledge",
+          "description": "Protects your health and purse, gaining parish esteem.",
+          "effects": {
+            "set_flag": "temperance_pledged",
+            "willpower_delta": 6,
+            "health_delta": 4
+          }
+        },
+        {
+          "id": "tavern_fellowship",
+          "label": "Join your workmates by the tavern hearth",
+          "description": "Warm fellowship washes away the week's soot, at modest expense.",
+          "effects": {
+            "cash_cost": 80,
+            "health_delta": -2,
+            "willpower_delta": -2
+          }
+        }
+      ]
+    },
+    {
+      "id": "child_marriage_alliance",
+      "family": "dynasty",
+      "title": "A Match for Your Child",
+      "text": "Your grown child has found a companion from a respected tradesman family. A wedding banquet and humble trousseau will launch them on their own path.",
+      "requirements": {
+        "min_age": 36,
+        "max_age": 72,
+        "player_alive": true,
+        "min_savings": 500,
+        "cooldown_years": 4
+      },
+      "utility": {
+        "base": 40,
+        "modifiers": [
+          {
+            "condition": "high_savings",
+            "add": 20
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "bless_marriage",
+          "label": "Bless the match and endow their new household",
+          "description": "Provides gifts and bedding, deepening family honor and joy.",
+          "effects": {
+            "cash_cost": 350,
+            "willpower_delta": 8
+          }
+        },
+        {
+          "id": "urge_frugality",
+          "label": "Counsel a simple chapel signing without fanfare",
+          "description": "Preserves savings for your own old age, though spirits dampen.",
+          "effects": {
+            "willpower_delta": -2
+          }
+        }
+      ]
+    },
+    {
+      "id": "factory_inspector_inquest",
+      "family": "workplace_justice",
+      "title": "The Crown Inspector",
+      "text": "A Crown factory inspector visits your workplace to investigate unguarded gears and excessive youth hours. The overseer glares at the shop floor with silent warnings.",
+      "requirements": {
+        "min_age": 18,
+        "max_age": 65,
+        "player_alive": true,
+        "not_occupation": "dependent",
+        "cooldown_years": 4
+      },
+      "utility": {
+        "base": 35,
+        "modifiers": [
+          {
+            "condition": "high_employment_pressure",
+            "add": 20
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "speak_truth",
+          "label": "Testify honestly about the perilous machinery",
+          "description": "Courageous truth-telling secures safety reforms and self-respect.",
+          "effects": {
+            "willpower_delta": 10,
+            "health_delta": 3,
+            "set_flag": "whistleblower"
+          }
+        },
+        {
+          "id": "keep_head_down",
+          "label": "Keep silent and focus on your spindle",
+          "description": "Protects your steady position without risking the overseer's wrath.",
+          "effects": {
+            "willpower_delta": -4
+          }
+        }
+      ]
+    },
+    {
+      "id": "elder_retirement_decision",
+      "family": "twilight",
+      "title": "The Heavy Loom",
+      "text": "Your hands tremble at the shuttle and your knees ache in the damp air. The family urges you to leave the factory dust to the younger generation.",
+      "requirements": {
+        "min_age": 55,
+        "max_age": 85,
+        "player_alive": true,
+        "not_occupation": "dependent",
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 45,
+        "modifiers": [
+          {
+            "condition": "food_security_lt_800",
+            "add": -30
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "retire_home",
+          "label": "Step down from the loom and rest by the hearth",
+          "description": "Retire from paid labor; health and peace of mind mend in gentle years.",
+          "effects": {
+            "deferred_job": "dependent",
+            "health_delta": 10,
+            "willpower_delta": 6
+          }
+        },
+        {
+          "id": "labor_to_end",
+          "label": "Cling to your station as long as breath permits",
+          "description": "You earn your keep until the end, refusing to be a burden on anyone.",
+          "effects": {
+            "health_delta": -8,
+            "willpower_delta": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "infant_care_dilemma",
+      "family": "family_life",
+      "title": "Cradle and the Loom",
+      "text": "Your mother must return to the cotton mill to keep the family fed. The neighbor offers to mind you for a few pence, though infant sleeping draughts are whispered in the alleys.",
+      "requirements": {
+        "min_age": 0,
+        "max_age": 2,
+        "player_alive": true,
+        "not_flag": "infant_care_resolved"
+      },
+      "utility": {
+        "base": 65
+      },
+      "choices": [
+        {
+          "id": "dame_minder",
+          "label": "Leave the infant in the dame minder's crowded room",
+          "description": "The household income is preserved, though the child suffers dull draughts and thin gruel.",
+          "effects": {
+            "health_delta": -3,
+            "willpower_delta": 2,
+            "set_flag": "infant_care_resolved"
+          }
+        },
+        {
+          "id": "mother_stays_home",
+          "label": "Scrape the jar so mother stays home at the hearth",
+          "description": "Tighten the belt and lose wages so mother can nurse and protect the infant.",
+          "effects": {
+            "cash_cost": 15,
+            "health_delta": 5,
+            "set_flag": "infant_care_resolved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "smallpox_vaccine_visit",
+      "family": "health_care",
+      "title": "The Dispensary Needle",
+      "text": "A parish doctor visits the lane offering cowpox scratches against the smallpox plague. Neighbors murmur in distrust, but epidemics take many young souls each winter.",
+      "requirements": {
+        "min_age": 1,
+        "max_age": 4,
+        "player_alive": true,
+        "not_flag": "smallpox_vaccinated"
+      },
+      "utility": {
+        "base": 50,
+        "modifiers": [
+          {
+            "condition": "food_security_lt_800",
+            "add": -15
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "accept_vaccination",
+          "label": "Pay the dispensary fee and receive the protective scratch",
+          "description": "A sharp sting on the arm shields you from the dreaded pox.",
+          "effects": {
+            "cash_cost": 6,
+            "health_delta": 6,
+            "set_flag": "smallpox_vaccinated"
+          }
+        },
+        {
+          "id": "rely_on_hearth",
+          "label": "Rely on herbal washes and family prayer",
+          "description": "Keep the coins for bread; pray the winter chills pass over your door.",
+          "effects": {
+            "health_delta": -2,
+            "willpower_delta": 1,
+            "set_flag": "smallpox_refused"
+          }
+        }
+      ]
+    },
+    {
+      "id": "street_perils_mud",
+      "family": "community",
+      "title": "Mud and Iron Wheels",
+      "text": "In the soot-choked alleys, older children run between heavy dray wagons and canal barges. You slip past the doorstep into the bustling street.",
+      "requirements": {
+        "min_age": 3,
+        "max_age": 6,
+        "player_alive": true,
+        "cooldown_years": 2
+      },
+      "utility": {
+        "base": 45
+      },
+      "choices": [
+        {
+          "id": "brave_the_alleys",
+          "label": "Tumble through the mud with the street pack",
+          "description": "Run wild in the alleys; street wit and tough grit grow, though dray carts rumble close.",
+          "effects": {
+            "willpower_delta": 4,
+            "injury_hazard_bp": 400
+          }
+        },
+        {
+          "id": "stay_by_hearth",
+          "label": "Keep close to the threshold by the coal bucket",
+          "description": "Stay obediently near home, sheltered from horses and the chill drizzle.",
+          "effects": {
+            "health_delta": 2,
+            "willpower_delta": -1
+          }
+        }
+      ]
+    },
+    {
+      "id": "first_hornbook_alphabet",
+      "family": "education_vs_work",
+      "title": "The Worn Hornbook",
+      "text": "A cousin leaves behind a wooden hornbook with printed letters shielded under transparent horn. You trace the dark symbols with charcoal fingers.",
+      "requirements": {
+        "min_age": 4,
+        "max_age": 6,
+        "player_alive": true,
+        "not_flag": "early_letters_learned"
+      },
+      "utility": {
+        "base": 55,
+        "modifiers": [
+          {
+            "condition": "guardian_education_first",
+            "add": 25
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "trace_letters",
+          "label": "Spend evenings sounding out letters and vowels",
+          "description": "Learn the marks of speech early; curiosity and literacy take deep root.",
+          "effects": {
+            "literacy_delta": 7,
+            "willpower_delta": 3,
+            "set_flag": "early_letters_learned"
+          }
+        },
+        {
+          "id": "help_household_chores",
+          "label": "Set the tablet aside and haul water and cinders",
+          "description": "Small hands carry small loads; you earn a few farthings helping the house.",
+          "effects": {
+            "health_delta": 2,
+            "cash_grant": 4,
+            "set_flag": "early_chores_done"
+          }
+        }
+      ]
     }
   ],
   "content_paths": {
