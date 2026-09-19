@@ -175,7 +175,7 @@
       "minimum_age": 18,
       "maximum_age": 65,
       "minimum_literacy": 10,
-      "risk_permille": 1100,
+      "risk_permille": 850,
       "career_track": "metalwork",
       "level": 2,
       "minimum_experience_years": 2,
@@ -258,7 +258,7 @@
       "minimum_age": 7,
       "maximum_age": 14,
       "minimum_literacy": 0,
-      "risk_permille": 1200,
+      "risk_permille": 950,
       "career_track": "labor",
       "level": 1,
       "tags": [
@@ -274,7 +274,7 @@
       "minimum_age": 18,
       "maximum_age": 55,
       "minimum_literacy": 0,
-      "risk_permille": 1300,
+      "risk_permille": 900,
       "career_track": "construction",
       "level": 2,
       "tags": [
@@ -312,7 +312,7 @@
       "minimum_age": 18,
       "maximum_age": 60,
       "minimum_literacy": 0,
-      "risk_permille": 1100,
+      "risk_permille": 800,
       "career_track": "industrial",
       "level": 2,
       "tags": [
