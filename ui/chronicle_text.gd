@@ -51,7 +51,11 @@ const STORIES: Dictionary = {
 	"mill_retaliation_or_respect": ["Müfettişin ardından gelen fısıltı", "Müfettişin teftiş raporu fabrikaya ulaştı; makinelerin etrafına koruyucu demir parmaklık takıldı. Masraflara öfkelenen ustabaşı, senin konuştuğunu sezip yağ fıçılarının yanında önünü kesiyor."],
 	"journeyman_blacksmith_trial": ["Örs başında ustalık imtihanı", "Yıllarca kömür taşıyıp körük çektikten sonra demirci ustası eline ağır çekici tutuşturuyor: 'Lokomotif bağlantı demirini tek başına döv, sana kalfalık beratını vereyim.'"],
 	"winter_fever_wave": ["Kış humması ve soğuk yağmurlar", "Dondurucu yağmurlar Manchester sokaklarını çamur deryasına çevirdi. Rutubetli bodrum katlarına sızan kızıl humma ve göğüs hırıltısı mahallede can alıyor."],
-	"temperance_benefit_solidarity": ["Ayıklık Cemiyeti dayanışması", "Ayıklık senedine sadık kalıp meyhanelerden uzak durduğun için cemiyet seni yıllık toplantısına davet ediyor; yardımlaşma sandığından pay teklif ediyor."]
+	"temperance_benefit_solidarity": ["Ayıklık Cemiyeti dayanışması", "Ayıklık senedine sadık kalıp meyhanelerden uzak durduğun için cemiyet seni yıllık toplantısına davet ediyor; yardımlaşma sandığından pay teklif ediyor."],
+	"debt_bailiff_pawn_crisis": ["Tefecinin çekiç sesleri ({debt} şilin borç)", "Evin borcu {debt} şiline dayandı. Alacaklı esnaf ve mahallenin rehin simsarı kapıyı yumrukluyor. Önünüzde sadece iki acı yol var: Ya evdeki son döküm sobayı ve yatakları rehine vereceksiniz, ya da mahkemenin borçlu hapsi celbini bekleyeceksiniz."],
+	"famine_bread_ration_dilemma": ["Boşalan un çuvalı", "Kilerde un bitti; {child} açlıktan ağlayarak uykuya dalıyor. Nehir kıyısında geceleyin tahıl mavnalarından dökülen çuvallar var; kilise kapısında ise düşkünler çorbası dağıtılıyor."],
+	"overcrowded_cellar_fever": ["Daralan mahzen ve rutubet kokusu", "{dwelling} içinde nefes alacak yer kalmadı. Yerlerde yan yana yatan çocukların öksürükleri birbirine karışıyor. {sibling} göğsünü tutarak rutubet içinde titriyor."],
+	"family_care_vs_ambition": ["Ailenin omuzlarına binen yük ({sibling})", "{sibling} fabrikada kaptığı göğüs iltihabı yüzünden yatağa mahkûm oldu. Kendi meslek ve istikbalinden vazgeçip gece gündüz ona bakmanı bekliyorlar."]
 }
 const CHOICES: Dictionary = {
 	"comply": ["Fabrikada çalışmayı kabul et", "Okuldan ayrıl ve ailenin gelirine katkıda bulun."],
@@ -100,7 +104,15 @@ const CHOICES: Dictionary = {
 	"rely_on_constitution": ["Ocak başında yün battaniyeye sarıl", "Evdeki çorbayla hastalığı atlatmaya çalış; masraf yapma ama ciğerlerini zorla."],
 	"call_parish_apothecary": ["Eczacıdan kına kına şurubu al", "Acı şurupla ateşi düşür; hastalığın nüksetmesini önle."],
 	"accept_temperance_aid": ["Dayanışma payını ve kitapları kabul et", "Dürüstlüğünün karşılığı olan maddi desteği al; birikimini güçlendir."],
-	"modest_refusal": ["Yardımı sokaktaki dul ve yetimlere devret", "Büyük bir cömertlik göster; mahallede saygınlığını ve itibarını katla."]
+	"modest_refusal": ["Yardımı sokaktaki dul ve yetimlere devret", "Büyük bir cömertlik göster; mahallede saygınlığını ve itibarını katla."],
+	"liquidate_hearth": ["Döküm sobayı ve yün yatağı rehine ver", "Eşyaları arabaya yükle; borcun 350 şilini kapansın ama ev buz kessin."],
+	"face_magistrate_debt": ["Kapıyı sürgüle ve mahkeme celbini bekle", "Evin son eşyalarını kaptırma; borçlu hapsi ve amele cezası riskini göze al."],
+	"scavenge_flour_barge": ["Kanal mavnalarından dökülen tahılı topla", "Gece karanlığında un toplayıp karnı doyur; bekçilerin sopası ve kaza riskini göze al."],
+	"beg_parish_gruel": ["Kilise merdivenlerinde düşkünler çorbasına el aç", "Gururunu çiğne ama aileni tehlikeye atmadan açlığı bastır."],
+	"separate_room_sacrifice": ["Birikimini döküp tavan arası oda tut", "Kişisel paranı harca; evi ferahlatıp ciğerleri rutubetten koru."],
+	"endure_confined_air": ["Kaderine razı ol, omuz omuza sıkış", "Parayı elinde tut; rutubetli mahzen havasının sağlığını kemirmesine katlan."],
+	"devote_to_kin": ["İşi bırakıp kardeşinin başucunda nöbet tut", "Kendi istikbalini feda et; kardeşlik bağını ve karakterini yücelt."],
+	"pursue_own_station": ["İşini ve ekmeğini bırakma, çalışmaya devam et", "Soğukkanlı ve bencil ol; kazancını korurken bakımı başkalarına bırak."]
 }
 const ACTION_DESCRIPTIONS: Dictionary = {
 	"play": ["Sokakta akranlarınla koşturup çocukluğun tadını çıkardın.", "Çocukluk neşesi"],
@@ -260,3 +272,52 @@ static func page(events: Array, state: Dictionary) -> Dictionary:
 		lines.append("Gündelik hayat kendi akışında sürdü. Ailenin bütçesi ve sağlığı bu yıl da değişmeye devam etti.")
 	return {"year": int(state.world.year), "title": title, "body": "\n".join(lines),
 		"tag": tag, "important": priority > 0}
+
+
+static func story_wording(story_id: String, state: Dictionary, raw_title: String, raw_text: String) -> Array:
+	var base: Array = STORIES.get(story_id, [raw_title, raw_text])
+	var title_tmpl: String = str(base[0])
+	var text_tmpl: String = str(base[1])
+	if state.is_empty():
+		return [title_tmpl, text_tmpl]
+
+	var player_id: String = str(state.get("meta", {}).get("player_id", ""))
+	var player: Dictionary = state.get("actors", {}).get(player_id, {})
+	var player_name: String = str(player.get("name", "Sen"))
+	var debt_val: int = int(state.get("household", {}).get("debt", 0))
+	var savings_val: int = int(state.get("household", {}).get("savings", 0))
+
+	var child_name: String = "evladın"
+	for cid: String in state.get("family", {}).get("children_ids", []):
+		if state.get("actors", {}).has(cid) and state.actors[cid].get("alive", false):
+			child_name = str(state.actors[cid].get("name", "evladın"))
+			break
+
+	var sibling_name: String = "kardeşin"
+	var parents: Array = [player.get("parent_1_id", ""), player.get("parent_2_id", "")]
+	for aid: String in state.get("actors", {}):
+		if aid == player_id or not state.actors[aid].get("alive", false):
+			continue
+		var a: Dictionary = state.actors[aid]
+		if (a.get("parent_1_id", "") != "" and a.get("parent_1_id", "") in parents) or (a.get("parent_2_id", "") != "" and a.get("parent_2_id", "") in parents):
+			sibling_name = str(a.get("name", "kardeşin"))
+			break
+
+	var spouse_id: String = str(state.get("family", {}).get("current_spouse_id", ""))
+	var spouse_name: String = str(state.get("actors", {}).get(spouse_id, {}).get("name", "eşin"))
+
+	var replacements: Dictionary = {
+		"{player}": player_name,
+		"{debt}": str(debt_val),
+		"{savings}": str(savings_val),
+		"{child}": child_name,
+		"{sibling}": sibling_name,
+		"{spouse}": spouse_name,
+		"{job}": word(str(player.get("occupation_id", "dependent"))).to_lower()
+	}
+
+	for k: String in replacements:
+		title_tmpl = title_tmpl.replace(k, replacements[k])
+		text_tmpl = text_tmpl.replace(k, replacements[k])
+
+	return [title_tmpl, text_tmpl]

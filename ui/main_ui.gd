@@ -701,7 +701,7 @@ func _render_decision() -> void:
 	if not decision_panel.visible:
 		return
 	var story: Dictionary = pending_prep.storylet
-	var wording: Array = Words.STORIES.get(story.id, [story.title, story.text])
+	var wording: Array = Words.story_wording(story.id, state, story.title, story.text)
 	decision_box.add_child(_label("%d  /  BİR KARAR ZAMANI" % pending_prep.year, 11, Palette.RUST))
 	decision_box.add_child(_label(wording[0], 25, Palette.INK, true, true))
 	decision_box.add_child(_label(wording[1], 14, Palette.INK, false, true))

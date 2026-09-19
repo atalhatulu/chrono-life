@@ -1160,6 +1160,182 @@
           }
         }
       ]
+    },
+    {
+      "id": "debt_bailiff_pawn_crisis",
+      "family": "emergency_finance",
+      "title": "Knocks of the Bailiff ({debt}s Debt)",
+      "text": "Household arrears have mounted to {debt} shillings. A local bailiff hammers on the timber door with a distraint order. You must satisfy the ledger or brace for the debtor's court.",
+      "requirements": {
+        "min_age": 18,
+        "min_debt": 400,
+        "player_alive": true,
+        "cooldown_years": 4
+      },
+      "utility": {
+        "base": 80,
+        "modifiers": [
+          {
+            "condition": "high_debt",
+            "add": 30
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "liquidate_hearth",
+          "label": "Surrender the cast-iron stove and feather bolster to the cart",
+          "description": "The debt drops by 350s, but the hearth goes cold and sickness creeps in.",
+          "effects": {
+            "cash_grant": 350,
+            "health_delta": -8,
+            "willpower_delta": -4
+          }
+        },
+        {
+          "id": "face_magistrate_debt",
+          "label": "Bar the door and face the magistrate's summons",
+          "description": "Refuse to strip the house bare; risk arrest or labor penalty if your spirit falters.",
+          "effects": {
+            "willpower_delta": 6,
+            "agency_check": {
+              "attr": "willpower",
+              "target": 50,
+              "failure_health_delta": -12
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "famine_bread_ration_dilemma",
+      "family": "emergency_finance",
+      "title": "The Empty Flour Bin",
+      "text": "The flour sack is scraped clean; {child} weeps with an empty belly. Behind the market, sweeping sweepings of bruised flour are sold cheap, while dark barges dock on the canal.",
+      "requirements": {
+        "min_age": 16,
+        "max_food_security": 600,
+        "player_alive": true,
+        "cooldown_years": 3
+      },
+      "utility": {
+        "base": 75,
+        "modifiers": [
+          {
+            "condition": "severe_food_insecurity",
+            "add": 35
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "scavenge_flour_barge",
+          "label": "Slip down to the canal barges in the fog to haul spilled grain",
+          "description": "Dangerous night toil feeds the home, though night watchmen brandish heavy clubs.",
+          "effects": {
+            "health_delta": 4,
+            "willpower_delta": 4,
+            "injury_hazard_bp": 600,
+            "cash_grant": 100
+          }
+        },
+        {
+          "id": "beg_parish_gruel",
+          "label": "Wait at the vestry steps for parish charity gruel",
+          "description": "Bitter to pride, but fills empty bowls without the peril of the canals.",
+          "effects": {
+            "health_delta": 3,
+            "willpower_delta": -6
+          }
+        }
+      ]
+    },
+    {
+      "id": "overcrowded_cellar_fever",
+      "family": "housing",
+      "title": "Choked Air in the Cellar",
+      "text": "{dwelling} has grown suffocating with too many souls under low rafters. {sibling} shivers in the damp corner, coughing up dark phlegm in the stifling cellar air.",
+      "requirements": {
+        "min_age": 14,
+        "min_overcrowding": 2,
+        "player_alive": true,
+        "cooldown_years": 3
+      },
+      "utility": {
+        "base": 70,
+        "modifiers": [
+          {
+            "condition": "overcrowded",
+            "add": 30
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "separate_room_sacrifice",
+          "label": "Scrape together private coins to rent an attic room",
+          "description": "Costly personal sacrifice clears the air and mends frail lungs.",
+          "effects": {
+            "cash_cost": 30,
+            "health_delta": 6,
+            "willpower_delta": 4
+          }
+        },
+        {
+          "id": "endure_confined_air",
+          "label": "Huddle tight and endure the cellar dampness",
+          "description": "Coins stay in hand, but the pestilential air exacts its toll on body and spirit.",
+          "effects": {
+            "health_delta": -8,
+            "willpower_delta": -2
+          }
+        }
+      ]
+    },
+    {
+      "id": "family_care_vs_ambition",
+      "family": "family_life",
+      "title": "The Weight of Kin ({sibling})",
+      "text": "{sibling} has collapsed with lung-rot from mill lint. The family expects you to abandon all personal ambitions and nurse them through the long months.",
+      "requirements": {
+        "min_age": 18,
+        "max_age": 55,
+        "player_alive": true,
+        "has_living_sibling": true,
+        "cooldown_years": 4
+      },
+      "utility": {
+        "base": 60,
+        "modifiers": [
+          {
+            "condition": "has_sick_family",
+            "add": 40
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "devote_to_kin",
+          "label": "Step back from work to nurse your sick sibling",
+          "description": "Noble sacrifice of your own station; family bonds and character deepen.",
+          "effects": {
+            "deferred_job": "dependent",
+            "willpower_delta": 8,
+            "health_delta": -3,
+            "set_flag": "selfless_caregiver"
+          }
+        },
+        {
+          "id": "pursue_own_station",
+          "label": "Refuse to sacrifice your post; keep working for coin",
+          "description": "Hard-hearted but realistic; you bring home wages while leaving care to others.",
+          "effects": {
+            "willpower_delta": -5,
+            "cash_grant": 150,
+            "set_flag": "ruthless_ambition"
+          }
+        }
+      ]
     }
   ],
   "content_paths": {

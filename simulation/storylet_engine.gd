@@ -3,6 +3,7 @@ extends RefCounted
 const Rng = preload("res://simulation/deterministic_rng.gd")
 const Family = preload("res://simulation/family_system.gd")
 const Assets = preload("res://simulation/asset_system.gd")
+const Housing = preload("res://simulation/housing_system.gd")
 
 
 static func is_eligible(storylet: Dictionary, state: Dictionary) -> bool:
@@ -39,6 +40,37 @@ static func is_eligible(storylet: Dictionary, state: Dictionary) -> bool:
 		return false
 	if reqs.has("min_savings") and int(state.household.savings) < int(reqs.min_savings):
 		return false
+
+	if reqs.has("min_debt") and int(state.household.get("debt", 0)) < int(reqs.min_debt):
+		return false
+
+	if reqs.has("max_food_security") and int(state.household.get("food_security", 1000)) > int(reqs.max_food_security):
+		return false
+
+	if reqs.has("min_overcrowding"):
+		var oc: int = Housing.overcrowding(state)
+		if oc < int(reqs.min_overcrowding):
+			return false
+
+	if reqs.has("has_living_children"):
+		var child_count: int = 0
+		for cid: String in state.get("family", {}).get("children_ids", []):
+			if state.actors.has(cid) and state.actors[cid].alive:
+				child_count += 1
+		if child_count == 0:
+			return false
+
+	if reqs.has("has_living_sibling"):
+		var sib_count: int = 0
+		var parents: Array = [player.get("parent_1_id", ""), player.get("parent_2_id", "")]
+		for aid: String in state.actors:
+			if aid == player_id or not state.actors[aid].alive:
+				continue
+			var a: Dictionary = state.actors[aid]
+			if (a.get("parent_1_id", "") != "" and a.get("parent_1_id", "") in parents) or (a.get("parent_2_id", "") != "" and a.get("parent_2_id", "") in parents):
+				sib_count += 1
+		if sib_count == 0:
+			return false
 
 	var flags: Dictionary = state.get("storylets", {}).get("flags", {})
 	if reqs.has("not_flag") and flags.get(reqs.not_flag, false):
@@ -99,6 +131,17 @@ static func calculate_utility(storylet: Dictionary, state: Dictionary, ledger: D
 				applies = int(state.household.savings) > 5000
 			"player_pragmatic":
 				applies = "pragmatic" in player.get("traits", [])
+			"high_debt":
+				applies = int(state.household.get("debt", 0)) > 500
+			"severe_food_insecurity":
+				applies = int(state.household.get("food_security", 1000)) < 600
+			"overcrowded":
+				applies = Housing.overcrowding(state) > 0
+			"has_sick_family":
+				for mem_id: String in state.household.get("member_ids", []):
+					if state.actors.has(mem_id) and state.actors[mem_id].alive and not state.actors[mem_id].conditions.is_empty():
+						applies = true
+						break
 		if applies:
 			score += add
 
