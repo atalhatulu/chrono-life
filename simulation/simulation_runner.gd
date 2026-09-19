@@ -616,11 +616,15 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 		var purchase_result: Dictionary = Purchases.purchase(working, purchase_id)
 		if not purchase_result.ok:
 			return {"ok": false, "errors": [purchase_result.error]}
-	var action_id: String = AutoLife.choose_action(working, policy_name)
-	if action_id != "":
-		var action_result: Dictionary = LifeActions.apply(working, action_id)
-		if not action_result.ok:
-			return {"ok": false, "errors": [action_result.error]}
+	var action_id: String = ""
+	var current_year: int = int(working.world.year)
+	if int(working.meta.get("action_used_year", -1)) != current_year:
+		action_id = AutoLife.choose_action(working, policy_name)
+		if action_id != "":
+			var action_result: Dictionary = LifeActions.apply(working, action_id)
+			if not action_result.ok:
+				return {"ok": false, "errors": [action_result.error]}
+			working.meta["action_used_year"] = current_year
 	var result: Dictionary = step(working, [], {}, policy_name)
 	if result.ok:
 		result.action_id = action_id
