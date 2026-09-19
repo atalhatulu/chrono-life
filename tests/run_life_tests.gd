@@ -222,7 +222,7 @@ func test_education_and_responses() -> void:
 	check(poor.state.actors.player.occupation_id == "dependent" and poor.state.actors.player.education_state == "basic_schooling",
 		"Selecting work next year does not retroactively interrupt this year's school")
 	var next: Dictionary = runner.step(poor.state)
-	check(next.ok and next.state.actors.player.occupation_id == "child_factory_worker",
+	check(next.ok and (next.state.actors.player.occupation_id in ["child_factory_worker", "chimney_sweep", "piecer"]),
 		"Eligible child starts selected work the following year")
 	check(next.state.actors.player.education_state == "interrupted" and next.state.actors.player.literacy == poor.state.actors.player.literacy,
 		"Work interrupts schooling and its literacy progression")

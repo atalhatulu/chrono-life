@@ -22,6 +22,7 @@ const LifeActions = preload("res://simulation/life_action_system.gd")
 const Career = preload("res://simulation/career_system.gd")
 const Education = preload("res://simulation/education_system.gd")
 const Origin = preload("res://simulation/origin_system.gd")
+const LifeTree = preload("res://simulation/life_tree_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -978,9 +979,130 @@ func _render_life_summary(parent: Node) -> void:
 		val_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		col.add_child(val_lbl)
 
+	_render_life_tree(card)
+
 	var btn_new := _button("Yeni bir hayat başlat", _open_new_game, "Primary")
 	btn_new.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.add_child(btn_new)
+
+
+func _render_life_tree(parent: Node) -> void:
+	var nodes: Array[Dictionary] = LifeTree.build_tree(state)
+	if nodes.is_empty():
+		return
+
+	var tree_panel := PanelContainer.new()
+	tree_panel.add_theme_stylebox_override("panel", Palette.box(Color("fdfcf7"), 12, Palette.LINE, 16))
+	parent.add_child(tree_panel)
+
+	var tree_container := _column(12)
+	tree_panel.add_child(tree_container)
+
+	var title_box := _column(2)
+	tree_container.add_child(title_box)
+
+	var header_lbl := _label("YAŞAM AĞACINIZ: SEÇTİĞİNİZ YOL", 18, Palette.INK, true)
+	header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_box.add_child(header_lbl)
+
+	var sub_lbl := _label("Doğumunuzdan vefatınıza kadar verdiğiniz kararlar ve hayatınızın dallanıp budaklanan izleri (%d dönüm noktası):" % nodes.size(), 11, Palette.MUTED, false, true)
+	sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_box.add_child(sub_lbl)
+
+	var tree_scroll := ScrollContainer.new()
+	tree_scroll.custom_minimum_size.y = 420
+	tree_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	tree_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	tree_container.add_child(tree_scroll)
+
+	var tree_col := _column(0)
+	tree_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tree_scroll.add_child(tree_col)
+
+	for i: int in range(nodes.size()):
+		var n: Dictionary = nodes[i]
+		var is_last: bool = (i == nodes.size() - 1)
+
+		var step_row := _row(10)
+		step_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tree_col.add_child(step_row)
+
+		# Sol Gövde: Dairesel Rozet ve Bağlantı Dalı
+		var spine_col := _column(0)
+		spine_col.custom_minimum_size.x = 42
+		step_row.add_child(spine_col)
+
+		var badge_panel := PanelContainer.new()
+		badge_panel.custom_minimum_size = Vector2(38, 38)
+		var badge_bg: Color
+		match str(n.get("kind", "")):
+			"origin":
+				badge_bg = Color("8c6e38")
+			"decision":
+				badge_bg = Palette.RUST
+			"initiative":
+				badge_bg = Color("527c38")
+			"family":
+				badge_bg = Color("8c485c")
+			"career":
+				badge_bg = Color("38587c")
+			"housing":
+				badge_bg = Color("687850")
+			"death":
+				badge_bg = Color("4a463c")
+			_:
+				badge_bg = Color("6c685c")
+
+		var badge_style := StyleBoxFlat.new()
+		badge_style.bg_color = badge_bg
+		badge_style.set_corner_radius_all(19)
+		badge_panel.add_theme_stylebox_override("panel", badge_style)
+		spine_col.add_child(badge_panel)
+
+		var badge_center := CenterContainer.new()
+		badge_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		badge_panel.add_child(badge_center)
+		var yr_text: String = "%d" % int(n.year) if n.age == 0 else "%d y" % int(n.age)
+		badge_center.add_child(_label(yr_text, 10, Color.WHITE, true))
+
+		if not is_last:
+			var trunk_center := CenterContainer.new()
+			trunk_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			trunk_center.custom_minimum_size.y = 24
+			spine_col.add_child(trunk_center)
+			var trunk_line := ColorRect.new()
+			trunk_line.color = Color("5a6254")
+			trunk_line.custom_minimum_size = Vector2(3, 24)
+			trunk_center.add_child(trunk_line)
+
+		# Sağ Kutu: Karar Kartı
+		var branch_box := _column(3)
+		branch_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		step_row.add_child(branch_box)
+
+		var tag_row := _row(6)
+		branch_box.add_child(tag_row)
+		tag_row.add_child(_label("%d · %d YAŞ" % [int(n.year), int(n.age)], 10, Palette.RUST, true))
+		_spacer(tag_row)
+		tag_row.add_child(_label(str(n.get("tag", "")), 9, Palette.MUTED))
+
+		branch_box.add_child(_label(str(n.get("title", "")), 13, Palette.INK, true, true))
+
+		var choice_panel := PanelContainer.new()
+		var p_bg: Color = Color("f9f6ee") if n.kind == "decision" else Color("f4f1e8")
+		var p_border: Color = Palette.RUST if n.kind == "decision" else Palette.LINE
+		choice_panel.add_theme_stylebox_override("panel", Palette.box(p_bg, 6, p_border, 8))
+		branch_box.add_child(choice_panel)
+
+		var choice_col := _column(2)
+		choice_panel.add_child(choice_col)
+		choice_col.add_child(_label(str(n.get("choice_label", "")), 12, Palette.INK, true, true))
+		if str(n.get("summary", "")).strip_edges() != "":
+			choice_col.add_child(_label(str(n.summary), 11, Color("4a524a"), false, true))
+
+		var item_spacer := Control.new()
+		item_spacer.custom_minimum_size.y = 6
+		branch_box.add_child(item_spacer)
 
 
 func _render_feed() -> void:
@@ -1253,52 +1375,253 @@ func _render_life_chronicle(parent: Node) -> void:
 		parent.add_child(card_spacer)
 
 
+func _create_family_tree_node(m: Dictionary) -> Control:
+	var node_box := VBoxContainer.new()
+	node_box.custom_minimum_size = Vector2(96, 118)
+	node_box.alignment = BoxContainer.ALIGNMENT_BEGIN
+	node_box.add_theme_constant_override("separation", 2)
+
+	# 1. Dairesel Avatar Rozeti (56x56)
+	var avatar_center := CenterContainer.new()
+	avatar_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	node_box.add_child(avatar_center)
+
+	var circle := PanelContainer.new()
+	circle.custom_minimum_size = Vector2(56, 56)
+	var style := StyleBoxFlat.new()
+	style.set_corner_radius_all(28)
+
+	if m.is_player:
+		# Evrim Ağacı referansındaki belirgin orman yeşili + kalın pas kırmızısı halka
+		style.bg_color = Color("2e5a37")
+		style.border_color = Palette.RUST
+		style.set_border_width_all(3)
+	elif m.alive:
+		# Canlı aile üyeleri: Adaçayı yeşili
+		style.bg_color = Color("4e7458")
+		style.border_color = Color("7fa285")
+		style.set_border_width_all(2)
+	else:
+		# Vefat edenler: Küllü gri
+		style.bg_color = Color("768078")
+		style.border_color = Color("9aa29b")
+		style.set_border_width_all(1)
+
+	circle.add_theme_stylebox_override("panel", style)
+	avatar_center.add_child(circle)
+
+	# Daire İçi Baş Harf
+	var inner_center := CenterContainer.new()
+	inner_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	circle.add_child(inner_center)
+
+	var initial_char: String = str(m.name).strip_edges().left(1).to_upper()
+	if initial_char == "":
+		initial_char = "?"
+	var initial_lbl := _label(initial_char, 18, Color.WHITE, true)
+	inner_center.add_child(initial_lbl)
+
+	# 2. Rol / "SİZ" Vurgusu
+	if m.is_player:
+		var you_lbl := _label("SİZ", 11, Palette.RUST, true)
+		you_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		node_box.add_child(you_lbl)
+	else:
+		var role_str: String = str(m.role_label)
+		var role_lbl := _label(role_str, 10, Palette.MUTED, false)
+		role_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		node_box.add_child(role_lbl)
+
+	# 3. İsim
+	var name_lbl := _label(str(m.name), 11, Palette.INK, true)
+	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_lbl.custom_minimum_size.x = 94
+	node_box.add_child(name_lbl)
+
+	# 4. Yaş / Vefat
+	var status_text: String
+	if m.alive:
+		status_text = "%d yaş" % int(m.age)
+	else:
+		status_text = "† %d" % int(m.death_year) if int(m.death_year) > 0 else "† Vefat"
+	var status_lbl := _label(status_text, 9, Palette.MUTED, false)
+	status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	node_box.add_child(status_lbl)
+
+	return node_box
+
+
+func _create_tree_connector(sources: Array[Control], targets: Array[Control]) -> Control:
+	var connector := Control.new()
+	connector.custom_minimum_size = Vector2(0, 26)
+	connector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	connector.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	connector.ready.connect(connector.queue_redraw, CONNECT_DEFERRED)
+
+	connector.draw.connect(func():
+		if sources.is_empty() or targets.is_empty():
+			return
+
+		var branch_color := Color("6c8570")
+		var my_gx: float = connector.global_position.x
+
+		# 1. Üst kaynakların yatay merkez ortalaması
+		var src_x_sum: float = 0.0
+		for s in sources:
+			if is_instance_valid(s):
+				src_x_sum += s.global_position.x + (s.size.x * 0.5)
+		var src_center_x: float = (src_x_sum / float(sources.size())) - my_gx
+
+		# 2. Alt hedeflerin x koordinatları
+		var target_xs: Array[float] = []
+		for t in targets:
+			if is_instance_valid(t):
+				target_xs.append(t.global_position.x + (t.size.x * 0.5) - my_gx)
+
+		if target_xs.is_empty():
+			return
+
+		var min_tx: float = target_xs[0]
+		var max_tx: float = target_xs[0]
+		for tx in target_xs:
+			if tx < min_tx:
+				min_tx = tx
+			if tx > max_tx:
+				max_tx = tx
+
+		var bridge_min: float = minf(min_tx, src_center_x)
+		var bridge_max: float = maxf(max_tx, src_center_x)
+		var mid_y: float = 13.0
+
+		# Üstten inen dikey dal
+		connector.draw_line(Vector2(src_center_x, 0), Vector2(src_center_x, mid_y), branch_color, 2.0, true)
+
+		# Yatay dağıtıcı köprü
+		if bridge_max > bridge_min:
+			connector.draw_line(Vector2(bridge_min, mid_y), Vector2(bridge_max, mid_y), branch_color, 2.0, true)
+
+		# Alt hedeflere inen dikey bacaklar
+		for tx in target_xs:
+			connector.draw_line(Vector2(tx, mid_y), Vector2(tx, 26), branch_color, 2.0, true)
+	)
+
+	return connector
+
+
 func _render_family_tree(parent: Node) -> void:
 	var tree: Dictionary = FamilyTree.build_tree(state)
-	var tree_card: VBoxContainer = _card(parent, 14)
-	tree_card.add_child(_label("SOY AĞACI", 10, Palette.RUST))
+	var tree_card: VBoxContainer = _card(parent, 16)
+
+	# Üst Başlık ve Özet Şeridi
+	var header_box := _column(3)
+	tree_card.add_child(header_box)
+
+	var title_lbl := _label("SOY AĞACINIZ", 18, Palette.INK, true)
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header_box.add_child(title_lbl)
+
 	var summary_txt: String = "%d birey · %d kuşak · %d hayatta" % [
 		int(tree.stats.total_members),
 		int(tree.stats.generations_count),
 		int(tree.stats.living_count)
 	]
-	tree_card.add_child(_label(summary_txt, 12, Palette.MUTED))
+	var sub_lbl := _label(summary_txt, 11, Palette.MUTED)
+	sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	header_box.add_child(sub_lbl)
 
-	for gen: Dictionary in tree.generations:
-		var gen_box: VBoxContainer = _column(4)
-		tree_card.add_child(gen_box)
-		var gen_header: HBoxContainer = _row(6)
+	var spacer_top := Control.new()
+	spacer_top.custom_minimum_size.y = 6
+	tree_card.add_child(spacer_top)
+
+	# Yatay kaydırılabilir ağaç çerçevesi
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size.y = 360
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	tree_card.add_child(scroll)
+
+	var tree_panel := PanelContainer.new()
+	tree_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tree_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tree_panel.add_theme_stylebox_override("panel", Palette.box(Color("faf8f2"), 12, Palette.LINE, 18))
+	scroll.add_child(tree_panel)
+
+	var tree_vbox := _column(0)
+	tree_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tree_panel.add_child(tree_vbox)
+
+	var previous_sources: Array[Control] = []
+
+	for gen_idx: int in range(tree.generations.size()):
+		var gen: Dictionary = tree.generations[gen_idx]
+		var level: int = int(gen.level)
+
+		# Kuşak Kutusu
+		var gen_box := _column(4)
+		gen_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+		# Kuşak Başlığı
+		var gen_header := _row(6)
+		gen_header.alignment = BoxContainer.ALIGNMENT_CENTER
 		gen_box.add_child(gen_header)
-		gen_header.add_child(_label(str(gen.title).to_upper(), 10, Palette.INK))
-		_spacer(gen_header)
-		gen_header.add_child(_label(str(gen.description), 10, Palette.MUTED))
+		gen_header.add_child(_label(str(gen.title).to_upper(), 10, Palette.MUTED, true))
 
-		var grid := GridContainer.new()
-		grid.columns = 2
-		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_theme_constant_override("h_separation", 6)
-		grid.add_theme_constant_override("v_separation", 6)
-		gen_box.add_child(grid)
+		# Bireyler Satırı
+		var members_row := _row(16)
+		members_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		members_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		gen_box.add_child(members_row)
+
+		var current_nodes: Array[Control] = []
+		var player_node: Control = null
+		var spouse_node: Control = null
 
 		for m: Dictionary in gen.members:
-			var panel := PanelContainer.new()
-			panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			var bg_color: Color = Color("fbf8f1") if m.alive else Color("edeae1")
-			var border_color: Color = Palette.RUST if m.is_player else (Palette.LINE if m.alive else Color.TRANSPARENT)
-			panel.add_theme_stylebox_override("panel", Palette.box(bg_color, 8, border_color, 8))
-			grid.add_child(panel)
+			var node_ctrl := _create_family_tree_node(m)
+			members_row.add_child(node_ctrl)
+			current_nodes.append(node_ctrl)
 
-			var col := _column(1)
-			panel.add_child(col)
+			if m.is_player:
+				player_node = node_ctrl
+			elif str(m.role) == "spouse":
+				spouse_node = node_ctrl
 
-			var role_tag: String = "%s%s" % [str(m.role_label), " (Sen)" if m.is_player else ""]
-			col.add_child(_label(role_tag.to_upper(), 8, Palette.RUST if m.is_player else Palette.MUTED))
-			var name_lbl := _label(str(m.name), 12, Palette.INK, true)
-			name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-			col.add_child(name_lbl)
+		# Önceki kuşak ile bu kuşak arasına dallanma connector'ı ekle
+		if not previous_sources.is_empty() and not current_nodes.is_empty():
+			var targets: Array[Control] = []
+			if level == 0:
+				for i: int in range(gen.members.size()):
+					var mem: Dictionary = gen.members[i]
+					if str(mem.role) != "spouse":
+						targets.append(current_nodes[i])
+				if targets.is_empty():
+					targets = current_nodes
+			else:
+				targets = current_nodes
 
-			var status_str: String = "%d yaş" % int(m.age) if m.alive else "† %d" % int(m.death_year)
-			col.add_child(_label(status_str, 9, Palette.MUTED))
+			var connector := _create_tree_connector(previous_sources, targets)
+			tree_vbox.add_child(connector)
+
+		tree_vbox.add_child(gen_box)
+
+		# Bir sonraki kuşağa aktarılacak kaynak düğümleri belirle
+		if level == -1:
+			previous_sources = current_nodes
+		elif level == 0:
+			previous_sources = []
+			if player_node != null:
+				previous_sources.append(player_node)
+			if spouse_node != null:
+				previous_sources.append(spouse_node)
+			if previous_sources.is_empty():
+				previous_sources = current_nodes
+		elif level == 1:
+			previous_sources = current_nodes
+		else:
+			previous_sources = current_nodes
 
 
 func _render_family(parent: Node, compact: bool = false) -> void:
