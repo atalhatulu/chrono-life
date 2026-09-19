@@ -23,6 +23,7 @@ const Career = preload("res://simulation/career_system.gd")
 const Education = preload("res://simulation/education_system.gd")
 const Origin = preload("res://simulation/origin_system.gd")
 const LifeTree = preload("res://simulation/life_tree_system.gd")
+const AutoLife = preload("res://simulation/auto_life_controller.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -655,6 +656,16 @@ func _on_advance_pressed() -> void:
 	var current_year: int = int(state.world.year)
 	var used_action: bool = int(state.meta.get("action_used_year", -1)) == current_year
 	var has_available: bool = not LifeActions.available_actions(state).is_empty()
+
+	# Otomatik karar modu açıksa, yılı ilerletmeden önce yıllık inisiyatifi de otomatik belirle ve uygula
+	if auto_policy.button_pressed and not used_action and has_available:
+		var auto_action: String = AutoLife.choose_action(state, "balanced")
+		if auto_action != "":
+			var act_res: Dictionary = LifeActions.apply(state, auto_action)
+			if act_res.ok:
+				state.meta["action_used_year"] = current_year
+				used_action = true
+
 	if not is_headless and not auto_policy.button_pressed and has_available and not used_action:
 		_show_error("Yılı tamamlamadan önce bu yılki kişisel inisiyatifini (sağdaki eylemlerden birini) seçmelisin.")
 		current_view = "life"
@@ -734,8 +745,10 @@ func _accept_result(result: Dictionary) -> void:
 	error_label.hide()
 	var all_events: Array = result.events.duplicate()
 	var cur_year: int = int(state.world.year)
+	var prev_year: int = cur_year - 1
 	for hist_item: Dictionary in state.history:
-		if int(hist_item.get("year", 0)) == cur_year and str(hist_item.get("kind", "")) == "life_action":
+		var h_yr: int = int(hist_item.get("year", 0))
+		if (h_yr == prev_year or h_yr == cur_year) and str(hist_item.get("kind", "")) == "life_action":
 			all_events.append(hist_item)
 	pages.append(Words.page(all_events, state))
 
@@ -1299,7 +1312,16 @@ func _render_life_actions(parent: Node) -> void:
 	header.add_child(_label(badge_txt, 10, badge_col, true))
 
 	if used_this_year:
-		card.add_child(_label("Bu yılki kişisel eylemini tamamladın. Yeni yıla (+1 Yıl) ilerleyebilirsin.", 12, Palette.MUTED, false, true))
+		var last_action_label: String = ""
+		for h: Dictionary in state.get("history", []):
+			if int(h.get("year", -1)) == current_year and str(h.get("kind", "")) == "life_action":
+				var aid: String = str(h.get("details", {}).get("action_id", ""))
+				last_action_label = Words.word(aid)
+				break
+		var done_msg: String = "Bu yılki kişisel odağını tamamladın. Yeni yıla (+1 Yıl) ilerleyebilirsin."
+		if last_action_label != "":
+			done_msg = "Seçilen Kişisel Odak: %s · Yeni yıla (+1 Yıl) ilerleyebilirsin." % last_action_label
+		card.add_child(_label(done_msg, 12, Color("2d5e38"), false, true))
 		return
 
 	card.add_child(_label("Yılı tamamlamadan önce bu yılki kişisel odağını belirle:", 11, Palette.INK))
@@ -1310,8 +1332,12 @@ func _render_life_actions(parent: Node) -> void:
 		return
 
 	var by_id: Dictionary = LifeActions.actions_by_id(state)
-	var actions_col := _column(6)
-	card.add_child(actions_col)
+	var actions_grid := GridContainer.new()
+	actions_grid.columns = 2
+	actions_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions_grid.add_theme_constant_override("h_separation", 8)
+	actions_grid.add_theme_constant_override("v_separation", 6)
+	card.add_child(actions_grid)
 
 	for action_id: String in available:
 		var act: Dictionary = by_id.get(action_id, {})
@@ -1345,7 +1371,7 @@ func _render_life_actions(parent: Node) -> void:
 			eff_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			inner.add_child(eff_lbl)
 
-		actions_col.add_child(btn)
+		actions_grid.add_child(btn)
 
 
 func _render_latest_year_balance(parent: Node) -> void:
