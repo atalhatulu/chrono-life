@@ -650,6 +650,15 @@ func _toggle_filter() -> void:
 func _on_advance_pressed() -> void:
 	if _busy or not pending_prep.is_empty() or state.is_empty() or state.meta.status != "running" or overlay.visible:
 		return
+	var is_headless: bool = DisplayServer.get_name() == "headless"
+	var current_year: int = int(state.world.year)
+	var used_action: bool = int(state.meta.get("action_used_year", -1)) == current_year
+	var has_available: bool = not LifeActions.available_actions(state).is_empty()
+	if not is_headless and not auto_policy.button_pressed and has_available and not used_action:
+		_show_error("Yılı tamamlamadan önce bu yılki kişisel inisiyatifini (sağdaki eylemlerden birini) seçmelisin.")
+		current_view = "life"
+		_refresh_ui()
+		return
 	_busy = true
 	error_label.hide()
 	if auto_policy.button_pressed:
@@ -765,10 +774,15 @@ func _refresh_ui() -> void:
 	filter_button.visible = current_view == "life"
 	filter_button.text = "Önemli anlar" if show_quiet else "Tüm yıllar"
 	btn_advance.disabled = not player.alive or not pending_prep.is_empty() or _busy
+	var cur_yr: int = int(state.world.year)
+	var used_action: bool = int(state.meta.get("action_used_year", -1)) == cur_yr
+	var has_actions: bool = not LifeActions.available_actions(state).is_empty()
 	if not player.alive:
 		btn_advance.text = "Son" if is_portrait else "Tamamlandı"
 	elif not pending_prep.is_empty():
 		btn_advance.text = "Karar" if is_portrait else "Karar bekliyor"
+	elif not used_action and has_actions:
+		btn_advance.text = "İnisiyatif seç" if is_portrait else "İnisiyatif seç (+1 Yıl)"
 	else:
 		btn_advance.text = "+1 yıl"
 	return_to_decision.visible = not pending_prep.is_empty() and current_view != "life"
@@ -779,6 +793,8 @@ func _refresh_ui() -> void:
 		fields.hint.text = "Yıl henüz kapanmadı. Devam etmek için karar kartını yanıtla."
 		if current_view != "life":
 			fields.hint.text = "Devam etmek için Hayatım sekmesindeki karar kartını yanıtla."
+	elif not used_action and has_actions and player.alive:
+		fields.hint.text = "Yılı tamamlamadan önce bu yılki kişisel inisiyatifini (eylemini) seçmelisin."
 	elif not player.alive:
 		fields.hint.text = "Hayatının sayfalarını inceleyebilir veya yeni bir hayata başlayabilirsin."
 	_render_decision()
@@ -991,6 +1007,30 @@ func _perform_life_action(action_id: String) -> void:
 	_refresh_ui()
 
 
+func _format_action_effects(act: Dictionary) -> String:
+	var effects: Dictionary = act.get("effects", {})
+	var parts: Array[String] = []
+	var cost: int = int(act.get("cash_cost", 0))
+	if cost > 0:
+		parts.append("-%d b." % cost)
+	var labels: Dictionary = {
+		"health": "Sağlık",
+		"happiness": "Mutluluk",
+		"literacy": "Okuma",
+		"willpower": "İrade",
+		"energy": "Enerji",
+		"stress": "Stres",
+		"social": "Sosyal"
+	}
+	for key: String in ["health", "happiness", "literacy", "willpower", "energy", "stress", "social"]:
+		if effects.has(key):
+			var val: int = int(effects[key])
+			if val != 0:
+				var sign_str: String = "+" if val > 0 else ""
+				parts.append("%s%d %s" % [sign_str, val, labels.get(key, key)])
+	return " · ".join(parts)
+
+
 func _render_life_actions(parent: Node) -> void:
 	if state.is_empty() or not state.actors[state.meta.player_id].alive:
 		return
@@ -1000,14 +1040,17 @@ func _render_life_actions(parent: Node) -> void:
 	var card := _card(parent, 12)
 	var header := _row(6)
 	card.add_child(header)
-	header.add_child(_label("YILLIK İNİSİYATİF", 10, Palette.RUST))
+	header.add_child(_label("YILLIK İNİSİYATİF", 10, Palette.RUST, true))
 	_spacer(header)
-	var badge_txt: String = "Tamamlandı" if used_this_year else "1 Eylem Hakkı"
-	header.add_child(_label(badge_txt, 10, Palette.MUTED if used_this_year else Palette.INK))
+	var badge_txt: String = "Tamamlandı" if used_this_year else "Seçim Gerekli (1 Hak)"
+	var badge_col: Color = Palette.MUTED if used_this_year else Palette.RUST
+	header.add_child(_label(badge_txt, 10, badge_col, true))
 
 	if used_this_year:
-		card.add_child(_label("Bu yılki kişisel eylemini tamamladın. Yeni yılda (+1 Yıl) tekrar bir tercih yapabilirsin.", 12, Palette.MUTED, false, true))
+		card.add_child(_label("Bu yılki kişisel eylemini tamamladın. Yeni yıla (+1 Yıl) ilerleyebilirsin.", 12, Palette.MUTED, false, true))
 		return
+
+	card.add_child(_label("Yılı tamamlamadan önce bu yılki kişisel odağını belirle:", 11, Palette.INK))
 
 	var available: Array[String] = LifeActions.available_actions(state)
 	if available.is_empty():
@@ -1015,20 +1058,42 @@ func _render_life_actions(parent: Node) -> void:
 		return
 
 	var by_id: Dictionary = LifeActions.actions_by_id(state)
-	var flow := _flow(6)
-	card.add_child(flow)
+	var actions_col := _column(6)
+	card.add_child(actions_col)
 
 	for action_id: String in available:
 		var act: Dictionary = by_id.get(action_id, {})
 		var label_str: String = str(act.get("label", action_id))
 		var cost: int = int(act.get("cash_cost", 0))
-		if cost > 0:
-			label_str += " (%d b.)" % cost
+		var eff_str: String = _format_action_effects(act)
 		var aid: String = action_id
-		var btn := _button(label_str, func(): _perform_life_action(aid), "Ghost")
-		btn.add_theme_font_size_override("font_size", 11)
-		btn.custom_minimum_size.y = 38
-		flow.add_child(btn)
+
+		var btn := Button.new()
+		btn.theme_type_variation = "Ghost"
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.custom_minimum_size.y = 48
+		btn.pressed.connect(func(): _perform_life_action(aid))
+
+		var inner := _column(2)
+		inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		btn.add_child(inner)
+
+		var title_row := _row(4)
+		title_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		inner.add_child(title_row)
+		title_row.add_child(_label(label_str, 12, Palette.INK, true))
+		_spacer(title_row)
+		if cost > 0:
+			title_row.add_child(_label("-%d b." % cost, 11, Palette.RUST))
+
+		if eff_str != "":
+			var eff_lbl := _label(eff_str, 10, Palette.MUTED)
+			eff_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			inner.add_child(eff_lbl)
+
+		actions_col.add_child(btn)
 
 
 func _render_latest_year_balance(parent: Node) -> void:
