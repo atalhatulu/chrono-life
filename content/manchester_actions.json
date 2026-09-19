@@ -188,6 +188,69 @@
         "spending",
         "media"
       ]
+    },
+    {
+      "id": "gentleman_club_visit",
+      "label": "Centilmenler kulübüne uğra",
+      "min_age": 21,
+      "max_age": 200,
+      "cash_cost": 45,
+      "effects": {
+        "health": 0,
+        "literacy": 2,
+        "willpower": 3,
+        "happiness": 6,
+        "stress": -4,
+        "social": 16,
+        "energy": -6
+      },
+      "ai_tags": [
+        "prestige",
+        "social",
+        "elite"
+      ]
+    },
+    {
+      "id": "church_pew_devotion",
+      "label": "Kilise cemaatine katıl",
+      "min_age": 16,
+      "max_age": 200,
+      "cash_cost": 15,
+      "effects": {
+        "health": 0,
+        "literacy": 1,
+        "willpower": 6,
+        "happiness": 5,
+        "stress": -8,
+        "social": 12,
+        "energy": -4
+      },
+      "ai_tags": [
+        "community",
+        "faith",
+        "respectable"
+      ]
+    },
+    {
+      "id": "parish_charity_volunteer",
+      "label": "Aşevinde gönüllü ol",
+      "min_age": 14,
+      "max_age": 200,
+      "cash_cost": 10,
+      "effects": {
+        "health": -1,
+        "literacy": 0,
+        "willpower": 8,
+        "happiness": 10,
+        "stress": -5,
+        "social": 14,
+        "energy": -8
+      },
+      "ai_tags": [
+        "charity",
+        "community",
+        "moral"
+      ]
     }
   ]
 }

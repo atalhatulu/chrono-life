@@ -1518,6 +1518,254 @@
           }
         }
       ]
+    },
+    {
+      "id": "cholera_broad_street_pump",
+      "family": "health_care",
+      "title": "The Tainted Broad Street Pump",
+      "text": "A deadly blue cholera outbreak has struck the neighboring parish. The church bell tolls ceaselessly. Physicians warn that the street pump is poisoned with cesspool seep, urging all families to boil their kettle or buy carter-drawn spring water.",
+      "requirements": {
+        "min_age": 12,
+        "player_alive": true,
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 50,
+        "modifiers": [
+          {
+            "condition": "food_security_lt_800",
+            "add": 30
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "boil_and_buy_clean_water",
+          "label": "Boil all household water and purchase clean carter supply",
+          "description": "Spend precious shillings on extra coal and water carters, shielding your kin from the blue death.",
+          "effects": {
+            "cash_cost": 120,
+            "willpower_delta": 5,
+            "set_flag": "sanitation_vigilant"
+          }
+        },
+        {
+          "id": "gamble_on_street_pump",
+          "label": "Continue drawing free water from the alley pump",
+          "description": "Save coins for bread; pray that God spares your hearth from the deadly flux.",
+          "effects": {
+            "health_delta": -25,
+            "injury_hazard_bp": 3500,
+            "willpower_delta": -8
+          }
+        }
+      ]
+    },
+    {
+      "id": "mill_lung_lint_crisis",
+      "family": "health_care",
+      "title": "The Cotton Spinner's Phthisis",
+      "text": "Years of inhaling airborne cotton lint have left your chest tight as an iron band. Every dawn begins with racking coughs and spit flecked with blood. An old weaver advises you to take the country air before your lungs rot away.",
+      "requirements": {
+        "min_age": 18,
+        "max_age": 65,
+        "player_alive": true,
+        "occupations_in": [
+          "textile_worker",
+          "skilled_textile_worker",
+          "mill_overlooker"
+        ],
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 55,
+        "modifiers": []
+      },
+      "choices": [
+        {
+          "id": "seek_country_convalescence",
+          "label": "Spend savings on a month in the Derbyshire hills",
+          "description": "Breathe pure moorland air and drink fresh goat milk; a costly refuge that restores your breath.",
+          "effects": {
+            "cash_cost": 280,
+            "health_delta": 20,
+            "willpower_delta": 10,
+            "cure_condition": true,
+            "set_flag": "restored_lungs"
+          }
+        },
+        {
+          "id": "endure_the_fluff",
+          "label": "Dull the pain with Godfrey's Cordial and keep working",
+          "description": "Rely on cheap opium syrup to suppress the cough; stay by your spindles while your health wanes.",
+          "effects": {
+            "health_delta": -15,
+            "willpower_delta": -5,
+            "cash_grant": 50
+          }
+        }
+      ]
+    },
+    {
+      "id": "gangrene_amputation_crossroads",
+      "family": "health_care",
+      "title": "The Surgeon's Saw and the Paved Flesh",
+      "text": "A compound fracture from a factory accident has turned foul with black putrefaction. The parish infirmary surgeon rolls up his blood-crusted apron, brandishing his bone saw: 'It is the leg, lad, or the churchyard by Sunday.'",
+      "requirements": {
+        "min_age": 14,
+        "player_alive": true,
+        "has_any_condition": [
+          "workplace_injury",
+          "chronic_disease"
+        ],
+        "cooldown_years": 6
+      },
+      "utility": {
+        "base": 65,
+        "modifiers": []
+      },
+      "choices": [
+        {
+          "id": "submit_to_the_saw",
+          "label": "Bite on the wooden peg and submit to the saw",
+          "description": "Survive the agony of the knife; you will walk on crutches, but your life is preserved.",
+          "effects": {
+            "health_delta": 15,
+            "willpower_delta": 15,
+            "cure_condition": true,
+            "set_flag": "amputee_survivor"
+          }
+        },
+        {
+          "id": "cling_to_the_limb",
+          "label": "Push the surgeon away and trust home poultices",
+          "description": "Refuse to become a cripple; risk mortal fever in hopes that the wound cleanses itself.",
+          "effects": {
+            "health_delta": -35,
+            "willpower_delta": -10
+          }
+        }
+      ]
+    },
+    {
+      "id": "gentleman_club_blackball",
+      "family": "community",
+      "title": "The Manchester Exchange Club Blackball",
+      "text": "Having accumulated significant savings, you submit an application to the prestigious Manchester Exchange Club. Yet the aristocratic committee whispers behind their port glasses, plotting to blackball you as a vulgar upstart from the mill alleys.",
+      "requirements": {
+        "min_age": 22,
+        "max_age": 75,
+        "player_alive": true,
+        "min_savings": 3000,
+        "not_flag": "club_member",
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 50,
+        "modifiers": [
+          {
+            "condition": "high_savings",
+            "add": 35
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "lavish_donation_bribe",
+          "label": "Endow the club reading room with a grand donation",
+          "description": "Grease the committee's palms with heavy gold, purchasing polite acceptance among the gentry.",
+          "effects": {
+            "cash_cost": 650,
+            "willpower_delta": 5,
+            "set_flag": "club_member"
+          }
+        },
+        {
+          "id": "scorn_the_snobs",
+          "label": "Spurn the pretensions of the snobs with pride",
+          "description": "Walk away with your head high; your money was forged by honest sweat, not inherited privileges.",
+          "effects": {
+            "willpower_delta": 15,
+            "set_flag": "proud_working_class"
+          }
+        }
+      ]
+    },
+    {
+      "id": "elocution_accent_barrier",
+      "family": "self_improvement",
+      "title": "The Lancashire Brogue Dilemma",
+      "text": "At a regional commercial assembly, your coarse Northern vowels draw quiet smirks from London merchants. An impoverished Oxford tutor offers evening elocution lessons to iron out your dialect and teach the Queen's English.",
+      "requirements": {
+        "min_age": 18,
+        "max_age": 65,
+        "player_alive": true,
+        "min_literacy": 40,
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 45,
+        "modifiers": []
+      },
+      "choices": [
+        {
+          "id": "hire_oxford_elocutionist",
+          "label": "Hire the tutor to master polite Southern diction",
+          "description": "Disguise your mill roots behind cultured speech, opening doors in mercantile drawing rooms.",
+          "effects": {
+            "cash_cost": 140,
+            "literacy_delta": 12,
+            "willpower_delta": -5,
+            "set_flag": "genteel_accent"
+          }
+        },
+        {
+          "id": "speak_plain_lancashire",
+          "label": "Refuse to parrot the South; speak straight Lancashire",
+          "description": "Keep your honest dialect; let your deeds and craftsmanship speak louder than polished vowels.",
+          "effects": {
+            "willpower_delta": 10,
+            "set_flag": "unapologetic_northerner"
+          }
+        }
+      ]
+    },
+    {
+      "id": "church_pew_rent_distinction",
+      "family": "community",
+      "title": "The Front Pew Auction",
+      "text": "St. Ann's Church is auctioning annual leases for the cushioned box pews near the altar. Respectable tradesmen and mill owners sit there in broadcloth; sitting in the free benches at the back marks you as an indigent laborer.",
+      "requirements": {
+        "min_age": 20,
+        "max_age": 75,
+        "player_alive": true,
+        "min_savings": 1000,
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 45,
+        "modifiers": []
+      },
+      "choices": [
+        {
+          "id": "rent_front_pew",
+          "label": "Bid for a front pew and secure a family brass plate",
+          "description": "Demonstrate your respectable station before God and the parish vestry.",
+          "effects": {
+            "cash_cost": 180,
+            "willpower_delta": 8,
+            "set_flag": "front_pew_respectability"
+          }
+        },
+        {
+          "id": "sit_with_the_common_free_pews",
+          "label": "Sit in the free unheated benches with the laborers",
+          "description": "Reject the commercial vanity of the church; worship in humility without squandering coin.",
+          "effects": {
+            "willpower_delta": -2
+          }
+        }
+      ]
     }
   ],
   "content_paths": {

@@ -24,6 +24,10 @@ const NAMES: Dictionary = {
 	"interrupted": "Eğitimi yarıda kaldı", "completed": "Temel eğitimi tamamladı",
 	"malnutrition": "Yetersiz beslenme", "epidemic_disease": "Salgın hastalık",
 	"chronic_disease": "Kronik hastalık", "workplace_injury": "İş kazası",
+	"cholera": "Kolera salgını", "consumption_tuberculosis": "Verem (Tüberküloz)",
+	"permanent_disability": "Kalıcı sakatlık",
+	"patent_apothecary_draught": "Eczacı şurubu", "surgical_amputation": "Cerrahi operasyon",
+	"convalescent_country_air": "Kır havası istirahati",
 	"baseline": "Yaşamın doğal riskleri", "scenario": "Beklenmedik bir olay",
 	"unassessed": "Yeni bir başlangıç", "basic": "Temel ihtiyaçlar karşılanıyor",
 	"poor": "Geçinmek zorlaşıyor", "destitute": "Aile zor günler geçiriyor",
@@ -62,7 +66,13 @@ const STORIES: Dictionary = {
 	"textile_strike_dilemma": ["Fabrikada grev ve nöbet", "Dokuma fabrikasında işçiler buhar kazanlarını durdurup 12 saatlik ağır vardiyalara karşı greve gitti. Kapıda nöbet tutanlar dayanışma beklerken ustabaşı, içeri girip tezgah başına geçenlere çift yevmiye ve gözetmenlik terfisi teklif ediyor."],
 	"foundry_molten_crucible": ["Dökümhanede kızgın pota felaketi", "Döküm çukurunun üzerindeki vinç zinciri koptu; beyaz akkor halindeki erimiş demir makine kalıplarına doğru akıyor. Usta, atölye mahvolmadan önce kum setini çekecek cesur bir el arıyor."],
 	"clerk_falsified_ledger": ["Tüccarın gizli defteri", "Sevkiyat defterlerini denkleştirirken patronun gümrük vergisinden kaçırdığı kaçak pamuk balyalarını gizleyen çift defter tuttuğunu fark ettin. Tüccar seni çalışma odasına çağırıp maun masanın üzerine bir tomar banknot koydu."],
-	"open_independent_shop": ["Kendi dükkanının efendisi olmak", "Deansgate köşesindeki bakkal devrediliyor; dükkan kirası ve kuru erzak stoğu için nakit aranıyor. Yılların birikimini yatırıp fabrika gürültüsünden kurtulabilir, kendi işinin başına geçebilirsin."]
+	"open_independent_shop": ["Kendi dükkanının efendisi olmak", "Deansgate köşesindeki bakkal devrediliyor; dükkan kirası ve kuru erzak stoğu için nakit aranıyor. Yılların birikimini yatırıp fabrika gürültüsünden kurtulabilir, kendi işinin başına geçebilirsin."],
+	"cholera_broad_street_pump": ["Kuyu tulumbası ve mavi kolera", "Komşu mahallede mavi kolera salgını patlak verdi; kilise çanları cenazeler için susmuyor. Hekimler tulumba suyunun lağımla karıştığını, kazanları kaynatıp suyu tüccardan almayı öğütlüyor."],
+	"mill_lung_lint_crisis": ["Dokumacının göğüs hırıltısı", "Yıllardır solunan pamuk tozu ciğerlerini demir çember gibi sıktı. Her sabah kanlı tükürükle uyanıyorsun; yaşlı bir usta ciğerlerin çürümeden kır havasına çıkmanı söylüyor."],
+	"gangrene_amputation_crossroads": ["Cerrahın testeresi ve can pazarı", "Fabrika kazasında ezilen bacak karardı; cerrah kanlı önlüğünü sıvayıp kemik testeresini çıkardı: 'Ya bu bacak kesilecek delikanlı, ya da pazar günü kilise mezarlığına gideceksin.'"],
+	"gentleman_club_blackball": ["Borsa Kulübü ve kara top tehdidi", "Biriktirdiğin servetle Manchester Borsa Kulübü'ne üyelik başvurusu yaptın; fakat eski toprak centilmenler, kökeninin dokuma mahallelerine dayandığını fısıldayarak seni kara topla dışlamak istiyor."],
+	"elocution_accent_barrier": ["Kuzey şivesi ve kibar diksiyon", "Bölgesel ticaret meclisinde kaba Manchester şiven yüzünden Londra tüccarlarının bıyık altından güldüğünü fark ettin. Bir Oxford hocası şiveni düzeltmek için özel ders teklif ediyor."],
+	"church_pew_rent_distinction": ["Kilisenin ön sıra müzayedesi", "St. Ann Kilisesi'nde sunağın hemen yanındaki minderli, pirinç plakalı aile sıraları kiraya açılıyor. Ön sırada oturmak mahallede yüksek bir itibar ve saygınlık simgesi sayılıyor."]
 }
 const CHOICES: Dictionary = {
 	"comply": ["Fabrikada çalışmayı kabul et", "Okuldan ayrıl ve ailenin gelirine katkıda bulun."],
@@ -127,7 +137,19 @@ const CHOICES: Dictionary = {
 	"accept_silence_premium": ["Katip payını al ve hileli defteri onayla", "Hemen nakit primi ve muhasebeci terfisini kap; kaderini usulsüz bir tüccara bağla."],
 	"refuse_complicity": ["Sahtekarlığa ortak olmayıp kalemi bırak", "Vicdanını ve onurunu koru; derhal işten kovulmayı göze al."],
 	"lease_corner_shop": ["Birikimini yatır ve tabelanı as", "Fabrika zeminini ebediyen terk et; bağımsız bir esnaf olarak kendi yolunu çiz."],
-	"keep_hoarding_savings": ["Tereddüt et ve parayı kasada tut", "Güvenli sularda kal; yevmiyeli çalışmaya devam edip hane birikimini riske atma."]
+	"keep_hoarding_savings": ["Tereddüt et ve parayı kasada tut", "Güvenli sularda kal; yevmiyeli çalışmaya devam edip hane birikimini riske atma."],
+	"boil_and_buy_clean_water": ["Suyu kaynat ve temiz su mavnasından al", "Kömüre ve suya fazladan şilin öde; aileni mavi ölümün pençesinden koru."],
+	"gamble_on_street_pump": ["Sokak tulumbasından içmeye devam et", "Parayı ekmeğe sakla; hanenin salgından muaf tutulması için dua et."],
+	"seek_country_convalescence": ["Birikimi verip kırsalda nekahete çekil", "Kır havası ve taze keçi sütüyle ciğerlerini temizle; nefesini geri kazan."],
+	"endure_the_fluff": ["Afyon şurubuyla öksürüğü bastır ve çalış", "Ucuz şurupla acıyı dindir; sağlığın erirken tezgah başında kalmaya devam et."],
+	"submit_to_the_saw": ["Tahta takozu ısır ve testereye razı ol", "Korkunç acıya dayan; hayatını kurtar ama koltuk değneklerine mahkûm kal."],
+	"cling_to_the_limb": ["Cerrahı it ve ocağın şifasına güven", "Sakat kalmayı reddet; yaranın kendi kendine temizlenmesini umarak ateşi göze al."],
+	"lavish_donation_bribe": ["Kütüphaneye büyük bağış yap ve kulübe gir", "Keseyi açıp komitenin gözünü boya; centilmenler meclisinde kendine yer satın al."],
+	"scorn_the_snobs": ["Burnu havada züppelere sırtını dön", "Alın terinle kazandığın parayı kibirli soylulara yedirme; emekçi köklerinle başın dik yaşa."],
+	"hire_oxford_elocutionist": ["Diksiyon hocası tut ve şiveni düzelt", "Parayı verip kibar Londra İngilizcesini öğren; ticaret salonlarında saygın kapılar aç."],
+	"speak_plain_lancashire": ["Şivenden utanma, dobra konuşmaya devam et", "Kendi sesine sadık kal; hünerin ve dürüstlüğün süslü kelimelerden daha gür çıksın."],
+	"rent_front_pew": ["Ön sırayı kirala ve aile plakanı çak", "Cemaatin ve kilise heyetinin gözünde saygın bir mevki edin; itibarını artır."],
+	"sit_with_the_common_free_pews": ["Arka sıralarda emekçilerle otur", "Kilisede gösterişe para saçmayı reddet; mütevazı ve sade ibadet et."]
 }
 const ACTION_DESCRIPTIONS: Dictionary = {
 	"play": ["Sokakta akranlarınla koşturup çocukluğun tadını çıkardın.", "Çocukluk neşesi"],
@@ -138,7 +160,10 @@ const ACTION_DESCRIPTIONS: Dictionary = {
 	"self_education": ["Geceleri gazete ve kitaplarla kendi kendini eğittin.", "Zihni diri tutmak"],
 	"work_hard": ["İşine dört elle sarılıp fazla mesai yaptın; azmini kanıtladın.", "Alın teri"],
 	"cheap_leisure": ["Cebinden küçük bir pay ayırıp çalgılı kahvede dinlendin.", "Küçük bir nefes"],
-	"buy_book": ["Biriktirdiğin parayla yeni bir kitap alıp ufkunu açtın.", "Yeni bir sayfa"]
+	"buy_book": ["Biriktirdiğin parayla yeni bir kitap alıp ufkunu açtın.", "Yeni bir sayfa"],
+	"gentleman_club_visit": ["Centilmenler kulübünde puro içip gazeteleri inceledin; seçkin çevrelerle tanıştın.", "Centilmenler meclisi"],
+	"church_pew_devotion": ["Kilisede cemaatle bir araya gelip dualara katıldın; saygınlığını pekiştirdin.", "Kilise ocağı"],
+	"parish_charity_volunteer": ["Mahalle aşevinde düşkünlere çorba dağıttın; vicdanını ve merhametini diri tuttun.", "Hayırseverlik"]
 }
 
 

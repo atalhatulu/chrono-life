@@ -138,6 +138,51 @@
         "dispensary"
       ],
       "disability_chance_bp": 900
+    },
+    {
+      "id": "cholera",
+      "label": "Kolera",
+      "kind": "infectious",
+      "exposure": "ambient",
+      "food_threshold": 0,
+      "incidence_bp": 250,
+      "duration_years": 1,
+      "mortality_bp": 2200,
+      "health_penalty": 50,
+      "work_penalty": 800,
+      "severity_range": [
+        60,
+        95
+      ],
+      "natural_recovery_bp": 3500,
+      "treatable": true,
+      "treatment_tags": [
+        "physician",
+        "dispensary",
+        "sanitation"
+      ]
+    },
+    {
+      "id": "consumption_tuberculosis",
+      "label": "Verem (Tüberküloz)",
+      "kind": "chronic",
+      "exposure": "work",
+      "food_threshold": 0,
+      "incidence_bp": 200,
+      "duration_years": 0,
+      "mortality_bp": 1200,
+      "health_penalty": 35,
+      "work_penalty": 400,
+      "severity_range": [
+        40,
+        80
+      ],
+      "natural_recovery_bp": 500,
+      "treatable": true,
+      "treatment_tags": [
+        "physician",
+        "country_air"
+      ]
     }
   ],
   "treatments": [
@@ -155,6 +200,20 @@
       "access_requirement": 15
     },
     {
+      "id": "patent_apothecary_draught",
+      "label": "Eczacı şurubu ve tentür",
+      "tags": [
+        "dispensary",
+        "sanitation"
+      ],
+      "min_age": 0,
+      "cost": 8,
+      "success_bp": 3800,
+      "severity_reduction": 20,
+      "health_restore": 6,
+      "access_requirement": 5
+    },
+    {
       "id": "physician_visit",
       "label": "Doktor muayenesi",
       "tags": [
@@ -166,6 +225,32 @@
       "severity_reduction": 35,
       "health_restore": 10,
       "access_requirement": 35
+    },
+    {
+      "id": "surgical_amputation",
+      "label": "Cerrahi müdahale",
+      "tags": [
+        "physician"
+      ],
+      "min_age": 10,
+      "cost": 50,
+      "success_bp": 7200,
+      "severity_reduction": 60,
+      "health_restore": 15,
+      "access_requirement": 40
+    },
+    {
+      "id": "convalescent_country_air",
+      "label": "Kır havası nekaheti",
+      "tags": [
+        "country_air"
+      ],
+      "min_age": 0,
+      "cost": 80,
+      "success_bp": 8500,
+      "severity_reduction": 50,
+      "health_restore": 25,
+      "access_requirement": 45
     },
     {
       "id": "nutrition_support",
