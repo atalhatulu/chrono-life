@@ -9,6 +9,10 @@ const NAMES: Dictionary = {
 	"foundry_apprentice": "Dökümhane çırağı", "iron_moulder": "Demir kalıpçısı",
 	"master_machinist": "Usta makinist", "domestic_servant": "Konak hizmetlisi",
 	"independent_shopkeeper": "Bağımsız esnaf",
+	"chimney_sweep": "Baca temizleyicisi", "railway_navvy": "Demiryolu kazmacısı",
+	"canal_bargee": "Kanal mavnacısı", "gasworks_stoker": "Havagazı ocakçısı",
+	"cellar_dwelling": "Mahzen bodrum odası", "cooperative_cottage": "Kooperatif işçi evi",
+	"pigeon_fancying": "Güvercin besleme", "brass_band": "Fabrika bandosu",
 	"elementary": "Temel eğitim", "evening_school": "Akşam eğitimi",
 	"precarious": "Kırılgan", "working": "Emekçi", "stable": "Yerleşik",
 	"comfortable": "Rahat", "affluent": "Varlıklı", "unknown": "Henüz belirlenmedi",
@@ -72,7 +76,11 @@ const STORIES: Dictionary = {
 	"gangrene_amputation_crossroads": ["Cerrahın testeresi ve can pazarı", "Fabrika kazasında ezilen bacak karardı; cerrah kanlı önlüğünü sıvayıp kemik testeresini çıkardı: 'Ya bu bacak kesilecek delikanlı, ya da pazar günü kilise mezarlığına gideceksin.'"],
 	"gentleman_club_blackball": ["Borsa Kulübü ve kara top tehdidi", "Biriktirdiğin servetle Manchester Borsa Kulübü'ne üyelik başvurusu yaptın; fakat eski toprak centilmenler, kökeninin dokuma mahallelerine dayandığını fısıldayarak seni kara topla dışlamak istiyor."],
 	"elocution_accent_barrier": ["Kuzey şivesi ve kibar diksiyon", "Bölgesel ticaret meclisinde kaba Manchester şiven yüzünden Londra tüccarlarının bıyık altından güldüğünü fark ettin. Bir Oxford hocası şiveni düzeltmek için özel ders teklif ediyor."],
-	"church_pew_rent_distinction": ["Kilisenin ön sıra müzayedesi", "St. Ann Kilisesi'nde sunağın hemen yanındaki minderli, pirinç plakalı aile sıraları kiraya açılıyor. Ön sırada oturmak mahallede yüksek bir itibar ve saygınlık simgesi sayılıyor."]
+	"church_pew_rent_distinction": ["Kilisenin ön sıra müzayedesi", "St. Ann Kilisesi'nde sunağın hemen yanındaki minderli, pirinç plakalı aile sıraları kiraya açılıyor. Ön sırada oturmak mahallede yüksek bir itibar ve saygınlık simgesi sayılıyor."],
+	"irish_famine_refugee_neighbor": ["Little Ireland göçmenleri", "İrlanda'daki patates kıtlığından kaçan bir dokumacı ailesi, kucaklarında hasta bebekleriyle gecenin soğuğunda kapına sığındı. Manchester sokaklarında yüzlerce aç göçmen varken ailenden bir lokma ekmek umuyorlar."],
+	"rochdale_cooperative_store": ["Rochdale Tüketim Kooperatifi", "Dokumacı arkadaşların Toad Lane'de hilesiz un, temiz süt ve tebeşirsiz ekmek satmak için bir kooperatif kuruyor. Bakkal simsarlarına ve veresiye defterine mahkûm kalmamak için seni kurucu ortaklığa çağırıyorlar."],
+	"great_exhibition_1851": ["1851 Büyük Kristal Saray Sergisi", "1851 yılı geldi! Londra'da Hyde Park'a demir ve camdan devasa bir Kristal Saray kuruldu. Manchester & Liverpool Demiryolu, işçileri dünya harikalarını görmeye götürmek için ucuz tren seferleri başlattı."],
+	"chartist_monster_petition": ["Kersal Moor Çartist Mitingi", "On binlerce emekçi geceleyin meşalelerle toplandı; genel oy hakkı ve adil meclis isteyen Büyük Çartist Dilekçe'yi imzalıyor. Mürekkep hokkası ve demir uçlu kalem eline uzatıldı."]
 }
 const CHOICES: Dictionary = {
 	"comply": ["Fabrikada çalışmayı kabul et", "Okuldan ayrıl ve ailenin gelirine katkıda bulun."],
@@ -149,7 +157,15 @@ const CHOICES: Dictionary = {
 	"hire_oxford_elocutionist": ["Diksiyon hocası tut ve şiveni düzelt", "Parayı verip kibar Londra İngilizcesini öğren; ticaret salonlarında saygın kapılar aç."],
 	"speak_plain_lancashire": ["Şivenden utanma, dobra konuşmaya devam et", "Kendi sesine sadık kal; hünerin ve dürüstlüğün süslü kelimelerden daha gür çıksın."],
 	"rent_front_pew": ["Ön sırayı kirala ve aile plakanı çak", "Cemaatin ve kilise heyetinin gözünde saygın bir mevki edin; itibarını artır."],
-	"sit_with_the_common_free_pews": ["Arka sıralarda emekçilerle otur", "Kilisede gösterişe para saçmayı reddet; mütevazı ve sade ibadet et."]
+	"sit_with_the_common_free_pews": ["Arka sıralarda emekçilerle otur", "Kilisede gösterişe para saçmayı reddet; mütevazı ve sade ibadet et."],
+	"share_bread_and_blanket": ["Ekmeğini bölüş ve eski battaniyeni ver", "Kendi kıt aşından fedakarlık et; insanlık ve vicdan bağını her şeyin üstünde tut."],
+	"turn_away_outsiders": ["Sürgüyü çek ve kapıdan uzaklaştır", "Kendi evlatlarının rızkını koru; şehrin yabancılarına sırtını dön."],
+	"buy_coop_share": ["Bir hisse satın al ve kooperatife katıl", "Yirmi şilini yatır; saf ve temiz gıdaya kavuşup yıl sonunda kâr payı al."],
+	"stick_to_corner_slate": ["Mahalle bakkalının veresiyesinde kal", "Nakit parayı elinde tut; sulandırılmış sütü ve tebeşirli ekmeği sineye çek."],
+	"board_london_excursion": ["Tren biletini al ve Londra'ya ak", "Buharlı lokomotifle başkente git; sanayi çağının camdan sarayını kendi gözlerinle gör."],
+	"remain_at_the_loom": ["Parayı sakla ve tezgah başında kal", "Camdan saray karın doyurmaz de; yevmiyeni ve birikimini riske atma."],
+	"sign_the_charter": ["Dilekçeye adını gururla kazı", "Üç milyon işçiyle birlikte hak ara; polisin ve fabrikatörlerin kara listesini göze al."],
+	"refuse_the_pen": ["Kalemi geri çevir ve kalabalığa karış", "Siyaset büyüklerin işi de; huzurunu ve ekmeğini tehlikeye atma."]
 }
 const ACTION_DESCRIPTIONS: Dictionary = {
 	"play": ["Sokakta akranlarınla koşturup çocukluğun tadını çıkardın.", "Çocukluk neşesi"],

@@ -1766,6 +1766,162 @@
           }
         }
       ]
+    },
+    {
+      "id": "irish_famine_refugee_neighbor",
+      "family": "community",
+      "title": "The Fugitives of Little Ireland",
+      "text": "An Irish weaver's family, fleeing the blight in Mayo, has arrived in the cellars of Little Ireland. Cold, soaked, and speaking only Gaelic, they huddle on the cobbles outside your door with a sick infant.",
+      "requirements": {
+        "min_age": 16,
+        "player_alive": true,
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 50,
+        "modifiers": []
+      },
+      "choices": [
+        {
+          "id": "share_bread_and_blanket",
+          "label": "Share half your loaf and offer an old wool blanket",
+          "description": "Costly charity from your own lean larder, but an act of Christian brotherhood that binds your hearts.",
+          "effects": {
+            "cash_cost": 60,
+            "willpower_delta": 12,
+            "set_flag": "friend_of_the_immigrant"
+          }
+        },
+        {
+          "id": "turn_away_outsiders",
+          "label": "Shut the latch and warn them away from your entry",
+          "description": "Preserve your own bread for your children; the town has too many hungry mouths already.",
+          "effects": {
+            "willpower_delta": -5
+          }
+        }
+      ]
+    },
+    {
+      "id": "rochdale_cooperative_store",
+      "family": "emergency_finance",
+      "title": "The Pioneer Co-operative Store",
+      "text": "Fellow weavers are founding a mutual co-operative store on Toad Lane to sell pure, unadulterated flour and honest oatmeal without chalk dust or usurious shop debt. They invite you to purchase a member share.",
+      "requirements": {
+        "min_age": 18,
+        "player_alive": true,
+        "min_savings": 400,
+        "cooldown_years": 6
+      },
+      "utility": {
+        "base": 55,
+        "modifiers": [
+          {
+            "condition": "food_security_lt_800",
+            "add": 25
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "buy_coop_share",
+          "label": "Subscribe twenty shillings for a member share in the store",
+          "description": "Secure pure bread, annual patronage dividends, and mutual independence from greedy middle-men.",
+          "effects": {
+            "cash_cost": 240,
+            "willpower_delta": 10,
+            "set_flag": "cooperative_member"
+          }
+        },
+        {
+          "id": "stick_to_corner_slate",
+          "label": "Keep buying on credit at the local tally-shop",
+          "description": "Hold onto hard silver today, tolerating watery milk and chalky bread on credit.",
+          "effects": {
+            "willpower_delta": -4
+          }
+        }
+      ]
+    },
+    {
+      "id": "great_exhibition_1851",
+      "family": "self_improvement",
+      "title": "The Great Crystal Palace Excursion",
+      "text": "The Year 1851 has arrived! London is marveling at Prince Albert's Crystal Palace of iron and glass. The railway company is running cheap excursion trains straight from Manchester to Hyde Park.",
+      "requirements": {
+        "min_age": 14,
+        "max_age": 70,
+        "player_alive": true,
+        "min_savings": 150,
+        "cooldown_years": 10
+      },
+      "utility": {
+        "base": 60,
+        "modifiers": []
+      },
+      "choices": [
+        {
+          "id": "board_london_excursion",
+          "label": "Buy the excursion ticket and marvel at the Crystal Palace",
+          "description": "Journey by steam through the green shires to behold the crowning wonders of the industrial world.",
+          "effects": {
+            "cash_cost": 100,
+            "literacy_delta": 10,
+            "willpower_delta": 15,
+            "set_flag": "saw_the_crystal_palace"
+          }
+        },
+        {
+          "id": "remain_at_the_loom",
+          "label": "Save the shillings and stay by your daily toil",
+          "description": "A grand glass palace puts no butter on your bread; keep your head down and keep working.",
+          "effects": {
+            "willpower_delta": -2
+          }
+        }
+      ]
+    },
+    {
+      "id": "chartist_monster_petition",
+      "family": "community",
+      "title": "The Monster Charter Petition",
+      "text": "Thousands of working men gather by torchlight on Kersal Moor, demanding the People's Charter: universal manhood suffrage, vote by secret ballot, and an end to mill-owner parliaments. The petition parchment is passed to your hand.",
+      "requirements": {
+        "min_age": 17,
+        "max_age": 65,
+        "player_alive": true,
+        "min_literacy": 20,
+        "cooldown_years": 6
+      },
+      "utility": {
+        "base": 55,
+        "modifiers": [
+          {
+            "condition": "high_employment_pressure",
+            "add": 25
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "sign_the_charter",
+          "label": "Dip the iron pen and sign your name boldly",
+          "description": "Join three million working Britons demanding justice, risking police watch and millmaster fury.",
+          "effects": {
+            "willpower_delta": 15,
+            "literacy_delta": 5,
+            "set_flag": "chartist_rebel"
+          }
+        },
+        {
+          "id": "refuse_the_pen",
+          "label": "Decline to sign and fade into the crowd",
+          "description": "Politics is rich men's game; stay clear of constables and sedition charges.",
+          "effects": {
+            "willpower_delta": -5
+          }
+        }
+      ]
     }
   ],
   "content_paths": {

@@ -250,6 +250,79 @@
         "numeracy": 4,
         "social_confidence": 4
       }
+    },
+    {
+      "id": "chimney_sweep",
+      "label": "Baca temizleyicisi",
+      "annual_income": 800,
+      "minimum_age": 7,
+      "maximum_age": 14,
+      "minimum_literacy": 0,
+      "risk_permille": 1200,
+      "career_track": "labor",
+      "level": 1,
+      "tags": [
+        "child_labor",
+        "hazardous",
+        "soot"
+      ]
+    },
+    {
+      "id": "railway_navvy",
+      "label": "Demiryolu kazmacısı",
+      "annual_income": 4200,
+      "minimum_age": 18,
+      "maximum_age": 55,
+      "minimum_literacy": 0,
+      "risk_permille": 1300,
+      "career_track": "construction",
+      "level": 2,
+      "tags": [
+        "heavy_labor",
+        "railway",
+        "outdoor"
+      ],
+      "required_skills": {
+        "work_discipline": 3
+      }
+    },
+    {
+      "id": "canal_bargee",
+      "label": "Kanal mavnacısı",
+      "annual_income": 3400,
+      "minimum_age": 16,
+      "maximum_age": 65,
+      "minimum_literacy": 0,
+      "risk_permille": 700,
+      "career_track": "transport",
+      "level": 1,
+      "tags": [
+        "transport",
+        "canal",
+        "waterway"
+      ],
+      "required_skills": {
+        "work_discipline": 3
+      }
+    },
+    {
+      "id": "gasworks_stoker",
+      "label": "Havagazı ocakçısı",
+      "annual_income": 3900,
+      "minimum_age": 18,
+      "maximum_age": 60,
+      "minimum_literacy": 0,
+      "risk_permille": 1100,
+      "career_track": "industrial",
+      "level": 2,
+      "tags": [
+        "night_shift",
+        "furnace",
+        "gas"
+      ],
+      "required_skills": {
+        "work_discipline": 4
+      }
     }
   ]
 }

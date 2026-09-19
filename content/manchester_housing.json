@@ -67,6 +67,42 @@
         "family",
         "urban"
       ]
+    },
+    {
+      "id": "cellar_dwelling",
+      "label": "Mahzen bodrum odası",
+      "tenure": "rent",
+      "annual_cost": 550,
+      "capacity": 3,
+      "quality": 18,
+      "sanitation": 12,
+      "security": 25,
+      "privacy": 20,
+      "min_age": 16,
+      "tags": [
+        "rent",
+        "cellar",
+        "damp",
+        "hazardous"
+      ]
+    },
+    {
+      "id": "cooperative_cottage",
+      "label": "Kooperatif işçi evi",
+      "tenure": "rent",
+      "annual_cost": 1800,
+      "capacity": 5,
+      "quality": 75,
+      "sanitation": 72,
+      "security": 68,
+      "privacy": 70,
+      "min_age": 20,
+      "tags": [
+        "cooperative",
+        "family",
+        "healthy",
+        "suburban"
+      ]
     }
   ],
   "rules": {

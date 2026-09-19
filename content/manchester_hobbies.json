@@ -83,6 +83,42 @@
         "happiness": 4,
         "energy": -3
       }
+    },
+    {
+      "id": "pigeon_fancying",
+      "label": "Güvercin besleme",
+      "min_age": 14,
+      "tags": [
+        "quiet",
+        "patience",
+        "outdoor"
+      ],
+      "skill_xp": {
+        "work_discipline": 4
+      },
+      "need_effects": {
+        "happiness": 8,
+        "stress": -6
+      }
+    },
+    {
+      "id": "brass_band",
+      "label": "Fabrika bandosu",
+      "min_age": 12,
+      "tags": [
+        "creative",
+        "social",
+        "music"
+      ],
+      "skill_xp": {
+        "social_confidence": 5,
+        "work_discipline": 3
+      },
+      "need_effects": {
+        "happiness": 7,
+        "social": 8,
+        "stress": -4
+      }
     }
   ],
   "action_hobby_links": {
