@@ -211,7 +211,8 @@ func _build() -> void:
 	scroll.add_child(stack)
 	decision_panel = PanelContainer.new()
 	decision_panel.name = "DecisionCard"
-	decision_panel.add_theme_stylebox_override("panel", Palette.box(Color("f5ecd8"), 12, Color("d9c7a5"), 20))
+	decision_panel.add_theme_stylebox_override("panel", Palette.box(Color("f7f2e4"), 14, Color("d5c5a3"), 22))
+	decision_panel.resized.connect(func(): decision_panel.pivot_offset = decision_panel.size / 2.0)
 	stack.add_child(decision_panel)
 	decision_box = _column(12)
 	decision_panel.add_child(decision_box)
@@ -601,7 +602,16 @@ func _on_advance_pressed() -> void:
 	_refresh_ui()
 
 
-func _on_choice_selected(choice_id: String) -> void:
+func _tilt_decision_card(target_rot: float, target_x: float) -> void:
+	if not decision_panel.visible or _busy:
+		return
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(decision_panel, "rotation_degrees", target_rot, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(decision_panel, "position:x", target_x, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _on_choice_selected(choice_id: String, choice_index: int = 0) -> void:
 	if _busy or pending_prep.is_empty():
 		return
 	var valid: bool = false
@@ -611,6 +621,24 @@ func _on_choice_selected(choice_id: String) -> void:
 		_show_error("Bu karar artık geçerli değil.")
 		return
 	_busy = true
+
+	var is_headless: bool = DisplayServer.get_name() == "headless"
+	if not is_headless and decision_panel.visible and auto_step_delay > 0.0:
+		var target_x: float = -550.0 if choice_index == 0 else (+550.0 if choice_index == 1 else 0.0)
+		var target_y: float = +250.0 if choice_index >= 2 else 0.0
+		var target_rot: float = -12.0 if choice_index == 0 else (+12.0 if choice_index == 1 else 0.0)
+		var tween := create_tween()
+		tween.set_parallel(true)
+		tween.tween_property(decision_panel, "position:x", decision_panel.position.x + target_x, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.tween_property(decision_panel, "position:y", decision_panel.position.y + target_y, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.tween_property(decision_panel, "rotation_degrees", target_rot, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.tween_property(decision_panel, "modulate:a", 0.0, 0.18)
+		await tween.finished
+
+	decision_panel.rotation_degrees = 0.0
+	decision_panel.position = Vector2.ZERO
+	decision_panel.modulate.a = 1.0
+
 	# Resolve a copy: a failed resolution must not damage the pending choice.
 	var trial: Dictionary = pending_prep.duplicate(true)
 	trial.delta = Delta.new(pending_prep.delta.candidate, int(pending_prep.year))
@@ -700,17 +728,40 @@ func _render_decision() -> void:
 	decision_panel.visible = not pending_prep.is_empty() and current_view == "life"
 	if not decision_panel.visible:
 		return
+	decision_panel.rotation_degrees = 0.0
+	decision_panel.position = Vector2.ZERO
+	decision_panel.modulate.a = 1.0
+
 	var story: Dictionary = pending_prep.storylet
 	var wording: Array = Words.story_wording(story.id, state, story.title, story.text)
-	decision_box.add_child(_label("%d  /  BİR KARAR ZAMANI" % pending_prep.year, 11, Palette.RUST))
+	var choice_count: int = story.choices.size()
+
+	var tag_row := _row(6)
+	decision_box.add_child(tag_row)
+	tag_row.add_child(_label("%d · BİR KARAR ZAMANI" % pending_prep.year, 11, Palette.RUST))
+	_spacer(tag_row)
+	if choice_count == 2:
+		tag_row.add_child(_label("← Sol Seçim · Sağ Seçim →", 10, Palette.MUTED))
+
 	decision_box.add_child(_label(wording[0], 25, Palette.INK, true, true))
 	decision_box.add_child(_label(wording[1], 14, Palette.INK, false, true))
-	var choices = GridContainer.new()
-	choices.columns = 2
-	choices.add_theme_constant_override("h_separation", 10)
-	choices.add_theme_constant_override("v_separation", 8)
-	decision_box.add_child(choices)
-	for choice: Dictionary in story.choices:
+
+	var choices_box: BoxContainer = null
+	var choices_grid: GridContainer = null
+	if choice_count == 2:
+		choices_box = _row(12)
+		choices_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		decision_box.add_child(choices_box)
+	else:
+		choices_grid = GridContainer.new()
+		choices_grid.columns = 2
+		choices_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		choices_grid.add_theme_constant_override("h_separation", 10)
+		choices_grid.add_theme_constant_override("v_separation", 8)
+		decision_box.add_child(choices_grid)
+
+	for idx: int in range(choice_count):
+		var choice: Dictionary = story.choices[idx]
 		var copy: Array = Words.CHOICES.get(choice.id, [choice.label, choice.description])
 		var id: String = choice.id
 		var cues: Array[String] = []
@@ -735,17 +786,39 @@ func _render_decision() -> void:
 			var ac: Dictionary = fx.agency_check
 			cues.append("%s Sınavı" % Words.word(str(ac.get("attr", "willpower"))))
 
-		var btn_label: String = str(copy[0]) + "\n" + str(copy[1])
+		var prefix_arrow: String = ""
+		var suffix_arrow: String = ""
+		if choice_count == 2:
+			if idx == 0:
+				prefix_arrow = "← "
+			else:
+				suffix_arrow = " →"
+		elif choice_count == 3 and idx == 2:
+			prefix_arrow = "↓ [Orta Yol] "
+
+		var btn_label: String = prefix_arrow + str(copy[0]) + suffix_arrow + "\n" + str(copy[1])
 		if not cues.is_empty():
 			btn_label += "\n[" + " · ".join(cues) + "]"
 
-		var button = _button(btn_label, func(): _on_choice_selected(id), "Choice")
+		var choice_idx: int = idx
+		var button = _button(btn_label, func(): _on_choice_selected(id, choice_idx), "Choice")
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.custom_minimum_size.y = 74
+		button.custom_minimum_size.y = 78
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.name = "Choice_" + id
-		choices.add_child(button)
+
+		# Tilt feedback on hover
+		if choice_count == 2:
+			var target_rot: float = -2.0 if idx == 0 else +2.0
+			var target_x: float = -8.0 if idx == 0 else +8.0
+			button.mouse_entered.connect(func(): _tilt_decision_card(target_rot, target_x))
+			button.mouse_exited.connect(func(): _tilt_decision_card(0.0, 0.0))
+
+		if choices_box != null:
+			choices_box.add_child(button)
+		elif choices_grid != null:
+			choices_grid.add_child(button)
 		choice_buttons.append(button)
 
 
