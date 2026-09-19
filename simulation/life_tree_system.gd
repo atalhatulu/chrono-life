@@ -3,6 +3,7 @@ extends RefCounted
 ## Karakterin doğumundan ölümüne kadar yaptığı tüm kritik tercihleri,
 ## hikaye kararlarını, inisiyatiflerini ve dönüm noktalarını bir ağaç yapısında toplar.
 
+const Content = preload("res://simulation/content_registry.gd")
 const Words = preload("res://ui/chronicle_text.gd")
 const Origin = preload("res://simulation/origin_system.gd")
 
@@ -14,6 +15,15 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 	var player_id: String = str(state.meta.get("player_id", "player"))
 	var player: Dictionary = state.actors.get(player_id, {})
 	var birth_year: int = int(player.get("birth_year", 1850))
+
+	# Storylet tanımları kataloğu (Alternatif seçenekleri eşleştirmek için)
+	var storylets_map: Dictionary = {}
+	var loaded: Dictionary = Content.load_pack()
+	if loaded.get("ok", false):
+		for st: Dictionary in loaded.get("pack", {}).get("storylets", []):
+			var sid: String = str(st.get("id", ""))
+			if sid != "":
+				storylets_map[sid] = st
 
 	# 1. Kök Düğüm: Doğum & Aile Kökeni
 	var origin_id: String = str(state.meta.get("origin_id", "factory_working"))
@@ -27,12 +37,12 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 		"title": "Manchester'da Dünyaya Geliş",
 		"choice_label": "Köken: " + origin_label,
 		"summary": origin_narr.body,
-		"badge": "DOĞUM"
+		"badge": "DOĞUM",
+		"alternatives": []
 	})
 
-	# 2. Tarihçe Olaylarından Kararları Çıkar
+	# 2. Tarihçe Olaylarından Kararları ve Dönüm Noktalarını Çıkar
 	var history: Array = state.get("history", [])
-	var processed_storylets: Dictionary = {}
 
 	for item: Dictionary in history:
 		var yr: int = int(item.get("year", birth_year))
@@ -50,11 +60,29 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 				else:
 					choice_text = Words.word(choice_id)
 
-				var st_title: String = "Hayatın Bir Dönemeci"
-				if Words.STORIES.has(storylet_id):
-					st_title = str(Words.STORIES[storylet_id][0])
-				else:
-					st_title = Words.word(storylet_id)
+				var st_def: Dictionary = storylets_map.get(storylet_id, {})
+				var st_title: String = str(st_def.get("title", ""))
+				if st_title == "":
+					if Words.STORIES.has(storylet_id):
+						st_title = str(Words.STORIES[storylet_id][0])
+					else:
+						st_title = Words.word(storylet_id)
+
+				var alternatives: Array[Dictionary] = []
+				for ch: Dictionary in st_def.get("choices", []):
+					var cid: String = str(ch.get("id", ""))
+					if cid != choice_id:
+						var alt_label: String = str(ch.get("label", ""))
+						if alt_label == "":
+							if Words.CHOICES.has(cid):
+								alt_label = str(Words.CHOICES[cid][0])
+							else:
+								alt_label = Words.word(cid)
+						alternatives.append({
+							"id": cid,
+							"label": alt_label,
+							"description": str(ch.get("description", ""))
+						})
 
 				path_nodes.append({
 					"year": yr,
@@ -62,9 +90,10 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 					"kind": "decision",
 					"tag": "BÜYÜK YOL AYRIMI",
 					"title": st_title,
-					"choice_label": "Tercihin: " + choice_text,
-					"summary": "Bu kritik ikilemde kendi iradenle bu yolu seçtin ve hayatının akışını değiştirdin.",
-					"badge": "KARAR"
+					"choice_label": choice_text,
+					"summary": "Bu kritik ikilemde kendi iradenle bu yolu seçtin ve hayatının akışını şekillendirdin.",
+					"badge": "KARAR",
+					"alternatives": alternatives
 				})
 
 			"life_action":
@@ -76,7 +105,6 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 						act_desc = Words.ACTION_DESCRIPTIONS[act_id][0]
 						act_title = Words.ACTION_DESCRIPTIONS[act_id][1]
 
-					# Ağaçta kalabalık yapmaması için yalnızca önemli eylemleri veya ilkleri al
 					if act_id in ["study", "self_education", "work_hard", "buy_book", "gentleman_club_visit", "church_pew_devotion", "parish_charity_volunteer"]:
 						path_nodes.append({
 							"year": yr,
@@ -84,9 +112,10 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 							"kind": "initiative",
 							"tag": "YILLIK İNİSİYATİF",
 							"title": act_title,
-							"choice_label": "Odak: " + Words.word(act_id),
+							"choice_label": Words.word(act_id),
 							"summary": act_desc,
-							"badge": "ODAK"
+							"badge": "ODAK",
+							"alternatives": []
 						})
 
 			"marriage":
@@ -98,8 +127,9 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 					"tag": "AİLE BİRLİĞİ",
 					"title": "Evlilik ve Yuva Kurma",
 					"choice_label": spouse_name + " ile Hayatını Birleştirdin",
-					"summary": "Kendi ocağını kurdun ve ailenin temellerini attın.",
-					"badge": "EVLİLİK"
+					"summary": "Kendi ocağını kurdun ve hayatını bir eşle paylaştın.",
+					"badge": "EVLİLİK",
+					"alternatives": []
 				})
 
 			"child_born":
@@ -112,7 +142,8 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 					"title": "Evlat Sahibi Olma",
 					"choice_label": child_name + " Dünyaya Geldi",
 					"summary": "Ailen büyüdü; geleceğe yeni bir can bıraktın.",
-					"badge": "EVLAT"
+					"badge": "EVLAT",
+					"alternatives": []
 				})
 
 			"job_changed":
@@ -126,7 +157,8 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 						"title": "Kariyer Terfisi",
 						"choice_label": new_job + " Olarak İşe Başladın",
 						"summary": "Emek ve gayretlerinle yeni bir mesleğe adım attın.",
-						"badge": "MESLEK"
+						"badge": "MESLEK",
+						"alternatives": []
 					})
 
 			"moved_in":
@@ -140,7 +172,8 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 						"title": "Konut Değişimi",
 						"choice_label": Words.word(dwelling_id) + " Konutuna Taşındın",
 						"summary": "Yaşam standardını değiştirip yeni bir çevreye yerleştin.",
-						"badge": "KONUT"
+						"badge": "KONUT",
+						"alternatives": []
 					})
 
 	# 3. Son Düğüm: Vefat & Miras (Eğer oyuncu vefat etmişse)
@@ -156,7 +189,8 @@ static func build_tree(state: Dictionary) -> Array[Dictionary]:
 			"title": "Bir Ömrün Sonu & Miras",
 			"choice_label": "%d Yaşında Vefat (%s)" % [death_age, cause],
 			"summary": "Manchester'da başlayan yürüyüş burada nihayete erdi. Arkanda verdiğin kararların izi kaldı.",
-			"badge": "MİRAS"
+			"badge": "MİRAS",
+			"alternatives": []
 		})
 
 	return path_nodes

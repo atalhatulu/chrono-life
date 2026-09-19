@@ -915,15 +915,15 @@ func _render_life_summary(parent: Node) -> void:
 	var status: Dictionary = state.get("social_status", {})
 	var current_dwelling: Dictionary = Housing.current_dwelling(state)
 
-	var card: VBoxContainer = _card(parent, 16)
-	card.add_child(_label("BİR HAYATIN ARDINDAN", 10, Palette.RUST))
+	var card: VBoxContainer = _card(parent, 18)
+	card.add_child(_label("BİR HAYATIN ARDINDAN", 10, Palette.RUST, true))
 
-	var header_box: VBoxContainer = _column(2)
+	var header_box: VBoxContainer = _column(3)
 	card.add_child(header_box)
-	header_box.add_child(_label(str(player.name), 24, Palette.INK, true, true))
+	header_box.add_child(_label(str(player.name), 26, Palette.INK, true, true))
 
 	var cause_name: String = Words.word(str(player.get("death_cause", "old_age")))
-	var span_text: String = "%d — %d (%d yaşında) · %s" % [
+	var span_text: String = "%d — %d (%d yaşında vefat etti) · Vefat Sebebi: %s" % [
 		int(player.birth_year), int(player.death_year), int(player.age), cause_name
 	]
 	header_box.add_child(_label(span_text, 12, Palette.MUTED, false, true))
@@ -943,41 +943,113 @@ func _render_life_summary(parent: Node) -> void:
 
 	var work_years: int = int(career.get("experience_years", 0))
 	if work_years > 0:
-		bio += "%d yıl boyunca emek verdi. " % work_years
-	bio += "Geriye onurlu bir hayat ve ailesine bıraktığı hatıralar kaldı."
+		bio += "%d yıl boyunca alın teri döktü. " % work_years
+	bio += "Geriye Manchester sokaklarında bıraktığı hatıralar, tercihler ve ailesine aktardığı onurlu miras kaldı."
 	card.add_child(_label(bio, 13, Color("4a544a"), false, true))
 
-	# Kompakt 2 sütunlu yaşam tablosu
+	var divider := Control.new()
+	divider.custom_minimum_size.y = 4
+	card.add_child(divider)
+
+	# 6'lı Ferah ve Düzenli Yaşam Başarıları Izgarası (Hiçbir şey iç içe girmez ve taşmaz)
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.add_theme_constant_override("h_separation", 12)
+	grid.add_theme_constant_override("v_separation", 10)
 	card.add_child(grid)
 
+	# 1. Meslek & Emek
 	var highest_occupation: String = Words.word(str(player.occupation_id))
-	var current_education: String = Words.word(str(education.get("current_stage", "Yok")))
-	var living_place: String = str(current_dwelling.get("label", "Bilinmeyen konut"))
+	var edu_stage: String = Words.word(str(education.get("current_stage", "Eğitimsiz")))
 
-	var items: Array = [
-		["MESLEK", highest_occupation],
-		["EĞİTİM", current_education],
-		["KAZANILAN GELİR", "%d birim" % int(economy.get("lifetime_income", 0))],
-		["TOPLAM HARCAMA", "%d birim" % int(economy.get("lifetime_spending", 0))],
-		["HANE BİRİKİMİ", "%d birim" % int(state.household.savings)],
-		["SON KONUT", living_place],
-		["KONUM", Words.word(str(status.get("band_id", "halk")))],
-		["AİLE MİRASI", "%d birey (%d kuşak)" % [int(tree.stats.total_members), int(tree.stats.generations_count)]]
+	# 2. Hobiler
+	var active_hobbies: Dictionary = player.get("hobbies", {}).get("active", {})
+	var hobbies_list: Array[String] = []
+	for hid: String in active_hobbies:
+		var h_prog: Dictionary = active_hobbies[hid]
+		var h_name: String = Words.word(hid)
+		var yrs: int = int(h_prog.get("years", 0))
+		hobbies_list.append("%s (%d yıl)" % [h_name, yrs] if yrs > 1 else h_name)
+	var hobbies_text: String = ", ".join(hobbies_list) if not hobbies_list.is_empty() else "Ağır fabrika mesaisi nedeniyle hobi edinilemedi"
+
+	# 3. Beceriler
+	var skills_vals: Dictionary = player.get("skills", {}).get("values", {})
+	var skills_list: Array[String] = []
+	for sk_id: String in skills_vals:
+		var val: int = int(skills_vals[sk_id])
+		if val > 0:
+			skills_list.append("%s: %d" % [Words.word(sk_id), val])
+	if int(player.get("literacy", 0)) > 0:
+		skills_list.insert(0, "Okuma: %%%d" % int(player.get("literacy", 0)))
+	var skills_text: String = " · ".join(skills_list) if not skills_list.is_empty() else "Temel yaşam tecrübesi"
+
+	# 4. Sosyal Statü ve Konut
+	var living_place: String = str(current_dwelling.get("label", "Bilinmeyen konut"))
+	var status_band: String = Words.word(str(status.get("band_id", "halk")))
+
+	# 5. Kasa ve Finans
+	var income_tot: int = int(economy.get("lifetime_income", 0))
+	var spend_tot: int = int(economy.get("lifetime_spending", 0))
+	var savings_final: int = int(state.household.savings)
+
+	# 6. Miras ve Varlıklar
+	var owned_assets: Dictionary = state.get("assets", {}).get("owned", {})
+	var assets_list: Array[String] = []
+	for aid: String in owned_assets:
+		assets_list.append(Words.word(aid))
+	var assets_text: String = ", ".join(assets_list) if not assets_list.is_empty() else "Sade bir hane yaşamı"
+
+	var info_cards: Array[Dictionary] = [
+		{
+			"tag": "MESLEKİ KARİYER & EĞİTİM",
+			"main": highest_occupation,
+			"sub": "%d yıl emek · Eğitim: %s" % [work_years, edu_stage]
+		},
+		{
+			"tag": "HOBİLER & BOŞ ZAMAN",
+			"main": hobbies_text,
+			"sub": "Kişisel meşgaleler ve zihinsel dinlenme"
+		},
+		{
+			"tag": "KAZANILAN BECERİLER",
+			"main": skills_text,
+			"sub": "Ömür boyunca edinilen pratik kabiliyetler"
+		},
+		{
+			"tag": "SOSYAL STATÜ & SON KONUT",
+			"main": "%s Sınıfı" % status_band,
+			"sub": living_place
+		},
+		{
+			"tag": "FİNANSAL BİLANÇO & KASA",
+			"main": "%d şilin Kasa Rezervi" % savings_final,
+			"sub": "%d ş. toplam kazanç · %d ş. harcama" % [income_tot, spend_tot]
+		},
+		{
+			"tag": "MİRAS & MÜLKLER",
+			"main": "%d Birey · %d Kuşak Soy" % [int(tree.stats.total_members), int(tree.stats.generations_count)],
+			"sub": "Varlıklar: " + assets_text
+		}
 	]
 
-	for item: Array in items:
-		var col := _column(1)
-		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(col)
-		col.add_child(_label(str(item[0]), 9, Palette.MUTED))
-		var val_lbl := _label(str(item[1]), 12, Palette.INK, true)
-		val_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-		col.add_child(val_lbl)
+	for ic: Dictionary in info_cards:
+		var p := PanelContainer.new()
+		p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		p.add_theme_stylebox_override("panel", Palette.box(Color("fbf9f2"), 8, Palette.LINE, 12))
+		grid.add_child(p)
+
+		var col := _column(3)
+		p.add_child(col)
+
+		col.add_child(_label(ic.tag, 9, Palette.RUST, true))
+		var ml: Label = _label(ic.main, 13, Palette.INK, true, true)
+		ml.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		col.add_child(ml)
+
+		var sl: Label = _label(ic.sub, 10, Palette.MUTED, false, true)
+		sl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		col.add_child(sl)
 
 	_render_life_tree(card)
 
@@ -992,25 +1064,25 @@ func _render_life_tree(parent: Node) -> void:
 		return
 
 	var tree_panel := PanelContainer.new()
-	tree_panel.add_theme_stylebox_override("panel", Palette.box(Color("fdfcf7"), 12, Palette.LINE, 16))
+	tree_panel.add_theme_stylebox_override("panel", Palette.box(Color("faf8f0"), 12, Palette.LINE, 16))
 	parent.add_child(tree_panel)
 
-	var tree_container := _column(12)
+	var tree_container := _column(10)
 	tree_panel.add_child(tree_container)
 
 	var title_box := _column(2)
 	tree_container.add_child(title_box)
 
-	var header_lbl := _label("YAŞAM AĞACINIZ: SEÇTİĞİNİZ YOL", 18, Palette.INK, true)
+	var header_lbl := _label("YAŞAM AĞACINIZ: SEÇTİĞİNİZ YOL VE DÖNÜM NOKTALARI", 17, Palette.INK, true)
 	header_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_box.add_child(header_lbl)
 
-	var sub_lbl := _label("Doğumunuzdan vefatınıza kadar verdiğiniz kararlar ve hayatınızın dallanıp budaklanan izleri (%d dönüm noktası):" % nodes.size(), 11, Palette.MUTED, false, true)
+	var sub_lbl := _label("Manchester sokaklarındaki ömrünüz boyunca verdiğiniz kararlar, seçtiğiniz yollar ve ardınızda bıraktığınız diğer ihtimaller (%d dönüm noktası):" % nodes.size(), 11, Palette.MUTED, false, true)
 	sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_box.add_child(sub_lbl)
 
 	var tree_scroll := ScrollContainer.new()
-	tree_scroll.custom_minimum_size.y = 420
+	tree_scroll.custom_minimum_size.y = 480
 	tree_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	tree_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	tree_container.add_child(tree_scroll)
@@ -1022,87 +1094,145 @@ func _render_life_tree(parent: Node) -> void:
 	for i: int in range(nodes.size()):
 		var n: Dictionary = nodes[i]
 		var is_last: bool = (i == nodes.size() - 1)
+		var alternatives: Array = n.get("alternatives", [])
 
 		var step_row := _row(10)
 		step_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tree_col.add_child(step_row)
 
-		# Sol Gövde: Dairesel Rozet ve Bağlantı Dalı
+		# 1. Sol Sütun: Dikey Gövde & Dairesel Rozet
 		var spine_col := _column(0)
-		spine_col.custom_minimum_size.x = 42
+		spine_col.custom_minimum_size.x = 46
 		step_row.add_child(spine_col)
 
 		var badge_panel := PanelContainer.new()
-		badge_panel.custom_minimum_size = Vector2(38, 38)
+		badge_panel.custom_minimum_size = Vector2(44, 44)
 		var badge_bg: Color
 		match str(n.get("kind", "")):
 			"origin":
-				badge_bg = Color("8c6e38")
+				badge_bg = Color("7a5e30")
 			"decision":
 				badge_bg = Palette.RUST
 			"initiative":
-				badge_bg = Color("527c38")
+				badge_bg = Color("4b7334")
 			"family":
-				badge_bg = Color("8c485c")
+				badge_bg = Color("853c52")
 			"career":
-				badge_bg = Color("38587c")
+				badge_bg = Color("315378")
 			"housing":
-				badge_bg = Color("687850")
+				badge_bg = Color("5c7044")
 			"death":
-				badge_bg = Color("4a463c")
+				badge_bg = Color("38342a")
 			_:
-				badge_bg = Color("6c685c")
+				badge_bg = Color("5e5a4e")
 
 		var badge_style := StyleBoxFlat.new()
 		badge_style.bg_color = badge_bg
-		badge_style.set_corner_radius_all(19)
+		badge_style.set_corner_radius_all(22)
 		badge_panel.add_theme_stylebox_override("panel", badge_style)
 		spine_col.add_child(badge_panel)
 
 		var badge_center := CenterContainer.new()
 		badge_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		badge_panel.add_child(badge_center)
-		var yr_text: String = "%d" % int(n.year) if n.age == 0 else "%d y" % int(n.age)
-		badge_center.add_child(_label(yr_text, 10, Color.WHITE, true))
 
+		var badge_vbox := _column(0)
+		badge_center.add_child(badge_vbox)
+		var yr_lbl := _label("%d" % int(n.year), 10, Color.WHITE, true)
+		yr_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		badge_vbox.add_child(yr_lbl)
+		var age_str: String = "DOĞUM" if n.age == 0 else "%d YAŞ" % int(n.age)
+		var age_lbl := _label(age_str, 8, Color("e0e6dd"), true)
+		age_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		badge_vbox.add_child(age_lbl)
+
+		# Gövde dikey çizgisi
 		if not is_last:
 			var trunk_center := CenterContainer.new()
 			trunk_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-			trunk_center.custom_minimum_size.y = 24
+			trunk_center.custom_minimum_size.y = 28
 			spine_col.add_child(trunk_center)
 			var trunk_line := ColorRect.new()
-			trunk_line.color = Color("5a6254")
-			trunk_line.custom_minimum_size = Vector2(3, 24)
+			trunk_line.color = Color("687d6e")
+			trunk_line.custom_minimum_size = Vector2(3, 28)
 			trunk_center.add_child(trunk_line)
 
-		# Sağ Kutu: Karar Kartı
-		var branch_box := _column(3)
-		branch_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		step_row.add_child(branch_box)
+		# 2. Sağ Taraf: Dallanıp Budaklanan Karar Kartı (Dallar)
+		var branch_vbox := _column(6)
+		branch_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		step_row.add_child(branch_vbox)
 
-		var tag_row := _row(6)
-		branch_box.add_child(tag_row)
-		tag_row.add_child(_label("%d · %d YAŞ" % [int(n.year), int(n.age)], 10, Palette.RUST, true))
-		_spacer(tag_row)
-		tag_row.add_child(_label(str(n.get("tag", "")), 9, Palette.MUTED))
+		# Ana Dal: SEÇİLEN YOL KARTI
+		var main_branch := PanelContainer.new()
+		main_branch.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var main_border: Color = Palette.RUST if n.kind == "decision" else Color("5a8264")
+		var main_bg: Color = Color("fcfaf5")
+		main_branch.add_theme_stylebox_override("panel", Palette.box(main_bg, 8, main_border, 10))
+		branch_vbox.add_child(main_branch)
 
-		branch_box.add_child(_label(str(n.get("title", "")), 13, Palette.INK, true, true))
+		var main_col := _column(3)
+		main_branch.add_child(main_col)
 
-		var choice_panel := PanelContainer.new()
-		var p_bg: Color = Color("f9f6ee") if n.kind == "decision" else Color("f4f1e8")
-		var p_border: Color = Palette.RUST if n.kind == "decision" else Palette.LINE
-		choice_panel.add_theme_stylebox_override("panel", Palette.box(p_bg, 6, p_border, 8))
-		branch_box.add_child(choice_panel)
+		# Dal Başlık Satırı
+		var top_row := _row(6)
+		main_col.add_child(top_row)
+		top_row.add_child(_label(str(n.get("tag", "")), 9, Palette.RUST if n.kind == "decision" else Palette.MUTED, true))
+		_spacer(top_row)
+		top_row.add_child(_label("%d · %d yaş" % [int(n.year), int(n.age)], 9, Palette.MUTED))
 
-		var choice_col := _column(2)
-		choice_panel.add_child(choice_col)
-		choice_col.add_child(_label(str(n.get("choice_label", "")), 12, Palette.INK, true, true))
+		# Olay Başlığı
+		main_col.add_child(_label(str(n.get("title", "")), 13, Palette.INK, true, true))
+
+		# Seçilen Yol Rozeti
+		var chosen_strip := PanelContainer.new()
+		chosen_strip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chosen_strip.add_theme_stylebox_override("panel", Palette.box(Color("eef5ee"), 6, Color("76a882"), 8))
+		main_col.add_child(chosen_strip)
+
+		var chosen_row := _row(6)
+		chosen_strip.add_child(chosen_row)
+		var tick_lbl := _label("SEÇTİĞİNİZ YOL:", 10, Color("2d5e38"), true)
+		chosen_row.add_child(tick_lbl)
+		var choice_lbl := _label(str(n.get("choice_label", "")), 11, Palette.INK, true, true)
+		choice_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		chosen_row.add_child(choice_lbl)
+
 		if str(n.get("summary", "")).strip_edges() != "":
-			choice_col.add_child(_label(str(n.summary), 11, Color("4a524a"), false, true))
+			main_col.add_child(_label(str(n.summary), 11, Color("4a524a"), false, true))
 
-		var item_spacer := Control.new()
-		item_spacer.custom_minimum_size.y = 6
-		branch_box.add_child(item_spacer)
+		# Yan Dallar: TERK EDİLEN ALTERNATİFLER (Dallanıp budaklanan yol ayrımları)
+		if not alternatives.is_empty():
+			for alt: Dictionary in alternatives:
+				var fork_row := _row(6)
+				fork_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				branch_vbox.add_child(fork_row)
+
+				# Çatallanma dal çizgisi
+				var fork_icon := _label(" └─", 12, Color("96a599"), true)
+				fork_row.add_child(fork_icon)
+
+				var alt_card := PanelContainer.new()
+				alt_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				alt_card.add_theme_stylebox_override("panel", Palette.box(Color("f2efe6"), 6, Color("cdc8bb"), 8))
+				fork_row.add_child(alt_card)
+
+				var alt_col := _column(1)
+				alt_card.add_child(alt_col)
+
+				var alt_header := _row(6)
+				alt_col.add_child(alt_header)
+				alt_header.add_child(_label("TERK EDİLEN DİĞER İHTİMAL", 8, Color("7e857b"), true))
+
+				var alt_title := _label(str(alt.get("label", "")), 10, Color("5c635a"), false, true)
+				alt_col.add_child(alt_title)
+
+				if str(alt.get("description", "")).strip_edges() != "":
+					var alt_desc := _label(str(alt.description), 9, Color("80877d"), false, true)
+					alt_col.add_child(alt_desc)
+
+		var bottom_spacer := Control.new()
+		bottom_spacer.custom_minimum_size.y = 8
+		branch_vbox.add_child(bottom_spacer)
 
 
 func _render_feed() -> void:
@@ -1377,7 +1507,7 @@ func _render_life_chronicle(parent: Node) -> void:
 
 func _create_family_tree_node(m: Dictionary) -> Control:
 	var node_box := VBoxContainer.new()
-	node_box.custom_minimum_size = Vector2(96, 118)
+	node_box.custom_minimum_size = Vector2(106, 120)
 	node_box.alignment = BoxContainer.ALIGNMENT_BEGIN
 	node_box.add_theme_constant_override("separation", 2)
 
@@ -1436,15 +1566,15 @@ func _create_family_tree_node(m: Dictionary) -> Control:
 	var name_lbl := _label(str(m.name), 11, Palette.INK, true)
 	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	name_lbl.custom_minimum_size.x = 94
+	name_lbl.custom_minimum_size.x = 102
 	node_box.add_child(name_lbl)
 
-	# 4. Yaş / Vefat
+	# 4. Yaş / Vefat (Doğum - Ölüm ve Yaş)
 	var status_text: String
 	if m.alive:
-		status_text = "%d yaş" % int(m.age)
+		status_text = "%d doğumlu (%d yaş)" % [int(m.birth_year), int(m.age)]
 	else:
-		status_text = "† %d" % int(m.death_year) if int(m.death_year) > 0 else "† Vefat"
+		status_text = "%d — %d (%d yaş)" % [int(m.birth_year), int(m.death_year), int(m.age)]
 	var status_lbl := _label(status_text, 9, Palette.MUTED, false)
 	status_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	node_box.add_child(status_lbl)
@@ -1658,9 +1788,19 @@ func _render_family(parent: Node, compact: bool = false) -> void:
 		column.add_child(_label(relation.to_upper(), 9, Palette.MUTED))
 		column.add_child(_label(str(actor.name), 15 if compact else 21, Palette.INK, true, true))
 		var residence: String = "Aynı hanede" if str(actor.get("household_id", "")) == str(state.household.id) else "Ayrı hanede"
-		column.add_child(_label("%d yaş · %s · %s" % [actor.age, "Hayatta" if actor.alive else "Anısına", residence], 11, Palette.MUTED))
+		var span_info: String
+		if actor.alive:
+			span_info = "%d doğumlu (%d yaş, Hayatta) · %s" % [int(actor.birth_year), int(actor.age), residence]
+		else:
+			span_info = "%d — %d (%d yaşında vefat etti) · %s" % [int(actor.birth_year), int(actor.death_year), int(actor.age), residence]
+		column.add_child(_label(span_info, 11, Palette.MUTED))
 		if not compact:
-			column.add_child(_label(Words.word(str(actor.occupation_id)) if actor.alive else "%d yılında hayatını kaybetti." % actor.death_year, 13, Palette.MUTED, false, true))
+			var job_or_death: String
+			if actor.alive:
+				job_or_death = "Meslek: " + Words.word(str(actor.occupation_id))
+			else:
+				job_or_death = "%d yılında, %d yaşında aramızdan ayrıldı. (Son Mesleği: %s)" % [int(actor.death_year), int(actor.age), Words.word(str(actor.occupation_id))]
+			column.add_child(_label(job_or_death, 13, Palette.MUTED, false, true))
 			if not relation_data.is_empty():
 				column.add_child(_label("Yakınlık %d · Güven %d · Çatışma %d" % [
 					int(relation_data.get("closeness", 0)),
