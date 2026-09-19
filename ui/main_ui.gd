@@ -19,6 +19,8 @@ const Migration = preload("res://simulation/migration_system.gd")
 const SocialStatus = preload("res://simulation/social_status_system.gd")
 const FamilyTree = preload("res://simulation/family_tree_system.gd")
 const LifeActions = preload("res://simulation/life_action_system.gd")
+const Career = preload("res://simulation/career_system.gd")
+const Education = preload("res://simulation/education_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -1337,7 +1339,14 @@ func _render_career(parent: Node) -> void:
 	card.add_child(_label("KARİYER DURUMU", 10, Palette.MUTED))
 	var occupation: String = str(player.occupation_id)
 	var title: String = "Çalışmıyor" if occupation == "dependent" else Words.word(occupation)
-	card.add_child(_label(title, 24, Palette.INK, true))
+
+	var header_row = _row(8)
+	card.add_child(header_row)
+	header_row.add_child(_label(title, 24, Palette.INK, true))
+	_spacer(header_row)
+	if occupation != "dependent":
+		header_row.add_child(_button("İstifa Et", _resign_job, "Ghost"))
+
 	card.add_child(_label("Yıllık gelir: %d" % int(player.income), 13, Palette.MUTED))
 	for item: Array in [
 		["Toplam deneyim", int(career.get("experience_years", 0))],
@@ -1349,6 +1358,46 @@ func _render_career(parent: Node) -> void:
 		row.add_child(_label(str(item[0]), 13, Palette.MUTED))
 		_spacer(row)
 		row.add_child(_label(str(item[1]), 15, Palette.INK, true))
+
+	# Açık Pozisyonlar ve Kariyer Fırsatları
+	var all_jobs: Dictionary = Career.catalog_jobs(state)
+	if not all_jobs.is_empty():
+		var job_card = _card(parent)
+		job_card.add_child(_label("İŞ FIRSATLARI VE AÇIK POZİSYONLAR", 10, Palette.RUST))
+		var job_keys: Array = all_jobs.keys()
+		job_keys.sort_custom(func(a: String, b: String): return int(all_jobs[a].get("level", 0)) < int(all_jobs[b].get("level", 0)))
+		var shown_count: int = 0
+		for jid: String in job_keys:
+			if jid == "dependent" or jid == occupation:
+				continue
+			var job: Dictionary = all_jobs[jid]
+			var is_elig: bool = Career.eligible(player, job, int(player.age))
+			var missing: Array[String] = Career.missing_requirements(player, job, int(player.age)) if not is_elig else []
+			if not is_elig and int(player.age) < int(job.get("minimum_age", 0)) - 3:
+				continue
+
+			shown_count += 1
+			var row = _row(8)
+			job_card.add_child(row)
+			var copy = _column(2)
+			row.add_child(copy)
+			var job_name: String = str(job.get("label", Words.word(jid)))
+			copy.add_child(_label(job_name, 14, Palette.INK if is_elig else Palette.MUTED, true))
+			var info_txt: String = "Gelir: %d · Alan: %s" % [int(job.annual_income), str(job.get("career_track", "genel")).capitalize()]
+			if not is_elig:
+				info_txt += " · [Eksik: " + ", ".join(missing) + "]"
+			copy.add_child(_label(info_txt, 11, Palette.MUTED))
+			_spacer(row)
+			var target_jid: String = jid
+			if is_elig:
+				row.add_child(_button("İşe Başla", func(): _apply_for_job(target_jid), "Primary"))
+			else:
+				var locked_btn = _button("Kilitli", func(): _show_error("Gereksinimler karşılanmıyor: " + ", ".join(missing)), "Ghost")
+				locked_btn.disabled = true
+				row.add_child(locked_btn)
+		if shown_count == 0:
+			job_card.add_child(_label("Şu anda uygun yeni bir iş ilanı bulunmuyor.", 12, Palette.MUTED))
+
 	var tracks: Dictionary = career.get("track_experience", {})
 	if not tracks.is_empty():
 		var track_card = _card(parent)
@@ -1373,6 +1422,26 @@ func _render_career(parent: Node) -> void:
 			], 12, Palette.MUTED))
 
 
+func _apply_for_job(job_id: String) -> void:
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
+		return
+	var result: Dictionary = Career.apply_for_job(state, job_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "İşe başvuru başarısız.")))
+		return
+	_refresh_ui()
+
+
+func _resign_job() -> void:
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
+		return
+	var result: Dictionary = Career.resign_job(state)
+	if not result.ok:
+		_show_error(str(result.get("error", "İstifa işlemi gerçekleştirilemedi.")))
+		return
+	_refresh_ui()
+
+
 func _render_education(parent: Node) -> void:
 	var player: Dictionary = state.actors[state.meta.player_id]
 	var education: Dictionary = player.get("education", {})
@@ -1382,7 +1451,14 @@ func _render_education(parent: Node) -> void:
 	var title = "Şu anda eğitim almıyor"
 	if current_stage != "":
 		title = Words.word(current_stage)
-	card.add_child(_label(title, 24, Palette.INK, true))
+
+	var header_row = _row(8)
+	card.add_child(header_row)
+	header_row.add_child(_label(title, 24, Palette.INK, true))
+	_spacer(header_row)
+	if current_stage != "":
+		header_row.add_child(_button("Eğitimi Bırak", _leave_education, "Ghost"))
+
 	var attendance: int = int(education.get("attendance", 0))
 	var performance: int = int(education.get("performance", 0))
 	var progress: int = int(education.get("progress", 0))
@@ -1392,6 +1468,26 @@ func _render_education(parent: Node) -> void:
 		row.add_child(_label(str(item[0]), 13, Palette.MUTED))
 		_spacer(row)
 		row.add_child(_label("%d%%" % int(item[1]), 15, Palette.INK, true))
+
+	# Eğitim Başvuruları (Örn. Akşam Okulu)
+	var available: Array[Dictionary] = Education.available_stages(state)
+	if not available.is_empty():
+		var app_card = _card(parent)
+		app_card.add_child(_label("EĞİTİM BAŞVURULARI VE KURSLAR", 10, Palette.RUST))
+		for stage: Dictionary in available:
+			var row = _row(8)
+			app_card.add_child(row)
+			var copy = _column(2)
+			row.add_child(copy)
+			copy.add_child(_label(str(stage.label), 14, Palette.INK, true))
+			var cost: int = int(stage.get("annual_cost", 0))
+			copy.add_child(_label("Yıllık ücret: %d · Okuma: +%d/yıl · İlerleme: +%d/yıl" % [
+				cost, int(stage.get("literacy_per_year", 0)), int(stage.get("progress_per_year", 0))
+			], 11, Palette.MUTED))
+			_spacer(row)
+			var sid: String = str(stage.id)
+			row.add_child(_button("Kayıt Ol", func(): _enroll_education(sid), "Primary"))
+
 	var completed: Array = education.get("completed_stages", [])
 	if not completed.is_empty():
 		var completed_card = _card(parent)
@@ -1409,6 +1505,26 @@ func _render_education(parent: Node) -> void:
 				str(entry.get("stage_id", "")).replace("_", " ").capitalize(),
 				str(entry.get("kind", "")).replace("_", " ").capitalize()
 			], 12, Palette.MUTED))
+
+
+func _enroll_education(stage_id: String) -> void:
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
+		return
+	var result: Dictionary = Education.enroll_stage(state, stage_id)
+	if not result.ok:
+		_show_error(str(result.get("error", "Eğitime kayıt olunamadı.")))
+		return
+	_refresh_ui()
+
+
+func _leave_education() -> void:
+	if _busy or not pending_prep.is_empty() or overlay.visible or state.meta.status != "running":
+		return
+	var result: Dictionary = Education.leave_education(state)
+	if not result.ok:
+		_show_error(str(result.get("error", "Eğitimi bırakma işlemi başarısız.")))
+		return
+	_refresh_ui()
 
 
 func _render_development(parent: Node) -> void:

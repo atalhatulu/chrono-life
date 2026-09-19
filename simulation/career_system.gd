@@ -1,6 +1,122 @@
 extends RefCounted
 
 const Rng = preload("res://simulation/deterministic_rng.gd")
+const SocialStatus = preload("res://simulation/social_status_system.gd")
+
+static var _careers_cache: Dictionary = {}
+
+static func _catalog_path(state: Dictionary) -> String:
+	return str(state.get("meta", {}).get("careers_path", ""))
+
+static func catalog_jobs(state: Dictionary) -> Dictionary:
+	var path: String = _catalog_path(state)
+	if path.is_empty():
+		return {}
+	if _careers_cache.has(path):
+		return _careers_cache[path]
+	if not FileAccess.file_exists(path):
+		return {}
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	var out: Dictionary = {}
+	if parsed is Dictionary and parsed.has("jobs"):
+		for j: Dictionary in parsed.jobs:
+			out[str(j.id)] = j
+	_careers_cache[path] = out
+	return out
+
+static func missing_requirements(actor: Dictionary, job: Dictionary, target_age: int) -> Array[String]:
+	var reasons: Array[String] = []
+	if not actor.alive:
+		reasons.append("Karakter hayatta değil")
+		return reasons
+	if target_age < int(job.get("minimum_age", 0)):
+		reasons.append("Yaş en az %d olmalı (Şu an %d)" % [int(job.minimum_age), target_age])
+	if target_age > int(job.get("maximum_age", 200)):
+		reasons.append("Azami yaş sınırı (%d) aşıldı" % int(job.maximum_age))
+	if int(actor.literacy) < int(job.get("minimum_literacy", 0)):
+		reasons.append("Okuma en az %d olmalı (Şu an %d)" % [int(job.minimum_literacy), int(actor.literacy)])
+	if int(actor.get("work_capacity", 1000)) <= 0 and int(job.get("annual_income", 0)) > 0:
+		reasons.append("Çalışma kapasitesi yetersiz")
+	var required_skills: Dictionary = job.get("required_skills", {})
+	for skill_id: String in required_skills:
+		var cur_skill: int = int(actor.get("skills", {}).get("values", {}).get(skill_id, 0))
+		if cur_skill < int(required_skills[skill_id]):
+			reasons.append("%s becerisi en az %d olmalı (Şu an %d)" % [skill_id.capitalize(), int(required_skills[skill_id]), cur_skill])
+	var required_stages: Array = job.get("required_education_stages", [])
+	var completed: Array = _completed_education(actor)
+	for stage: Variant in required_stages:
+		if stage not in completed:
+			reasons.append("Gereken eğitim: %s" % str(stage).capitalize())
+	var track: String = str(job.get("career_track", ""))
+	var required_exp: int = int(job.get("minimum_experience_years", 0))
+	initialize_actor(actor)
+	var cur_exp: int = int(actor.career.track_experience.get(track, 0))
+	if required_exp > 0 and cur_exp < required_exp:
+		reasons.append("%s alanında %d yıl deneyim gerekli (Şu an %d yıl)" % [track.capitalize(), required_exp, cur_exp])
+	return reasons
+
+static func apply_for_job(state: Dictionary, job_id: String) -> Dictionary:
+	var player_id: String = str(state.meta.player_id)
+	var player: Dictionary = state.actors[player_id]
+	if not player.alive:
+		return {"ok": false, "error": "Karakter hayatta değil."}
+	var jobs: Dictionary = catalog_jobs(state)
+	if not jobs.has(job_id):
+		return {"ok": false, "error": "Bilinmeyen meslek: " + job_id}
+	var target_job: Dictionary = jobs[job_id]
+	if not eligible(player, target_job, int(player.age)):
+		var missing: Array[String] = missing_requirements(player, target_job, int(player.age))
+		var err_msg: String = "Gereksinimler karşılanmıyor: " + ", ".join(missing)
+		return {"ok": false, "error": err_msg}
+	if str(player.occupation_id) == job_id:
+		return {"ok": false, "error": "Zaten bu meslektesin."}
+
+	var old_job: String = str(player.occupation_id)
+	initialize_actor(player)
+	player.occupation_id = job_id
+	player.career.current_job = job_id
+	player.career.job_changes = int(player.career.job_changes) + 1
+	player.career.highest_level = maxi(int(player.career.highest_level), int(target_job.get("level", 0)))
+	var cur_year: int = int(state.world.year)
+	player.career.history.append({"year": cur_year, "kind": "started", "occupation_id": job_id})
+	state.history.append({
+		"id": "%d:occupation_started:%s:%d" % [cur_year, job_id, state.history.size()],
+		"year": cur_year,
+		"kind": "occupation_started",
+		"cause_id": "",
+		"details": {"actor_id": player_id, "occupation_id": job_id, "previous_occupation_id": old_job}
+	})
+	var econ_index: int = int(state.world.economy_index)
+	var capacity: int = int(player.get("work_capacity", 1000))
+	player.income = int(int(target_job.annual_income) * econ_index * capacity / 1000000.0)
+	SocialStatus.recompute(state)
+	return {"ok": true, "occupation_id": job_id}
+
+static func resign_job(state: Dictionary) -> Dictionary:
+	var player_id: String = str(state.meta.player_id)
+	var player: Dictionary = state.actors[player_id]
+	if not player.alive:
+		return {"ok": false, "error": "Karakter hayatta değil."}
+	if str(player.occupation_id) == "dependent":
+		return {"ok": false, "error": "Zaten çalışmıyorsun."}
+	var old_job: String = str(player.occupation_id)
+	initialize_actor(player)
+	player.occupation_id = "dependent"
+	player.career.current_job = "dependent"
+	var cur_year: int = int(state.world.year)
+	player.career.history.append({"year": cur_year, "kind": "ended", "occupation_id": old_job, "reason": "resignation"})
+	state.history.append({
+		"id": "%d:occupation_ended:%d" % [cur_year, state.history.size()],
+		"year": cur_year,
+		"kind": "occupation_ended",
+		"cause_id": "",
+		"details": {"actor_id": player_id, "occupation_id": old_job, "reason": "resignation"}
+	})
+	player.income = 0
+	SocialStatus.recompute(state)
+	return {"ok": true}
+
 
 static func initialize_actor(actor: Dictionary) -> void:
 	if not actor.has("career"):

@@ -1,6 +1,7 @@
 extends RefCounted
 
 const Rng = preload("res://simulation/deterministic_rng.gd")
+const SocialStatus = preload("res://simulation/social_status_system.gd")
 
 static var _cache: Dictionary = {}
 
@@ -141,3 +142,77 @@ static func _complete(delta: RefCounted, actor: Dictionary, id: String, stage_id
 	actor.education.progress = 100
 	actor.education.history.append({"year": delta.year, "kind": "completed", "stage_id": stage_id})
 	delta.set_field("actors", "education_state", "completed" if stage_id == "elementary" else actor.education_state, ev, id)
+
+
+static func available_stages(state: Dictionary) -> Array[Dictionary]:
+	var player_id: String = str(state.meta.player_id)
+	var player: Dictionary = state.actors[player_id]
+	initialize_actor(player)
+	var current: String = str(player.education.get("current_stage", ""))
+	var completed: Array = player.education.get("completed_stages", [])
+	var out: Array[Dictionary] = []
+	for stage: Dictionary in _catalog(state).get("stages", []):
+		var sid: String = str(stage.id)
+		if sid == current or sid in completed:
+			continue
+		if not _eligible_for_stage(player, stage):
+			continue
+		out.append(stage)
+	return out
+
+
+static func enroll_stage(state: Dictionary, stage_id: String) -> Dictionary:
+	var player_id: String = str(state.meta.player_id)
+	var player: Dictionary = state.actors[player_id]
+	if not player.alive:
+		return {"ok": false, "error": "Karakter hayatta değil."}
+	initialize_actor(player)
+	if str(player.education.current_stage) == stage_id:
+		return {"ok": false, "error": "Zaten bu eğitime devam ediyorsun."}
+	if stage_id in player.education.completed_stages:
+		return {"ok": false, "error": "Bu eğitimi zaten tamamladın."}
+	var stage: Dictionary = _stage_by_id(state, stage_id)
+	if stage.is_empty():
+		return {"ok": false, "error": "Bilinmeyen eğitim aşaması."}
+	if not _eligible_for_stage(player, stage):
+		return {"ok": false, "error": "Yaşın veya durumun bu eğitim aşamasına uygun değil."}
+	var cur_year: int = int(state.world.year)
+	player.education.current_stage = stage_id
+	player.education.progress = 0
+	player.education.attendance = int(stage.get("attendance_base", 50))
+	player.education.history.append({"year": cur_year, "kind": "started", "stage_id": stage_id})
+	state.history.append({
+		"id": "%d:education_started:%s:%d" % [cur_year, stage_id, state.history.size()],
+		"year": cur_year,
+		"kind": "education_started",
+		"cause_id": "",
+		"details": {"actor_id": player_id, "stage_id": stage_id}
+	})
+	_sync_legacy(player)
+	SocialStatus.recompute(state)
+	return {"ok": true, "stage_id": stage_id}
+
+
+static func leave_education(state: Dictionary) -> Dictionary:
+	var player_id: String = str(state.meta.player_id)
+	var player: Dictionary = state.actors[player_id]
+	if not player.alive:
+		return {"ok": false, "error": "Karakter hayatta değil."}
+	initialize_actor(player)
+	var current: String = str(player.education.get("current_stage", ""))
+	if current == "":
+		return {"ok": false, "error": "Zaten aktif bir eğitim almıyorsun."}
+	var cur_year: int = int(state.world.year)
+	player.education.current_stage = ""
+	player.education.dropout_count = int(player.education.get("dropout_count", 0)) + 1
+	player.education.history.append({"year": cur_year, "kind": "interrupted", "stage_id": current})
+	state.history.append({
+		"id": "%d:education_interrupted:%s:%d" % [cur_year, current, state.history.size()],
+		"year": cur_year,
+		"kind": "education_interrupted",
+		"cause_id": "",
+		"details": {"actor_id": player_id, "stage_id": current}
+	})
+	_sync_legacy(player)
+	SocialStatus.recompute(state)
+	return {"ok": true}
