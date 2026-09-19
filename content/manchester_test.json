@@ -529,7 +529,8 @@
           "effects": {
             "cash_grant": 150,
             "willpower_delta": 3,
-            "health_delta": -2
+            "health_delta": -2,
+            "set_flag": "blacksmith_apprentice"
           }
         },
         {
@@ -992,6 +993,170 @@
             "health_delta": 2,
             "cash_grant": 4,
             "set_flag": "early_chores_done"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mill_retaliation_or_respect",
+      "family": "workplace_justice",
+      "title": "Whispers After the Inquest",
+      "text": "The Crown inspector's report ordered iron guardrails around the spinning frames. The mill owner is furious about the expenses, and the overseer corners you by the grease vats.",
+      "requirements": {
+        "min_age": 19,
+        "max_age": 65,
+        "player_alive": true,
+        "has_flag": "whistleblower",
+        "not_flag": "whistleblower_resolved",
+        "cooldown_years": 1
+      },
+      "utility": {
+        "base": 70
+      },
+      "choices": [
+        {
+          "id": "stand_ground_inquest",
+          "label": "Look the overseer in the eye and cite the Crown inspector",
+          "description": "Stand firm on the truth; union respect spreads among workers, though the masters mark you.",
+          "effects": {
+            "willpower_delta": 8,
+            "health_delta": 2,
+            "set_flag": "whistleblower_resolved"
+          }
+        },
+        {
+          "id": "humble_compliance",
+          "label": "Bow your head and promise unyielding toil",
+          "description": "Yield pride to keep the bread on the table; the overseer relents with an extra shift.",
+          "effects": {
+            "cash_grant": 120,
+            "willpower_delta": -5,
+            "set_flag": "whistleblower_resolved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "journeyman_blacksmith_trial",
+      "family": "career",
+      "title": "The Journeyman's Anvil",
+      "text": "After years of hauling coal and tending the bellows, the master smith hands you the heavy cross-peen hammer to forge a steam-engine bracket without guidance.",
+      "requirements": {
+        "min_age": 15,
+        "max_age": 25,
+        "player_alive": true,
+        "has_flag": "blacksmith_apprentice",
+        "not_flag": "blacksmith_journeyman_tested"
+      },
+      "utility": {
+        "base": 75
+      },
+      "choices": [
+        {
+          "id": "forge_masterpiece",
+          "label": "Strike the red-hot iron and shape the bracket",
+          "description": "A test of endurance and skill; success earns journeyman standing and skilled wages.",
+          "effects": {
+            "deferred_job": "skilled_textile_worker",
+            "cash_grant": 300,
+            "willpower_delta": 6,
+            "set_flag": "blacksmith_journeyman_tested"
+          }
+        },
+        {
+          "id": "remain_assistant",
+          "label": "Confess unreadiness and remain at the bellows",
+          "description": "Safe and modest; keep your apprentice spot without risking the master's scorn.",
+          "effects": {
+            "cash_grant": 80,
+            "willpower_delta": -2,
+            "set_flag": "blacksmith_journeyman_tested"
+          }
+        }
+      ]
+    },
+    {
+      "id": "winter_fever_wave",
+      "family": "health_care",
+      "title": "The Winter Shivers",
+      "text": "Freezing rain turns the unpaved streets to icy slush. Scarlet fevers and chest rattles sweep through the cellar dwellings, taking the weakest first.",
+      "requirements": {
+        "min_age": 5,
+        "max_age": 16,
+        "player_alive": true,
+        "not_flag": "winter_fever_resolved",
+        "cooldown_years": 2
+      },
+      "utility": {
+        "base": 50,
+        "modifiers": [
+          {
+            "condition": "food_security_lt_800",
+            "add": 20
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "rely_on_constitution",
+          "label": "Wrap in wool blankets by the chimney",
+          "description": "Endure the chills with home broth; saves coin but strains growing lungs.",
+          "effects": {
+            "health_delta": -4,
+            "willpower_delta": 3,
+            "set_flag": "winter_fever_resolved"
+          }
+        },
+        {
+          "id": "call_parish_apothecary",
+          "label": "Buy quinine cordial from the apothecary",
+          "description": "Bitter bark medicine eases the burning fever and guards against relapse.",
+          "effects": {
+            "cash_cost": 25,
+            "health_delta": 4,
+            "willpower_delta": 1,
+            "cure_condition": "epidemic_disease",
+            "set_flag": "winter_fever_resolved"
+          }
+        }
+      ]
+    },
+    {
+      "id": "temperance_benefit_solidarity",
+      "family": "community",
+      "title": "The Sobriety Dividend",
+      "text": "Because you kept your signature on the temperance roll and stayed clear of the gin-shops, the parish society invites you to their annual jubilee.",
+      "requirements": {
+        "min_age": 18,
+        "max_age": 65,
+        "player_alive": true,
+        "has_flag": "temperance_pledged",
+        "not_flag": "temperance_benefit_received",
+        "cooldown_years": 2
+      },
+      "utility": {
+        "base": 65
+      },
+      "choices": [
+        {
+          "id": "accept_temperance_aid",
+          "label": "Accept the mutual relief dividend and gift of books",
+          "description": "The society rewards your steadfast character with financial support and books.",
+          "effects": {
+            "cash_grant": 200,
+            "willpower_delta": 5,
+            "literacy_delta": 4,
+            "set_flag": "temperance_benefit_received"
+          }
+        },
+        {
+          "id": "modest_refusal",
+          "label": "Direct the relief fund to a poorer widow in the lane",
+          "description": "A display of quiet honor; your local reputation and moral stature rise.",
+          "effects": {
+            "willpower_delta": 8,
+            "health_delta": 1,
+            "set_flag": "temperance_benefit_received"
           }
         }
       ]

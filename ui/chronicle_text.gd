@@ -47,7 +47,11 @@ const STORIES: Dictionary = {
 	"infant_care_dilemma": ["Beşik ve dokuma tezgahı", "Evin geçimi için annenin pamuk fabrikasına dönmesi gerekiyor. Mahallenin yaşlı kadını birkaç peni karşılığı seni gündüz bakmayı öneriyor; fakat odadaki çocuklara afyon şurubu içirildiği fısıldanıyor."],
 	"smallpox_vaccine_visit": ["Dispanserin aşı iğnesi", "Mahalleye gelen bir hekim, çocukları çiçek salgınından korumak için aşı yapıyor. Komşuların bir kısmı hekime şüpheyle bakarken salgın her kış can alıyor."],
 	"street_perils_mud": ["Çamur ve demir tekerlekler", "İsli sokaklarda çocuklar ağır yük arabalarının ve kanal mavnalarının arasında koşturuyor. Sen de kapı eşiğinden dar sokaklara adım atıyorsun."],
-	"first_hornbook_alphabet": ["Eski bir hece tahtası", "Bir akrabadan kalan yıpranmış tahta hece levhası eline geçiyor. Kömürle kararmış parmaklarınla harflerin şekillerini takip ediyorsun."]
+	"first_hornbook_alphabet": ["Eski bir hece tahtası", "Bir akrabadan kalan yıpranmış tahta hece levhası eline geçiyor. Kömürle kararmış parmaklarınla harflerin şekillerini takip ediyorsun."],
+	"mill_retaliation_or_respect": ["Müfettişin ardından gelen fısıltı", "Müfettişin teftiş raporu fabrikaya ulaştı; makinelerin etrafına koruyucu demir parmaklık takıldı. Masraflara öfkelenen ustabaşı, senin konuştuğunu sezip yağ fıçılarının yanında önünü kesiyor."],
+	"journeyman_blacksmith_trial": ["Örs başında ustalık imtihanı", "Yıllarca kömür taşıyıp körük çektikten sonra demirci ustası eline ağır çekici tutuşturuyor: 'Lokomotif bağlantı demirini tek başına döv, sana kalfalık beratını vereyim.'"],
+	"winter_fever_wave": ["Kış humması ve soğuk yağmurlar", "Dondurucu yağmurlar Manchester sokaklarını çamur deryasına çevirdi. Rutubetli bodrum katlarına sızan kızıl humma ve göğüs hırıltısı mahallede can alıyor."],
+	"temperance_benefit_solidarity": ["Ayıklık Cemiyeti dayanışması", "Ayıklık senedine sadık kalıp meyhanelerden uzak durduğun için cemiyet seni yıllık toplantısına davet ediyor; yardımlaşma sandığından pay teklif ediyor."]
 }
 const CHOICES: Dictionary = {
 	"comply": ["Fabrikada çalışmayı kabul et", "Okuldan ayrıl ve ailenin gelirine katkıda bulun."],
@@ -88,7 +92,15 @@ const CHOICES: Dictionary = {
 	"brave_the_alleys": ["Sokak çetesiyle çamurda koştur", "Sokakta serbestçe büyü; uyanıklık ve dayanıklılık kazanırken kaza riskini göze al."],
 	"stay_by_hearth": ["Eşik dibinde, kömür kovası yanında kal", "Evden uzaklaşma; soğuk yağmurdan ve at arabalarından korun."],
 	"trace_letters": ["Harfleri ve sesleri çözmeye çalış", "Erken yaşta harfleri öğren; merakını ve zihnini geliştir."],
-	"help_household_chores": ["Levhayı bırakıp su ve kül taşı", "Küçük ellerle küçük işlere koş; eve birkaç kuruş kazandır."]
+	"help_household_chores": ["Levhayı bırakıp su ve kül taşı", "Küçük ellerle küçük işlere koş; eve birkaç kuruş kazandır."],
+	"stand_ground_inquest": ["Ustabaşının gözünün içine bak ve dik dur", "Sözlerinin arkasında dur; işçilerin saygısını kazanırken yönetimin şimşeklerini üzerine çek."],
+	"humble_compliance": ["Başını öne eğ ve çok çalışmaya söz ver", "Ekmek kapısını kaybetmemek için alttan al; fazla mesai yaparak öfkeyi dindir."],
+	"forge_masterpiece": ["Kızgın demire vur ve kalfalık hünerini göster", "Tüm gücünle çekici indir; kalfalık beratı ve nitelikli işçi kazancı kazan."],
+	"remain_assistant": ["Henüz hazır olmadığını söyleyip körük başında kal", "Haddini bil; ustanın yanında güvenli ve mütevazı bir çırak olarak devam et."],
+	"rely_on_constitution": ["Ocak başında yün battaniyeye sarıl", "Evdeki çorbayla hastalığı atlatmaya çalış; masraf yapma ama ciğerlerini zorla."],
+	"call_parish_apothecary": ["Eczacıdan kına kına şurubu al", "Acı şurupla ateşi düşür; hastalığın nüksetmesini önle."],
+	"accept_temperance_aid": ["Dayanışma payını ve kitapları kabul et", "Dürüstlüğünün karşılığı olan maddi desteği al; birikimini güçlendir."],
+	"modest_refusal": ["Yardımı sokaktaki dul ve yetimlere devret", "Büyük bir cömertlik göster; mahallede saygınlığını ve itibarını katla."]
 }
 const ACTION_DESCRIPTIONS: Dictionary = {
 	"play": ["Sokakta akranlarınla koşturup çocukluğun tadını çıkardın.", "Çocukluk neşesi"],
