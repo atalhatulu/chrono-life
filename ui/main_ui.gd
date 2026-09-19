@@ -21,6 +21,7 @@ const FamilyTree = preload("res://simulation/family_tree_system.gd")
 const LifeActions = preload("res://simulation/life_action_system.gd")
 const Career = preload("res://simulation/career_system.gd")
 const Education = preload("res://simulation/education_system.gd")
+const Origin = preload("res://simulation/origin_system.gd")
 
 var pack: Dictionary = {}
 var runner: RefCounted
@@ -58,6 +59,8 @@ var modal_body: VBoxContainer
 var modal_title: Label
 var seed_input: LineEdit
 var auto_policy: CheckBox
+var origin_select: OptionButton
+var origin_desc: Label
 var show_quiet: bool = false
 var _busy: bool = false
 
@@ -414,6 +417,10 @@ func _open_auto_life() -> void:
 	_clear(modal_body)
 	seed_input.hide()
 	auto_policy.hide()
+	if origin_select:
+		origin_select.hide()
+	if origin_desc:
+		origin_desc.hide()
 	modal_body.add_child(_label("Şu anki hayatın kaldığı yıldan ilerleyecek. Kararlar ve aktiviteler otomatik seçilecek. İstediğin yıl durdurabilirsin.", 14, Palette.INK, false, true))
 	modal_body.add_child(_button("Otomatik devam et", _run_auto_life, "Primary"))
 	overlay.show()
@@ -479,6 +486,29 @@ func _build_modal() -> void:
 	seed_input.name = "SeedInput"
 	seed_input.placeholder_text = "Örn. 42"
 	content.add_child(seed_input)
+
+	origin_select = OptionButton.new()
+	origin_select.name = "OriginSelect"
+	origin_select.custom_minimum_size.y = 36
+	origin_select.add_item("Doğum Kurası (Rastgele Tarihsel Şans)")
+	origin_select.set_item_metadata(0, "random")
+	origin_select.add_item("Aşırı Yoksul Mahzen Ailesi (Little Ireland)")
+	origin_select.set_item_metadata(1, "destitute_cellar")
+	origin_select.add_item("Fabrika İşçisi Ailesi (Ancoats Proletaryası)")
+	origin_select.set_item_metadata(2, "factory_working")
+	origin_select.add_item("Bağımsız Esnaf & Zanaatkar (Dükkan Ocağı)")
+	origin_select.set_item_metadata(3, "artisan_shopkeeper")
+	origin_select.add_item("Saygın Orta Sınıf Katip (Büro Memuru)")
+	origin_select.set_item_metadata(4, "clerk_respectable")
+	origin_select.add_item("Varlıklı Tüccar & Fabrikatör (Sanayi Burjuvazisi)")
+	origin_select.set_item_metadata(5, "merchant_gentry")
+	origin_select.item_selected.connect(_on_origin_selected)
+	content.add_child(origin_select)
+
+	origin_desc = _label("", 11, Palette.MUTED, false, true)
+	origin_desc.name = "OriginDesc"
+	content.add_child(origin_desc)
+
 	auto_policy = CheckBox.new()
 	auto_policy.text = "Kararları otomatik ver"
 	content.add_child(auto_policy)
@@ -486,15 +516,41 @@ func _build_modal() -> void:
 	overlay.hide()
 
 
+func _on_origin_selected(index: int) -> void:
+	if origin_select == null or origin_desc == null:
+		return
+	var id: String = str(origin_select.get_item_metadata(index))
+	match id:
+		"random":
+			origin_desc.text = "1850 Manchester nüfus dengesine göre rastgele bir sınıfa doğacaksın (%20 Yoksul mahzen, %45 Fabrika işçisi, %15 Esnaf, %12 Katip, %8 Varlıklı tüccar)."
+		"destitute_cellar":
+			origin_desc.text = "Gündelikçi veya işsiz ebeveynler, Little Ireland mahzen odası (220 b. birikim), açlık ve hastalık riski."
+		"factory_working":
+			origin_desc.text = "Dokuma ve dikiş işçisi ebeveynler, işçi odası (800 b. birikim), düzenli ama yıpratıcı vardiya hayatı."
+		"artisan_shopkeeper":
+			origin_desc.text = "Kendi dükkânı olan zanaatkar esnaf, kooperatif evi (2600 b. birikim), küçük sermaye ve zanaat mirası."
+		"clerk_respectable":
+			origin_desc.text = "Ticaret bürosunda maaşlı katip, saygın apartman (4200 b. birikim), terbiye ve okuryazarlık önceliği."
+		"merchant_gentry":
+			origin_desc.text = "Pamuk ve dökümhane tüccarı, banliyö tüccar konağı (14000 b. birikim), yüksek itibar ve cemiyet nüfuzu."
+		_:
+			origin_desc.text = ""
+
+
 func _open_new_game() -> void:
 	if _busy:
 		return
 	modal_title.text = "Yeni bir hayat"
 	_clear(modal_body)
-	modal_body.add_child(_label("Mevcut hayat kapanacak. Henüz kayıt sistemi yok;\nbaşlangıç sayısıyla aynı hayatı yeniden deneyebilirsin.", 13, Palette.MUTED))
+	modal_body.add_child(_label("Yeni bir hayata başlayacaksın. Doğacağın ailenin sosyal sınıfını ve şartlarını belirleyebilirsin:", 13, Palette.MUTED, false, true))
 	seed_input.text = str(state.get("meta", {}).get("master_seed", "42"))
 	seed_input.show()
 	auto_policy.hide()
+	if origin_select:
+		origin_select.show()
+		_on_origin_selected(origin_select.selected)
+	if origin_desc:
+		origin_desc.show()
 	modal_body.add_child(_button("Hayatı başlat", _confirm_new_game, "Primary"))
 	overlay.show()
 	seed_input.grab_focus()
@@ -512,9 +568,12 @@ func _confirm_new_game() -> void:
 		else:
 			note.free()
 		return
+	var origin_id: String = "random"
+	if origin_select != null and origin_select.selected >= 0:
+		origin_id = str(origin_select.get_item_metadata(origin_select.selected))
 	seed_input.remove_theme_color_override("font_color")
 	overlay.hide()
-	start_game(value.to_int())
+	start_game(value.to_int(), origin_id)
 
 
 func _run_auto_life() -> void:
@@ -548,6 +607,10 @@ func _open_tools() -> void:
 	modal_title.text = "Geliştirici araçları"
 	_clear(modal_body)
 	seed_input.hide()
+	if origin_select:
+		origin_select.hide()
+	if origin_desc:
+		origin_desc.hide()
 	auto_policy.show()
 	if not state.is_empty():
 		modal_body.add_child(_label("Başlangıç sayısı: %s\nEkonomi endeksi: %d\nGıda fiyat endeksi: %d\nİstihdam baskısı: %d\nHastalık baskısı: %d" % [state.meta.master_seed, state.world.economy_index, state.world.food_price_index, state.world.employment_pressure, state.world.disease_pressure], 14))
@@ -555,16 +618,18 @@ func _open_tools() -> void:
 	overlay.show()
 
 
-func start_game(seed_value: int) -> void:
+func start_game(seed_value: int, origin_id: String = "default") -> void:
 	if runner == null:
 		return
-	state = runner.initial_state(seed_value)
+	state = runner.initial_state(seed_value, origin_id)
 	pending_prep = {}
 	_busy = false
 	error_label.hide()
 	pages.clear()
-	pages.append({"year": int(state.world.year), "title": "Hayata merhaba.",
-		"body": "Manchester’da dünyaya geldin. Fabrikaların gölgesinde, ailenin yanında büyüyeceksin. Bu hayatın nasıl ilerleyeceği henüz yazılmadı.",
+	var final_origin: String = str(state.meta.get("origin_id", "factory_working"))
+	var narr: Dictionary = Origin.get_narrative(final_origin)
+	pages.append({"year": int(state.world.year), "title": narr.title,
+		"body": narr.body,
 		"tag": "İLK SAYFA", "important": true})
 	current_view = "life"
 	_refresh_ui()
@@ -1782,6 +1847,8 @@ func _render_status(parent: Node) -> void:
 	var status_card = _card(parent)
 	status_card.add_child(_label("TOPLUMSAL KONUM", 10, Palette.MUTED))
 	status_card.add_child(_label(Words.word(str(status.get("band_id", "unknown"))), 25, Palette.INK, true))
+	if state.meta.has("origin_label"):
+		status_card.add_child(_label("Aile kökeni: " + str(state.meta.origin_label), 12, Palette.RUST))
 	status_card.add_child(_label("Skor: %d / 100" % int(status.get("score", 0)), 13, Palette.MUTED))
 	var components: Dictionary = status.get("components", {})
 	var component_keys: Array = components.keys()

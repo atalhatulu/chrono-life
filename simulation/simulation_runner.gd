@@ -31,6 +31,7 @@ const Personality = preload("res://simulation/personality_system.gd")
 const Assets = preload("res://simulation/asset_system.gd")
 const SocialStatus = preload("res://simulation/social_status_system.gd")
 const Migration = preload("res://simulation/migration_system.gd")
+const Origin = preload("res://simulation/origin_system.gd")
 const VERSION: String = "0.5.1-integration"
 
 var pack: Dictionary
@@ -42,7 +43,7 @@ func _init(content: Dictionary) -> void:
 	occupations = Content.occupations_by_id(pack)
 
 
-func initial_state(seed_value: int) -> Dictionary:
+func initial_state(seed_value: int, origin_id: String = "default") -> Dictionary:
 	var actors: Dictionary = {}
 	var ids: Array[String] = []
 	var active_income: int = 0
@@ -132,6 +133,8 @@ func initial_state(seed_value: int) -> Dictionary:
 		Skills.initialize_actor(result_state, result_state.actors[actor_id])
 		Hobbies.initialize_actor(result_state.actors[actor_id])
 		Personality.initialize_actor(result_state, result_state.actors[actor_id])
+	if origin_id != "default" and origin_id != "":
+		Origin.apply_origin(result_state, origin_id, seed_value)
 	return result_state
 
 
@@ -640,8 +643,8 @@ func auto_step(state: Dictionary, policy_name: String = "balanced") -> Dictionar
 	return result
 
 
-func simulate_auto_life(seed_value: int, policy_name: String = "balanced") -> Dictionary:
-	var state: Dictionary = initial_state(seed_value)
+func simulate_auto_life(seed_value: int, policy_name: String = "balanced", origin_id: String = "default") -> Dictionary:
+	var state: Dictionary = initial_state(seed_value, origin_id)
 	var actions: Array = []
 	var hobbies: Array = []
 	var assets: Array = []

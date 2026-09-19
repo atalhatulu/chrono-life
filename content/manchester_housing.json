@@ -103,6 +103,24 @@
         "healthy",
         "suburban"
       ]
+    },
+    {
+      "id": "merchant_residence",
+      "label": "Tüccar konağı",
+      "tenure": "rent",
+      "annual_cost": 3400,
+      "capacity": 7,
+      "quality": 92,
+      "sanitation": 90,
+      "security": 88,
+      "privacy": 92,
+      "min_age": 20,
+      "tags": [
+        "bourgeois",
+        "luxury",
+        "healthy",
+        "suburban"
+      ]
     }
   ],
   "rules": {
