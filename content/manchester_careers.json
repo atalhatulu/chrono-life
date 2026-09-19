@@ -151,6 +151,105 @@
         "numeracy": 7,
         "work_discipline": 4
       }
+    },
+    {
+      "id": "foundry_apprentice",
+      "label": "Dökümhane çırağı",
+      "annual_income": 1400,
+      "minimum_age": 12,
+      "maximum_age": 19,
+      "minimum_literacy": 0,
+      "risk_permille": 900,
+      "career_track": "metalwork",
+      "level": 1,
+      "tags": [
+        "manual",
+        "foundry",
+        "metal"
+      ]
+    },
+    {
+      "id": "iron_moulder",
+      "label": "Demir kalıpçısı",
+      "annual_income": 3800,
+      "minimum_age": 18,
+      "maximum_age": 65,
+      "minimum_literacy": 10,
+      "risk_permille": 1100,
+      "career_track": "metalwork",
+      "level": 2,
+      "minimum_experience_years": 2,
+      "tags": [
+        "manual",
+        "foundry",
+        "skilled",
+        "metal"
+      ],
+      "required_skills": {
+        "craftsmanship": 3,
+        "work_discipline": 3
+      }
+    },
+    {
+      "id": "master_machinist",
+      "label": "Usta makinist",
+      "annual_income": 5600,
+      "minimum_age": 24,
+      "maximum_age": 70,
+      "minimum_literacy": 35,
+      "risk_permille": 500,
+      "career_track": "metalwork",
+      "level": 3,
+      "minimum_experience_years": 5,
+      "tags": [
+        "artisan",
+        "skilled",
+        "metal",
+        "high_status"
+      ],
+      "required_skills": {
+        "craftsmanship": 7,
+        "work_discipline": 5
+      }
+    },
+    {
+      "id": "domestic_servant",
+      "label": "Konak hizmetlisi",
+      "annual_income": 1500,
+      "minimum_age": 14,
+      "maximum_age": 65,
+      "minimum_literacy": 0,
+      "risk_permille": 100,
+      "career_track": "service",
+      "level": 1,
+      "tags": [
+        "service",
+        "indoor",
+        "stable"
+      ],
+      "required_skills": {
+        "work_discipline": 3
+      }
+    },
+    {
+      "id": "independent_shopkeeper",
+      "label": "Bağımsız esnaf",
+      "annual_income": 4800,
+      "minimum_age": 22,
+      "maximum_age": 75,
+      "minimum_literacy": 40,
+      "risk_permille": 150,
+      "career_track": "commerce",
+      "level": 2,
+      "tags": [
+        "trade",
+        "commercial",
+        "independent"
+      ],
+      "required_skills": {
+        "numeracy": 4,
+        "social_confidence": 4
+      }
     }
   ]
 }

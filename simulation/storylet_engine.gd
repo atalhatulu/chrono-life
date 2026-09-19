@@ -22,6 +22,8 @@ static func is_eligible(storylet: Dictionary, state: Dictionary) -> bool:
 
 	if reqs.has("occupation_id") and player.occupation_id != reqs.occupation_id:
 		return false
+	if reqs.has("occupations_in") and player.occupation_id not in reqs.occupations_in:
+		return false
 	if reqs.has("not_occupation") and player.occupation_id == reqs.not_occupation:
 		return false
 	if reqs.has("marital_status_in") and str(state.family.get("marital_status", "unmarried")) not in reqs.marital_status_in:
@@ -33,6 +35,8 @@ static func is_eligible(storylet: Dictionary, state: Dictionary) -> bool:
 	if reqs.has("min_health") and int(player.health) < int(reqs.min_health):
 		return false
 
+	if reqs.has("min_literacy") and int(player.literacy) < int(reqs.min_literacy):
+		return false
 	if reqs.has("max_literacy") and int(player.literacy) > int(reqs.max_literacy):
 		return false
 

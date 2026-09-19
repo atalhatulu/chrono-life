@@ -6,6 +6,9 @@ const NAMES: Dictionary = {
 	"sewing_worker": "Dikiş işçisi", "child_factory_worker": "Fabrika çırağı",
 	"skilled_textile_worker": "Nitelikli dokuma işçisi", "mill_overlooker": "Fabrika gözetmeni",
 	"clerk": "Kâtip", "bookkeeper": "Muhasebe kâtibi",
+	"foundry_apprentice": "Dökümhane çırağı", "iron_moulder": "Demir kalıpçısı",
+	"master_machinist": "Usta makinist", "domestic_servant": "Konak hizmetlisi",
+	"independent_shopkeeper": "Bağımsız esnaf",
 	"elementary": "Temel eğitim", "evening_school": "Akşam eğitimi",
 	"precarious": "Kırılgan", "working": "Emekçi", "stable": "Yerleşik",
 	"comfortable": "Rahat", "affluent": "Varlıklı", "unknown": "Henüz belirlenmedi",
@@ -55,7 +58,11 @@ const STORIES: Dictionary = {
 	"debt_bailiff_pawn_crisis": ["Tefecinin çekiç sesleri ({debt} şilin borç)", "Evin borcu {debt} şiline dayandı. Alacaklı esnaf ve mahallenin rehin simsarı kapıyı yumrukluyor. Önünüzde sadece iki acı yol var: Ya evdeki son döküm sobayı ve yatakları rehine vereceksiniz, ya da mahkemenin borçlu hapsi celbini bekleyeceksiniz."],
 	"famine_bread_ration_dilemma": ["Boşalan un çuvalı", "Kilerde un bitti; {child} açlıktan ağlayarak uykuya dalıyor. Nehir kıyısında geceleyin tahıl mavnalarından dökülen çuvallar var; kilise kapısında ise düşkünler çorbası dağıtılıyor."],
 	"overcrowded_cellar_fever": ["Daralan mahzen ve rutubet kokusu", "{dwelling} içinde nefes alacak yer kalmadı. Yerlerde yan yana yatan çocukların öksürükleri birbirine karışıyor. {sibling} göğsünü tutarak rutubet içinde titriyor."],
-	"family_care_vs_ambition": ["Ailenin omuzlarına binen yük ({sibling})", "{sibling} fabrikada kaptığı göğüs iltihabı yüzünden yatağa mahkûm oldu. Kendi meslek ve istikbalinden vazgeçip gece gündüz ona bakmanı bekliyorlar."]
+	"family_care_vs_ambition": ["Ailenin omuzlarına binen yük ({sibling})", "{sibling} fabrikada kaptığı göğüs iltihabı yüzünden yatağa mahkûm oldu. Kendi meslek ve istikbalinden vazgeçip gece gündüz ona bakmanı bekliyorlar."],
+	"textile_strike_dilemma": ["Fabrikada grev ve nöbet", "Dokuma fabrikasında işçiler buhar kazanlarını durdurup 12 saatlik ağır vardiyalara karşı greve gitti. Kapıda nöbet tutanlar dayanışma beklerken ustabaşı, içeri girip tezgah başına geçenlere çift yevmiye ve gözetmenlik terfisi teklif ediyor."],
+	"foundry_molten_crucible": ["Dökümhanede kızgın pota felaketi", "Döküm çukurunun üzerindeki vinç zinciri koptu; beyaz akkor halindeki erimiş demir makine kalıplarına doğru akıyor. Usta, atölye mahvolmadan önce kum setini çekecek cesur bir el arıyor."],
+	"clerk_falsified_ledger": ["Tüccarın gizli defteri", "Sevkiyat defterlerini denkleştirirken patronun gümrük vergisinden kaçırdığı kaçak pamuk balyalarını gizleyen çift defter tuttuğunu fark ettin. Tüccar seni çalışma odasına çağırıp maun masanın üzerine bir tomar banknot koydu."],
+	"open_independent_shop": ["Kendi dükkanının efendisi olmak", "Deansgate köşesindeki bakkal devrediliyor; dükkan kirası ve kuru erzak stoğu için nakit aranıyor. Yılların birikimini yatırıp fabrika gürültüsünden kurtulabilir, kendi işinin başına geçebilirsin."]
 }
 const CHOICES: Dictionary = {
 	"comply": ["Fabrikada çalışmayı kabul et", "Okuldan ayrıl ve ailenin gelirine katkıda bulun."],
@@ -112,7 +119,15 @@ const CHOICES: Dictionary = {
 	"separate_room_sacrifice": ["Birikimini döküp tavan arası oda tut", "Kişisel paranı harca; evi ferahlatıp ciğerleri rutubetten koru."],
 	"endure_confined_air": ["Kaderine razı ol, omuz omuza sıkış", "Parayı elinde tut; rutubetli mahzen havasının sağlığını kemirmesine katlan."],
 	"devote_to_kin": ["İşi bırakıp kardeşinin başucunda nöbet tut", "Kendi istikbalini feda et; kardeşlik bağını ve karakterini yücelt."],
-	"pursue_own_station": ["İşini ve ekmeğini bırakma, çalışmaya devam et", "Soğukkanlı ve bencil ol; kazancını korurken bakımı başkalarına bırak."]
+	"pursue_own_station": ["İşini ve ekmeğini bırakma, çalışmaya devam et", "Soğukkanlı ve bencil ol; kazancını korurken bakımı başkalarına bırak."],
+	"join_strike_picket": ["Grev nöbetine katıl ve sendikayla yürü", "Yevmiyeden vazgeç ve polis copunu göze al; sınıfının onurunu ve işçi dayanışmasını savun."],
+	"scab_work_for_bonus": ["Nöbetçileri aşıp çift yevmiyeye çalış", "Altınları cebine koy ve patronun gözüne girip terfi al; fakat komşularının lanetini üstlen."],
+	"brave_the_sparks": ["Dumanın içine atıl ve kum küreğine sarıl", "Büyük bir zanaatkarlık cesareti göster; adını efsane yap veya kalıcı yanık riskini göze al."],
+	"step_back_to_safety": ["Geri çekil ve madenin dökülmesine izin ver", "Tenini ve ciğerlerini koru; kalıp yeniden dökülür ama can geri gelmez."],
+	"accept_silence_premium": ["Katip payını al ve hileli defteri onayla", "Hemen nakit primi ve muhasebeci terfisini kap; kaderini usulsüz bir tüccara bağla."],
+	"refuse_complicity": ["Sahtekarlığa ortak olmayıp kalemi bırak", "Vicdanını ve onurunu koru; derhal işten kovulmayı göze al."],
+	"lease_corner_shop": ["Birikimini yatır ve tabelanı as", "Fabrika zeminini ebediyen terk et; bağımsız bir esnaf olarak kendi yolunu çiz."],
+	"keep_hoarding_savings": ["Tereddüt et ve parayı kasada tut", "Güvenli sularda kal; yevmiyeli çalışmaya devam edip hane birikimini riske atma."]
 }
 const ACTION_DESCRIPTIONS: Dictionary = {
 	"play": ["Sokakta akranlarınla koşturup çocukluğun tadını çıkardın.", "Çocukluk neşesi"],

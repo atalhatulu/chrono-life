@@ -1336,6 +1336,188 @@
           }
         }
       ]
+    },
+    {
+      "id": "textile_strike_dilemma",
+      "family": "workplace",
+      "title": "The Turn-Out at the Mill",
+      "text": "The mill hands have stopped the steam engines and called a turn-out over brutal 12-hour shifts. The overseer offers immediate promotion and double pay if you break the line, while your fellow spinners demand solidarity.",
+      "requirements": {
+        "min_age": 17,
+        "max_age": 65,
+        "player_alive": true,
+        "occupations_in": [
+          "textile_worker",
+          "skilled_textile_worker"
+        ],
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 55,
+        "modifiers": [
+          {
+            "condition": "high_employment_pressure",
+            "add": 30
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "join_strike_picket",
+          "label": "Join the picket line and stand with the union",
+          "description": "Sacrifice wages and face constable batons, but uphold class honor and worker dignity.",
+          "effects": {
+            "willpower_delta": 12,
+            "literacy_delta": 5,
+            "cash_cost": 250,
+            "injury_hazard_bp": 1500,
+            "set_flag": "union_loyalist"
+          }
+        },
+        {
+          "id": "scab_work_for_bonus",
+          "label": "Slip past pickets and work for double wages",
+          "description": "Pocket gold and earn the master's gratitude, but face eternal curses from your neighbors.",
+          "effects": {
+            "cash_grant": 450,
+            "willpower_delta": -15,
+            "deferred_job": "mill_overlooker",
+            "set_flag": "blacklisted_by_strikers"
+          }
+        }
+      ]
+    },
+    {
+      "id": "foundry_molten_crucible",
+      "family": "workplace",
+      "title": "The Molten Crucible Crisis",
+      "text": "A crane chain snaps above the casting pit, sending white-hot iron pouring toward the engine moulds. The master calls for an experienced hand to throw the sand barriers before the foundry is destroyed.",
+      "requirements": {
+        "min_age": 15,
+        "max_age": 65,
+        "player_alive": true,
+        "occupations_in": [
+          "foundry_apprentice",
+          "iron_moulder"
+        ],
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 60,
+        "modifiers": []
+      },
+      "choices": [
+        {
+          "id": "brave_the_sparks",
+          "label": "Hurl yourself into the smoke with the sand scoop",
+          "description": "A daredevil act of craftsmanship that could make you a legend or maim you for life.",
+          "effects": {
+            "deferred_job": "master_machinist",
+            "cash_grant": 400,
+            "willpower_delta": 10,
+            "injury_hazard_bp": 2500,
+            "set_flag": "hero_of_the_foundry"
+          }
+        },
+        {
+          "id": "step_back_to_safety",
+          "label": "Fall back and let the metal spill",
+          "description": "Preserve your skin and breath; the moulds can be remade, but flesh cannot.",
+          "effects": {
+            "willpower_delta": -5,
+            "health_delta": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "clerk_falsified_ledger",
+      "family": "workplace",
+      "title": "The Merchant's Secret Ledger",
+      "text": "While balancing the shipping manifests, you uncover a double ledger hiding smuggled cotton bales from the customs taxman. The merchant summons you into his private office with a stack of banknotes on his mahogany desk.",
+      "requirements": {
+        "min_age": 18,
+        "max_age": 65,
+        "player_alive": true,
+        "occupations_in": [
+          "clerk",
+          "bookkeeper"
+        ],
+        "min_literacy": 50,
+        "cooldown_years": 5
+      },
+      "utility": {
+        "base": 55,
+        "modifiers": []
+      },
+      "choices": [
+        {
+          "id": "accept_silence_premium",
+          "label": "Take the clerk's share and sign the doctored ledger",
+          "description": "Secure an immediate promotion and cash bounty, binding your fate to a rogue master.",
+          "effects": {
+            "cash_grant": 600,
+            "deferred_job": "bookkeeper",
+            "willpower_delta": -12,
+            "set_flag": "complicit_accountant"
+          }
+        },
+        {
+          "id": "refuse_complicity",
+          "label": "Refuse to commit forgery and lay down your pen",
+          "description": "Preserve your Christian conscience and integrity, accepting immediate dismissal.",
+          "effects": {
+            "willpower_delta": 20,
+            "deferred_job": "dependent",
+            "set_flag": "righteous_whistleblower"
+          }
+        }
+      ]
+    },
+    {
+      "id": "open_independent_shop",
+      "family": "workplace",
+      "title": "A Shop of One's Own",
+      "text": "A corner grocer on Deansgate is retiring, offering the lease and dry goods stock for upfront capital. You have the savings to step out of the wage-earning herd and become your own master.",
+      "requirements": {
+        "min_age": 21,
+        "max_age": 65,
+        "player_alive": true,
+        "min_savings": 2000,
+        "not_occupation": "independent_shopkeeper",
+        "min_literacy": 30,
+        "cooldown_years": 6
+      },
+      "utility": {
+        "base": 50,
+        "modifiers": [
+          {
+            "condition": "high_savings",
+            "add": 40
+          }
+        ]
+      },
+      "choices": [
+        {
+          "id": "lease_corner_shop",
+          "label": "Invest your hard-won savings and hoist your nameboard",
+          "description": "Leave the factory floor forever to become an independent shopkeeper.",
+          "effects": {
+            "cash_cost": 1800,
+            "deferred_job": "independent_shopkeeper",
+            "willpower_delta": 15,
+            "set_flag": "proud_shopkeeper"
+          }
+        },
+        {
+          "id": "keep_hoarding_savings",
+          "label": "Hesitate and keep the safety of your bankroll",
+          "description": "Play it safe; keep working for wages while hoarding family coins.",
+          "effects": {
+            "willpower_delta": -5
+          }
+        }
+      ]
     }
   ],
   "content_paths": {

@@ -249,7 +249,12 @@ static func prepare(delta: RefCounted, pack: Dictionary, jobs: Dictionary, cause
 			delta.record("aid_received", effect.cause_id, {"amount": pack.response_rules.aid_amount})
 		elif effect.type == "start_job":
 			var actor: Dictionary = state.actors[effect.actor_id]
-			if jobs.has(effect.occupation_id) and eligible(actor, jobs[effect.occupation_id], int(actor.age)) and actor.occupation_id == "dependent" and actor.work_capacity >= pack.response_rules.minimum_work_capacity:
+			if effect.occupation_id == "dependent":
+				if actor.occupation_id != "dependent":
+					_record_job_end(delta, effect.actor_id, "storylet_discharge", effect.cause_id)
+			elif jobs.has(effect.occupation_id) and eligible(actor, jobs[effect.occupation_id], int(actor.age)) and actor.work_capacity >= pack.response_rules.minimum_work_capacity:
+				if actor.occupation_id != "dependent":
+					_record_job_end(delta, effect.actor_id, "career_transition", effect.cause_id)
 				start_job(delta, effect.actor_id, effect.occupation_id, effect.cause_id, jobs)
 			else:
 				delta.record("deferred_effect_cancelled", effect.cause_id, {"actor_id": effect.actor_id, "reason": "no_longer_eligible"})
